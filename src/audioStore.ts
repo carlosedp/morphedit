@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 export interface AudioState {
   audioBuffer: AudioBuffer | null;
@@ -7,13 +7,17 @@ export interface AudioState {
   setMarkers: (markers: number[]) => void;
   regions: { start: number; end: number }[];
   setRegions: (regions: { start: number; end: number }[]) => void;
+  reset: () => void;
 }
 
-export const useAudioStore = create<AudioState>((set: (partial: Partial<AudioState>) => void) => ({
-  audioBuffer: null,
-  setAudioBuffer: (buffer) => set({ audioBuffer: buffer }),
-  markers: [],
-  setMarkers: (markers) => set({ markers }),
-  regions: [],
-  setRegions: (regions) => set({ regions }),
-}));
+export const useAudioStore = create<AudioState>(
+  (set: (partial: Partial<AudioState>) => void) => ({
+    audioBuffer: null,
+    setAudioBuffer: (buffer) => set({ audioBuffer: buffer }),
+    markers: [],
+    setMarkers: (markers) => set({ markers }),
+    regions: [],
+    setRegions: (regions) => set({ regions }),
+    reset: () => set({ audioBuffer: null, markers: [], regions: [] }),
+  }),
+);

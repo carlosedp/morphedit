@@ -1,5 +1,5 @@
 #root {
-  max-width: 1280px;
+  width: 100%;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
@@ -39,4 +39,12 @@
 
 .read-the-docs {
   color: #888;
+}
+
+#waveform-container {
+  border: 1px solid var(--mui-palette-primary-main);
+  width: 100%;
+  height: 150px;
+  position: relative;
+  padding: 0;
 }
