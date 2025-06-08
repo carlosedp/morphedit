@@ -1,4 +1,11 @@
-import React, { useRef, useEffect, useState } from "react";
+import {
+  useRef,
+  useEffect,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+  useCallback,
+} from "react";
 import { useTheme } from "@mui/material/styles";
 
 import WaveSurfer from "wavesurfer.js";
@@ -9,14 +16,8 @@ import Hover from "wavesurfer.js/dist/plugins/hover.esm.js";
 
 import { useAudioStore } from "./audioStore";
 import type { AudioState } from "./audioStore";
-import {
-  Box,
-  IconButton,
-  Slider,
-  Stack,
-  Typography,
-  Button,
-} from "@mui/material";
+import "./App.css";
+import { IconButton, Slider, Stack, Typography, Button } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
@@ -27,7 +28,19 @@ interface WaveformProps {
   audioUrl: string;
 }
 
-const Waveform: React.FC<WaveformProps> = ({ audioUrl }) => {
+export interface WaveformRef {
+  handlePlayPause: () => void;
+  handleCropRegion: () => void;
+  handleLoop: () => void;
+  handleZoom: (value: number) => void;
+  getCurrentZoom: () => number;
+  handleSkipForward: () => void;
+  handleSkipBackward: () => void;
+  handleIncreaseSkipIncrement: () => void;
+  handleDecreaseSkipIncrement: () => void;
+}
+
+const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
   const theme = useTheme();
   const wavesurferRef = useRef<WaveSurfer | null>(null);
   const regionsRef = useRef<RegionsPlugin | null>(null);
@@ -41,6 +54,11 @@ const Waveform: React.FC<WaveformProps> = ({ audioUrl }) => {
   const [cropRegion, setCropRegion] = useState<Region | null>(null);
   // Zoom state
   const [zoom, setZoom] = useState(0);
+  // Skip navigation state
+  const [skipIncrement, setSkipIncrement] = useState(1.0); // Default 1 second
+  // Audio info state
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const setAudioBuffer = useAudioStore((s: AudioState) => s.setAudioBuffer);
   const setMarkers = useAudioStore((s: AudioState) => s.setMarkers);
   const setRegions = useAudioStore((s: AudioState) => s.setRegions);
@@ -53,6 +71,25 @@ const Waveform: React.FC<WaveformProps> = ({ audioUrl }) => {
   useEffect(() => {
     cropRegionRef.current = cropRegion;
   }, [cropRegion]);
+
+  // Update current time periodically when playing
+  useEffect(() => {
+    let interval: number;
+
+    if (isPlaying && wavesurferRef.current) {
+      interval = setInterval(() => {
+        if (wavesurferRef.current) {
+          setCurrentTime(wavesurferRef.current.getCurrentTime());
+        }
+      }, 100); // Update every 100ms
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isPlaying]);
 
   useEffect(() => {
     if (!audioUrl) {
@@ -72,6 +109,8 @@ const Waveform: React.FC<WaveformProps> = ({ audioUrl }) => {
       setCropMode(false);
       setCropRegion(null);
       setZoom(0);
+      setCurrentTime(0);
+      setDuration(0);
       return;
     }
 
@@ -113,6 +152,8 @@ const Waveform: React.FC<WaveformProps> = ({ audioUrl }) => {
       if (backend && backend.buffer) {
         setAudioBuffer(backend.buffer);
       }
+      // Set duration when audio is ready
+      setDuration(ws.getDuration());
     });
     ws.on("play", () => setIsPlaying(true));
     ws.on("pause", () => setIsPlaying(false));
@@ -124,6 +165,21 @@ const Waveform: React.FC<WaveformProps> = ({ audioUrl }) => {
         ws.seekTo(0);
         ws.play();
       }
+    });
+
+    // Update current time during playback
+    ws.on("timeupdate", (time: number) => {
+      setCurrentTime(time);
+    });
+
+    // Update current time when interacting with the waveform
+    ws.on("interaction", () => {
+      setCurrentTime(ws.getCurrentTime());
+    });
+
+    // Update current time when clicking on the waveform
+    ws.on("click", () => {
+      setCurrentTime(ws.getCurrentTime());
     });
 
     ws.load(audioUrl);
@@ -147,10 +203,10 @@ const Waveform: React.FC<WaveformProps> = ({ audioUrl }) => {
       setRegions(
         regionList
           .filter((r) => r.end > r.start)
-          .map((r) => ({ start: r.start, end: r.end }))
+          .map((r) => ({ start: r.start, end: r.end })),
       );
       setMarkers(
-        regionList.filter((r) => r.end === r.start).map((r) => r.start)
+        regionList.filter((r) => r.end === r.start).map((r) => r.start),
       );
     };
     // @ts-expect-error: event types are not complete in wavesurfer.js
@@ -211,7 +267,13 @@ const Waveform: React.FC<WaveformProps> = ({ audioUrl }) => {
     const regions = regionsRef.current;
     if (!ws || !regions) return;
 
-    if (!cropMode) {
+    // Check if crop region already exists by looking for existing region
+    const existingRegion = regions
+      .getRegions()
+      .find((r: Region) => r.id === "crop-loop");
+
+    if (!existingRegion) {
+      // Create new crop region
       const duration = ws.getDuration();
       const region = regions.addRegion({
         start: duration * 0.25,
@@ -225,28 +287,144 @@ const Waveform: React.FC<WaveformProps> = ({ audioUrl }) => {
       cropRegionRef.current = region;
       setCropMode(true);
     } else {
-      // Remove the crop-loop region
-      if (cropRegion) {
-        cropRegion.remove();
-        setCropRegion(null);
-        cropRegionRef.current = null;
-      }
+      // Remove the existing crop-loop region
+      existingRegion.remove();
+      setCropRegion(null);
+      cropRegionRef.current = null;
       setCropMode(false);
     }
   };
 
-  const handleLoop = () => {
+  const handleLoop = useCallback(() => {
     // This function will toggle looping for the current region
     const ws = wavesurferRef.current;
     const regions = regionsRef.current;
     if (!ws || !regions) return;
 
-    const newLoopingState = !isLooping;
-    setIsLooping(newLoopingState);
-  };
+    setIsLooping((prev) => !prev);
+  }, []);
+
+  // Skip navigation functions
+  const handleSkipForward = useCallback(() => {
+    const ws = wavesurferRef.current;
+    if (!ws) return;
+
+    const currentTime = ws.getCurrentTime();
+    const duration = ws.getDuration();
+    const newTime = Math.min(currentTime + skipIncrement, duration);
+    ws.seekTo(newTime / duration);
+  }, [skipIncrement]);
+
+  const handleSkipBackward = useCallback(() => {
+    const ws = wavesurferRef.current;
+    if (!ws) return;
+
+    const currentTime = ws.getCurrentTime();
+    const duration = ws.getDuration();
+    const newTime = Math.max(currentTime - skipIncrement, 0);
+    ws.seekTo(newTime / duration);
+  }, [skipIncrement]);
+
+  const handleIncreaseSkipIncrement = useCallback(() => {
+    setSkipIncrement((prev) => {
+      // Logarithmic increase: small increments get smaller increases, large increments get larger increases
+      if (prev < 0.1) return prev + 0.01; // 0.01s increments for very small values
+      if (prev < 1) return prev + 0.1; // 0.1s increments for small values
+      if (prev < 10) return prev + 1; // 1s increments for medium values
+      if (prev < 60) return prev + 5; // 5s increments for large values
+      return Math.min(prev + 30, 300); // 30s increments for very large values, max 5 minutes
+    });
+  }, []);
+
+  const handleDecreaseSkipIncrement = useCallback(() => {
+    setSkipIncrement((prev) => {
+      // Logarithmic decrease: reverse of the increase logic
+      if (prev > 60) return prev - 30; // 30s decrements for very large values
+      if (prev > 10) return prev - 5; // 5s decrements for large values
+      if (prev > 1) return prev - 1; // 1s decrements for medium values
+      if (prev > 0.1) return prev - 0.1; // 0.1s decrements for small values
+      return Math.max(prev - 0.01, 0.01); // 0.01s decrements for very small values, min 0.01s
+    });
+  }, []);
+
+  // Expose functions to parent component via ref
+  useImperativeHandle(
+    ref,
+    () => ({
+      handlePlayPause,
+      handleCropRegion,
+      handleLoop,
+      handleZoom,
+      getCurrentZoom: () => zoom,
+      handleSkipForward,
+      handleSkipBackward,
+      handleIncreaseSkipIncrement,
+      handleDecreaseSkipIncrement,
+    }),
+    [
+      handleLoop,
+      handleSkipForward,
+      handleSkipBackward,
+      handleIncreaseSkipIncrement,
+      handleDecreaseSkipIncrement,
+      zoom,
+      isPlaying,
+      cropRegion,
+    ],
+  );
 
   return (
-    <Box>
+    <div>
+      <div className="info-container">
+        <div className="info-item">
+          <Typography variant="body2" color="primary">
+            Duration: {duration.toFixed(2)}s
+          </Typography>
+        </div>
+        <div className="info-item">
+          <Typography variant="body2" color="primary">
+            Position: {currentTime.toFixed(2)}s
+          </Typography>
+        </div>
+        <div className="info-item">
+          <Typography variant="body2" color="primary">
+            Skip:{" "}
+            {skipIncrement < 1
+              ? `${(skipIncrement * 1000).toFixed(0)}ms`
+              : `${skipIncrement.toFixed(1)}s`}
+          </Typography>
+        </div>
+        <div className="info-item-zoom">
+          <Typography variant="body2" color="primary">
+            Zoom
+          </Typography>
+          <div className="zoom-controls">
+            <IconButton
+              onClick={() => handleZoom(Math.max(zoom - 20, 0))}
+              size="small"
+              color="primary"
+            >
+              <ZoomOutIcon fontSize="small" />
+            </IconButton>
+            <Slider
+              min={0}
+              max={500}
+              step={10}
+              value={zoom}
+              onChange={(_, value) => handleZoom(value as number)}
+              sx={{ width: 80 }}
+              size="small"
+            />
+            <IconButton
+              onClick={() => handleZoom(Math.min(zoom + 20, 500))}
+              size="small"
+              color="primary"
+            >
+              <ZoomInIcon fontSize="small" />
+            </IconButton>
+          </div>
+        </div>
+      </div>
       <Stack
         direction="row"
         spacing={2}
@@ -254,24 +432,14 @@ const Waveform: React.FC<WaveformProps> = ({ audioUrl }) => {
         justifyContent="center"
         mb={2}
       >
-        <IconButton onClick={handlePlayPause} color="primary">
+        <Button
+          variant="outlined"
+          color="primary"
+          sx={{ ml: 2 }}
+          onClick={handlePlayPause}
+        >
           {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-        </IconButton>
-        <Typography variant="body2">Zoom</Typography>
-        <IconButton onClick={() => handleZoom(Math.max(zoom - 20, 0))}>
-          <ZoomOutIcon />
-        </IconButton>
-        <Slider
-          min={0}
-          max={500}
-          step={10}
-          value={zoom}
-          onChange={(_, value) => handleZoom(value as number)}
-          sx={{ width: 120 }}
-        />
-        <IconButton onClick={() => handleZoom(Math.min(zoom + 20, 500))}>
-          <ZoomInIcon />
-        </IconButton>
+        </Button>
         <Button
           variant={cropMode ? "contained" : "outlined"}
           color="primary"
@@ -289,8 +457,10 @@ const Waveform: React.FC<WaveformProps> = ({ audioUrl }) => {
           <RepeatIcon />
         </Button>
       </Stack>
-    </Box>
+    </div>
   );
-};
+});
+
+Waveform.displayName = "Waveform";
 
 export default Waveform;

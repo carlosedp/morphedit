@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Container,
   Typography,
@@ -10,12 +10,26 @@ import {
 } from "@mui/material";
 import Waveform from "./Waveform";
 import { useAudioStore } from "./audioStore";
+import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
+import { KeyboardShortcutsHelp } from "./KeyboardShortcutsHelp";
+import type { ShortcutAction } from "./keyboardShortcuts";
 import "./App.css";
 import { theme } from "./theme";
 
 function App() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const reset = useAudioStore((state) => state.reset);
+  const waveformRef = useRef<{
+    handlePlayPause: () => void;
+    handleCropRegion: () => void;
+    handleLoop: () => void;
+    handleZoom: (value: number) => void;
+    getCurrentZoom: () => number;
+    handleSkipForward: () => void;
+    handleSkipBackward: () => void;
+    handleIncreaseSkipIncrement: () => void;
+    handleDecreaseSkipIncrement: () => void;
+  } | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -34,13 +48,65 @@ function App() {
     reset();
   };
 
+  const handleShortcutAction = (action: ShortcutAction) => {
+    switch (action) {
+      case "playPause":
+        waveformRef.current?.handlePlayPause();
+        break;
+      case "toggleCropRegion":
+        waveformRef.current?.handleCropRegion();
+        break;
+      case "reset":
+        handleReset();
+        break;
+      case "toggleLoop":
+        waveformRef.current?.handleLoop();
+        break;
+      case "zoomIn":
+        if (waveformRef.current) {
+          const currentZoom = waveformRef.current.getCurrentZoom();
+          waveformRef.current.handleZoom(Math.min(currentZoom + 20, 500));
+        }
+        break;
+      case "zoomOut":
+        if (waveformRef.current) {
+          const currentZoom = waveformRef.current.getCurrentZoom();
+          waveformRef.current.handleZoom(Math.max(currentZoom - 20, 0));
+        }
+        break;
+      case "skipForward":
+        waveformRef.current?.handleSkipForward();
+        break;
+      case "skipBackward":
+        waveformRef.current?.handleSkipBackward();
+        break;
+      case "increaseSkipIncrement":
+        waveformRef.current?.handleIncreaseSkipIncrement();
+        break;
+      case "decreaseSkipIncrement":
+        waveformRef.current?.handleDecreaseSkipIncrement();
+        break;
+    }
+  };
+
+  useKeyboardShortcuts({
+    onAction: handleShortcutAction,
+    enabled: true,
+  });
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Container maxWidth="md" sx={{ py: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Morphedit Audio Editor
-        </Typography>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={3}
+        >
+          <Typography variant="h4">Morphedit Audio Editor</Typography>
+          <KeyboardShortcutsHelp />
+        </Box>
         <Box mb={2}>
           <Stack direction="row" spacing={2}>
             <Button variant="contained" component="label">
@@ -65,7 +131,7 @@ function App() {
           id="waveform-container"
           sx={{ border: "1px solid #ccc", padding: 2, borderRadius: 1 }}
         ></Container>
-        {audioUrl && <Waveform audioUrl={audioUrl} />}
+        {audioUrl && <Waveform audioUrl={audioUrl} ref={waveformRef} />}
         <Box mt={4}>
           <Typography variant="body2" color="text.secondary">
             Beat detection and export features coming soon.
