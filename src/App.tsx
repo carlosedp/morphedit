@@ -19,12 +19,14 @@ import { theme } from "./theme";
 
 function App() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
   const reset = useAudioStore((state) => state.reset);
   const waveformRef = useRef<{
     handlePlayPause: () => void;
     handleCropRegion: () => void;
     handleLoop: () => void;
     handleZoom: (value: number) => void;
+    handleZoomReset: () => void;
     getCurrentZoom: () => number;
     handleSkipForward: () => void;
     handleSkipBackward: () => void;
@@ -46,6 +48,53 @@ function App() {
     const file = e.target.files?.[0];
     if (file) {
       setAudioUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const loadAudioFile = (file: File) => {
+    if (file.type.startsWith('audio/')) {
+      setAudioUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!audioUrl && e.dataTransfer.types.includes('Files')) {
+      setIsDragOver(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only hide overlay if we're leaving the main container
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragOver(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    if (!audioUrl) {
+      const files = Array.from(e.dataTransfer.files);
+      const audioFile = files.find(file => file.type.startsWith('audio/'));
+      if (audioFile) {
+        loadAudioFile(audioFile);
+      }
+    }
+  };
+
+  const handleWaveformClick = () => {
+    if (!audioUrl) {
+      // Trigger the file input when clicking on empty waveform
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      if (fileInput) {
+        fileInput.click();
+      }
     }
   };
 
@@ -129,7 +178,43 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Container
+        maxWidth="lg"
+        sx={{ py: 4, position: 'relative' }}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        {/* Drag and Drop Overlay */}
+        {isDragOver && !audioUrl && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              color: 'white',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
+              borderRadius: 2,
+              border: '2px dashed',
+              borderColor: 'primary.main',
+            }}
+          >
+            <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold' }}>
+              Drop Audio File Here
+            </Typography>
+            <Typography variant="body1" color="grey.300">
+              Release to load the audio file
+            </Typography>
+          </Box>
+        )}
+
         <Box
           display="flex"
           justifyContent="space-between"
@@ -161,18 +246,43 @@ function App() {
             </Tooltip>
           </Stack>
         </Box>
-        <Container
+
+        {/* Waveform container - always visible */}
+        <Box
           id="waveform-container"
-          sx={{ border: "1px solid #ccc", padding: 2, borderRadius: 1 }}
-        ></Container>
+          onClick={handleWaveformClick}
+          sx={{
+            border: "1px solid",
+            borderColor: "primary.main",
+            borderRadius: 1,
+            width: "100%",
+            height: "200px",
+            mb: 2,
+            backgroundColor: "background.paper",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "text.secondary",
+            fontSize: "14px",
+            cursor: !audioUrl ? "pointer" : "default",
+            "&:hover": !audioUrl ? {
+              backgroundColor: "action.hover",
+              borderColor: "primary.light",
+            } : {},
+            transition: "background-color 0.2s, border-color 0.2s",
+          }}
+        >
+          {!audioUrl && "Click here, use the button above, or drag and drop an audio file to load it"}
+        </Box>
+
         {audioUrl && <Waveform audioUrl={audioUrl} ref={waveformRef} />}
         <Box mt={4}>
           <Typography variant="body2" color="text.secondary">
-            Beat detection and export features coming soon.
+            Beat detection features coming soon.
           </Typography>
         </Box>
       </Container>
-    </ThemeProvider>
+    </ThemeProvider >
   );
 }
 
