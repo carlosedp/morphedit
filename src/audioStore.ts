@@ -7,6 +7,11 @@ export interface AudioState {
   setMarkers: (markers: number[]) => void;
   regions: { start: number; end: number }[];
   setRegions: (regions: { start: number; end: number }[]) => void;
+  // Undo functionality
+  previousAudioUrl: string | null;
+  setPreviousAudioUrl: (url: string | null) => void;
+  canUndo: boolean;
+  setCanUndo: (canUndo: boolean) => void;
   reset: () => void;
 }
 
@@ -18,6 +23,17 @@ export const useAudioStore = create<AudioState>(
     setMarkers: (markers) => set({ markers }),
     regions: [],
     setRegions: (regions) => set({ regions }),
-    reset: () => set({ audioBuffer: null, markers: [], regions: [] }),
+    // Undo functionality
+    previousAudioUrl: null,
+    setPreviousAudioUrl: (url) => set({ previousAudioUrl: url }),
+    canUndo: false,
+    setCanUndo: (canUndo) => set({ canUndo }),
+    reset: () => set({
+      audioBuffer: null,
+      markers: [],
+      regions: [],
+      previousAudioUrl: null,
+      canUndo: false
+    }),
   }),
 );

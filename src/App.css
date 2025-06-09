@@ -52,6 +52,15 @@
   padding: 0;
 }
 
+#transport-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid var(--mui-palette-primary-main);
+  padding: 8px;
+  border-radius: 4px;
+}
+
 /* Info container styles */
 .info-container {
   display: flex;

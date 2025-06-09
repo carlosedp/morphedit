@@ -7,6 +7,7 @@ import {
   CssBaseline,
   ThemeProvider,
   Stack,
+  Tooltip,
 } from "@mui/material";
 import Waveform from "./Waveform";
 import { useAudioStore } from "./audioStore";
@@ -29,6 +30,12 @@ function App() {
     handleSkipBackward: () => void;
     handleIncreaseSkipIncrement: () => void;
     handleDecreaseSkipIncrement: () => void;
+    handleFadeInRegion: () => void;
+    handleFadeOutRegion: () => void;
+    handleApplyCrop: () => void;
+    handleApplyFades: () => void;
+    handleUndo: () => void;
+    handleExportWav: () => void;
   } | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,6 +93,15 @@ function App() {
       case "decreaseSkipIncrement":
         waveformRef.current?.handleDecreaseSkipIncrement();
         break;
+      case "toggleFadeInRegion":
+        waveformRef.current?.handleFadeInRegion();
+        break;
+      case "toggleFadeOutRegion":
+        waveformRef.current?.handleFadeOutRegion();
+        break;
+      case "undo":
+        waveformRef.current?.handleUndo();
+        break;
     }
   };
 
@@ -97,7 +113,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Container maxWidth="md" sx={{ py: 4 }}>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box
           display="flex"
           justifyContent="space-between"
@@ -118,13 +134,15 @@ function App() {
                 onChange={handleFileChange}
               />
             </Button>
-            <Button
-              variant="outlined"
-              onClick={handleReset}
-              disabled={!audioUrl}
-            >
-              Reset
-            </Button>
+            <Tooltip title="Unload current audio and clear all data">
+              <Button
+                variant="outlined"
+                onClick={handleReset}
+                disabled={!audioUrl}
+              >
+                Reset
+              </Button>
+            </Tooltip>
           </Stack>
         </Box>
         <Container

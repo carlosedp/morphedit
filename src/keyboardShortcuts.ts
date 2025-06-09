@@ -57,6 +57,21 @@ export const keyboardShortcuts: Record<string, KeyboardShortcut> = {
     description: "Decrease skip increment",
     action: "decreaseSkipIncrement",
   },
+  i: {
+    key: "I",
+    description: "Toggle fade-in region",
+    action: "toggleFadeInRegion",
+  },
+  o: {
+    key: "O",
+    description: "Toggle fade-out region",
+    action: "toggleFadeOutRegion",
+  },
+  z: {
+    key: "Ctrl+Z / Cmd+Z",
+    description: "Undo last operation",
+    action: "undo",
+  },
 };
 
 export type ShortcutAction =
@@ -69,4 +84,7 @@ export type ShortcutAction =
   | "skipForward"
   | "skipBackward"
   | "increaseSkipIncrement"
-  | "decreaseSkipIncrement";
+  | "decreaseSkipIncrement"
+  | "toggleFadeInRegion"
+  | "toggleFadeOutRegion"
+  | "undo";
