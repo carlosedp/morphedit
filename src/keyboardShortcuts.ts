@@ -72,6 +72,26 @@ export const keyboardShortcuts: Record<string, KeyboardShortcut> = {
     description: "Undo last operation",
     action: "undo",
   },
+  j: {
+    key: "J",
+    description: "Add splice marker at cursor position",
+    action: "addSpliceMarker",
+  },
+  k: {
+    key: "K",
+    description: "Remove selected splice marker",
+    action: "removeSpliceMarker",
+  },
+  s: {
+    key: "S",
+    description: "Create auto-slice markers",
+    action: "autoSlice",
+  },
+  h: {
+    key: "H",
+    description: "Remove every other splice marker",
+    action: "halfMarkers",
+  },
 };
 
 export type ShortcutAction =
@@ -87,4 +107,8 @@ export type ShortcutAction =
   | "decreaseSkipIncrement"
   | "toggleFadeInRegion"
   | "toggleFadeOutRegion"
-  | "undo";
+  | "undo"
+  | "addSpliceMarker"
+  | "removeSpliceMarker"
+  | "autoSlice"
+  | "halfMarkers";

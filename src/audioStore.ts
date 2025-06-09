@@ -7,6 +7,9 @@ export interface AudioState {
   setMarkers: (markers: number[]) => void;
   regions: { start: number; end: number }[];
   setRegions: (regions: { start: number; end: number }[]) => void;
+  // Splice markers - times where cue points should be placed
+  spliceMarkers: number[];
+  setSpliceMarkers: (markers: number[]) => void;
   // Undo functionality
   previousAudioUrl: string | null;
   setPreviousAudioUrl: (url: string | null) => void;
@@ -23,6 +26,9 @@ export const useAudioStore = create<AudioState>(
     setMarkers: (markers) => set({ markers }),
     regions: [],
     setRegions: (regions) => set({ regions }),
+    // Splice markers
+    spliceMarkers: [],
+    setSpliceMarkers: (markers) => set({ spliceMarkers: markers }),
     // Undo functionality
     previousAudioUrl: null,
     setPreviousAudioUrl: (url) => set({ previousAudioUrl: url }),
@@ -32,6 +38,7 @@ export const useAudioStore = create<AudioState>(
       audioBuffer: null,
       markers: [],
       regions: [],
+      spliceMarkers: [],
       previousAudioUrl: null,
       canUndo: false
     }),

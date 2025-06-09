@@ -36,6 +36,10 @@ function App() {
     handleApplyFades: () => void;
     handleUndo: () => void;
     handleExportWav: () => void;
+    handleAddSpliceMarker: () => void;
+    handleRemoveSpliceMarker: () => void;
+    handleAutoSlice: () => void;
+    handleHalfMarkers: () => void;
   } | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,6 +105,18 @@ function App() {
         break;
       case "undo":
         waveformRef.current?.handleUndo();
+        break;
+      case "addSpliceMarker":
+        waveformRef.current?.handleAddSpliceMarker();
+        break;
+      case "removeSpliceMarker":
+        waveformRef.current?.handleRemoveSpliceMarker();
+        break;
+      case "autoSlice":
+        waveformRef.current?.handleAutoSlice();
+        break;
+      case "halfMarkers":
+        waveformRef.current?.handleHalfMarkers();
         break;
     }
   };

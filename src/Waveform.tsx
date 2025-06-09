@@ -1,3 +1,4 @@
+// filepath: /home/carlosedp/repos/morphedit/src/Waveform.tsx
 import {
   useRef,
   useEffect,
@@ -17,7 +18,7 @@ import Hover from "wavesurfer.js/dist/plugins/hover.esm.js";
 import { useAudioStore } from "./audioStore";
 import type { AudioState } from "./audioStore";
 import "./App.css";
-import { IconButton, Slider, Stack, Typography, Button, Tooltip, Container, Menu, MenuItem, ButtonGroup } from "@mui/material";
+import { IconButton, Slider, Stack, Typography, Button, Tooltip, Container, Menu, MenuItem, ButtonGroup, TextField } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
@@ -29,6 +30,11 @@ import UndoIcon from "@mui/icons-material/Undo";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
 import DownloadIcon from "@mui/icons-material/Download";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import ContentCutIcon from "@mui/icons-material/ContentCut";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import AddIcon from "@mui/icons-material/Create";
+import DeleteIcon from "@mui/icons-material/Delete";
+import ClearIcon from "@mui/icons-material/Clear";
 
 // Export format interface
 interface ExportFormat {
@@ -69,6 +75,10 @@ export interface WaveformRef {
   handleApplyFades: () => void;
   handleUndo: () => void;
   handleExportWav: () => void;
+  handleAddSpliceMarker: () => void;
+  handleRemoveSpliceMarker: () => void;
+  handleAutoSlice: () => void;
+  handleHalfMarkers: () => void;
 }
 
 const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
@@ -86,6 +96,10 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
   // Fade regions state
   const [fadeInMode, setFadeInMode] = useState(false);
   const [fadeOutMode, setFadeOutMode] = useState(false);
+  // Splice markers state
+  const [selectedSpliceMarker, setSelectedSpliceMarker] = useState<Region | null>(null);
+  // Auto-slice state
+  const [numberOfSlices, setNumberOfSlices] = useState(8);
   // Zoom state
   const [zoom, setZoom] = useState(0);
   // Skip navigation state
@@ -98,6 +112,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
   const setAudioBuffer = useAudioStore((s: AudioState) => s.setAudioBuffer);
   const setMarkers = useAudioStore((s: AudioState) => s.setMarkers);
   const setRegions = useAudioStore((s: AudioState) => s.setRegions);
+  const setSpliceMarkersStore = useAudioStore((s: AudioState) => s.setSpliceMarkers);
+  const spliceMarkersStore = useAudioStore((s: AudioState) => s.spliceMarkers);
   const setPreviousAudioUrl = useAudioStore((s: AudioState) => s.setPreviousAudioUrl);
   const setCanUndo = useAudioStore((s: AudioState) => s.setCanUndo);
   const previousAudioUrl = useAudioStore((s: AudioState) => s.previousAudioUrl);
@@ -140,6 +156,123 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
     };
   }, [isPlaying]);
 
+  // Helper function to parse WAV file for existing cue points
+  const parseWavCuePoints = useCallback(async (audioUrl: string): Promise<number[]> => {
+    try {
+      console.log("Parsing WAV file for cue points:", audioUrl);
+      const response = await fetch(audioUrl);
+      const arrayBuffer = await response.arrayBuffer();
+      const view = new DataView(arrayBuffer);
+
+      // Check if it's a valid WAV file
+      const riffHeader = String.fromCharCode(
+        view.getUint8(0),
+        view.getUint8(1),
+        view.getUint8(2),
+        view.getUint8(3)
+      );
+      if (riffHeader !== 'RIFF') {
+        console.log("Not a WAV file or unsupported format");
+        return [];
+      }
+
+      const waveHeader = String.fromCharCode(
+        view.getUint8(8),
+        view.getUint8(9),
+        view.getUint8(10),
+        view.getUint8(11)
+      );
+      if (waveHeader !== 'WAVE') {
+        console.log("Not a WAV file");
+        return [];
+      }
+
+      // Parse chunks to find cue points
+      let offset = 12; // Skip RIFF header
+      const cuePoints: number[] = [];
+      let sampleRate = 44100; // Default sample rate
+
+      while (offset < arrayBuffer.byteLength - 8) {
+        const chunkId = String.fromCharCode(
+          view.getUint8(offset),
+          view.getUint8(offset + 1),
+          view.getUint8(offset + 2),
+          view.getUint8(offset + 3)
+        );
+        const chunkSize = view.getUint32(offset + 4, true);
+
+        if (chunkId === 'fmt ') {
+          // Extract sample rate from format chunk
+          sampleRate = view.getUint32(offset + 12, true);
+          console.log("Found sample rate:", sampleRate);
+        } else if (chunkId === 'cue ') {
+          // Parse cue chunk
+          console.log("Found cue chunk of size:", chunkSize);
+          const numCuePoints = view.getUint32(offset + 8, true);
+          console.log("Number of cue points:", numCuePoints);
+
+          let cueOffset = offset + 12; // Start of cue point data
+          for (let i = 0; i < numCuePoints; i++) {
+            // Each cue point is 24 bytes
+            const cueId = view.getUint32(cueOffset, true);
+            const playOrder = view.getUint32(cueOffset + 4, true);
+            const sampleOffset = view.getUint32(cueOffset + 20, true); // Sample offset is at byte 20
+
+            // Convert sample offset to time in seconds
+            const timeInSeconds = sampleOffset / sampleRate;
+            cuePoints.push(timeInSeconds);
+
+            console.log(`Cue point ${i}: ID=${cueId}, PlayOrder=${playOrder}, Sample=${sampleOffset}, Time=${timeInSeconds}s`);
+            cueOffset += 24;
+          }
+        }
+
+        // Move to next chunk
+        offset += 8 + chunkSize;
+        // Ensure even byte alignment
+        if (chunkSize % 2 === 1) {
+          offset += 1;
+        }
+      }
+
+      console.log("Parsed cue points:", cuePoints);
+      return cuePoints.sort((a, b) => a - b);
+    } catch (error) {
+      console.error("Error parsing WAV cue points:", error);
+      return [];
+    }
+  }, []);
+
+  // Update splice marker colors based on selection
+  const updateSpliceMarkerColors = useCallback((selectedMarker: Region | null) => {
+    const regions = regionsRef.current;
+    if (!regions) return;
+
+    console.log("Updating splice marker colors, selected marker:", selectedMarker?.id);
+
+    const allRegions = regions.getRegions();
+    const spliceRegions = allRegions.filter((r: Region) => r.id.startsWith("splice-marker-"));
+
+    console.log("Found splice regions:", spliceRegions.map(r => r.id));
+
+    spliceRegions.forEach((region: Region) => {
+      if (selectedMarker && region.id === selectedMarker.id) {
+        // Selected marker: use orange/yellow color for selection
+        // console.log("Setting orange color for selected marker:", region.id);
+        // region.setOptions({ color: "rgba(255, 165, 0, 0.8)" });
+        // set region part id to the border-left color:
+        region.element.style.borderLeft = `2px solid ${theme.palette.primary.main}`;
+      } else {
+        // Unselected markers: use default cyan color
+        // console.log("Setting cyan color for unselected marker:", region.id);
+        // region.setOptions({ color: "rgba(0, 255, 255, 0.8)" });
+        // reset region ::part(id) to the border-left color:
+        region.element.style.borderLeft = `2px solid rgba(0, 255, 255, 0.8)`;
+
+      }
+    });
+  }, [theme]);
+
   useEffect(() => {
     if (!audioUrl) {
       // If no audioUrl, clean up the wavesurfer instance
@@ -176,7 +309,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
       waveColor: theme.palette.primary.main,
       progressColor: "white",
       cursorColor: theme.palette.primary.main,
-      cursorWidth: 1,
+      cursorWidth: 2,
       plugins: [
         regions,
         TimelinePlugin.create({}),
@@ -198,9 +331,34 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
 
     wavesurferRef.current = ws;
 
-    ws.on("ready", () => {
+    ws.on("ready", async () => {
       // Set duration when audio is ready
       setDuration(ws.getDuration());
+
+      // Parse WAV file for existing cue points and load them as splice markers
+      const urlToLoad = currentAudioUrl || audioUrl;
+      try {
+        const existingCuePoints = await parseWavCuePoints(urlToLoad);
+        if (existingCuePoints.length > 0) {
+          console.log("Loading existing cue points as splice markers:", existingCuePoints);
+          setSpliceMarkersStore(existingCuePoints);
+
+          // Create visual splice marker regions for each cue point
+          existingCuePoints.forEach((cueTime, index) => {
+            regions.addRegion({
+              start: cueTime,
+              end: cueTime,
+              color: "rgba(0, 255, 255, 0.8)",
+              drag: true,
+              resize: false,
+              id: `splice-marker-cue-${index}-${Date.now()}`,
+              content: "⚡",
+            });
+          });
+        }
+      } catch (error) {
+        console.error("Error loading cue points:", error);
+      }
 
       // Always update the audio buffer from the currently loaded audio
       // This ensures the store has the most current audio buffer
@@ -211,7 +369,6 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
         setAudioBuffer(backend.buffer);
       } else {
         // Fallback: load and decode the current audio file manually
-        const urlToLoad = currentAudioUrl || audioUrl;
         console.log("Backend buffer not available, loading current audio manually");
         fetch(urlToLoad)
           .then(response => response.arrayBuffer())
@@ -289,6 +446,34 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
     // @ts-expect-error: event types are not complete in wavesurfer.js
     ws.on("region-removed", updateRegionsAndMarkers);
 
+    // Handle splice marker selection
+    regions.on("region-clicked", (region: Region) => {
+      console.log("Region clicked:", region.id, "starts with splice-marker:", region.id.startsWith("splice-marker-"));
+      if (region.id.startsWith("splice-marker-")) {
+        console.log("Splice marker selected:", region.id);
+        // For splice markers, we want to select them but not seek to their position
+        setSelectedSpliceMarker(region);
+        updateSpliceMarkerColors(region);
+
+        // Store current position to restore it after the region click
+        const currentPosition = ws.getCurrentTime();
+
+        // Use a timeout to restore the position after the region click processing
+        setTimeout(() => {
+          if (wavesurferRef.current) {
+            const duration = wavesurferRef.current.getDuration();
+            if (duration > 0) {
+              wavesurferRef.current.seekTo(currentPosition / duration);
+            }
+          }
+        }, 0);
+      } else {
+        console.log("Non-splice marker clicked, clearing selection");
+        setSelectedSpliceMarker(null);
+        updateSpliceMarkerColors(null);
+      }
+    });
+
     return () => {
       // Only destroy if not already destroyed
       if (wavesurferRef.current) {
@@ -301,7 +486,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
         regionsRef.current = null;
       }
     };
-  }, [audioUrl, currentAudioUrl, setAudioBuffer, setMarkers, setRegions, theme]);
+  }, [audioUrl, currentAudioUrl, setAudioBuffer, setMarkers, setRegions, theme, parseWavCuePoints, setSpliceMarkersStore, updateSpliceMarkerColors]);
 
   // Playback controls
   const handlePlayPause = useCallback(() => {
@@ -347,11 +532,11 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
   }
 
   // Zoom controls
-  const handleZoom = (value: number) => {
+  const handleZoom = useCallback((value: number) => {
     setZoom(value);
     const ws = wavesurferRef.current;
     if (ws) ws.zoom(value);
-  };
+  }, []);
 
   // Add region button handler
   const handleCropRegion = useCallback(() => {
@@ -453,7 +638,437 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
       existingRegion.remove();
       setFadeOutMode(false);
     }
-  }, []);  // Apply audio effects handlers
+  }, []);
+
+  // Splice marker handlers
+  const handleAddSpliceMarker = useCallback(() => {
+    const ws = wavesurferRef.current;
+    const regions = regionsRef.current;
+    if (!ws || !regions) return;
+
+    const currentTime = ws.getCurrentTime();
+    console.log("Adding splice marker at time:", currentTime);
+
+    // Create a zero-width region (start === end) for the splice marker
+    regions.addRegion({
+      start: currentTime,
+      end: currentTime,
+      color: "rgba(0, 255, 255, 0.8)",
+      drag: true,
+      resize: false,
+      id: `splice-marker-${Date.now()}`,
+      content: "⚡",
+    });
+
+    // Update store with splice marker times
+    const allSpliceMarkers = [...spliceMarkersStore, currentTime].sort((a, b) => a - b);
+    setSpliceMarkersStore(allSpliceMarkers);
+
+    console.log("Splice marker added. Total markers:", allSpliceMarkers.length);
+  }, [spliceMarkersStore, setSpliceMarkersStore]);
+
+  const handleRemoveSpliceMarker = useCallback(() => {
+    const ws = wavesurferRef.current;
+    const regions = regionsRef.current;
+    if (!ws || !regions) return;
+
+    if (selectedSpliceMarker) {
+      console.log("Removing selected splice marker");
+      const markerTime = selectedSpliceMarker.start;
+
+      // Remove from regions
+      selectedSpliceMarker.remove();
+
+      setSelectedSpliceMarker(null);
+      updateSpliceMarkerColors(null);
+
+      // Update store
+      const updatedMarkers = spliceMarkersStore.filter(time => Math.abs(time - markerTime) > 0.001);
+      setSpliceMarkersStore(updatedMarkers);
+
+      console.log("Splice marker removed. Remaining markers:", updatedMarkers.length);
+    } else {
+      // If no marker is selected, try to remove the closest one to cursor
+      const currentTime = ws.getCurrentTime();
+      const allRegions = regions.getRegions();
+      const spliceRegions = allRegions.filter((r: Region) => r.id.startsWith("splice-marker-"));
+
+      if (spliceRegions.length === 0) {
+        console.log("No splice markers to remove");
+        return;
+      }
+
+      // Find the closest splice marker to current cursor position
+      let closestMarker = spliceRegions[0];
+      let closestDistance = Math.abs(closestMarker.start - currentTime);
+
+      for (const marker of spliceRegions) {
+        const distance = Math.abs(marker.start - currentTime);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestMarker = marker;
+        }
+      }
+
+      console.log("Removing closest splice marker at time:", closestMarker.start);
+      const markerTime = closestMarker.start;
+
+      // Remove from regions
+      closestMarker.remove();
+
+      // Reset selection and update colors
+      setSelectedSpliceMarker(null);
+      updateSpliceMarkerColors(null);
+
+      // Update store
+      const updatedMarkers = spliceMarkersStore.filter(time => Math.abs(time - markerTime) > 0.001);
+      setSpliceMarkersStore(updatedMarkers);
+
+      console.log("Closest splice marker removed. Remaining markers:", updatedMarkers.length);
+    }
+  }, [selectedSpliceMarker, spliceMarkersStore, setSpliceMarkersStore, updateSpliceMarkerColors]);
+
+  // Auto-slice function to create equally distributed splice markers
+  const handleAutoSlice = useCallback(() => {
+    const ws = wavesurferRef.current;
+    const regions = regionsRef.current;
+    if (!ws || !regions || numberOfSlices < 2) return;
+
+    const duration = ws.getDuration();
+    if (duration <= 0) {
+      console.log("Audio duration not available");
+      return;
+    }
+
+    console.log(`Creating ${numberOfSlices} equally distributed splice markers`);
+
+    // Clear existing splice markers first
+    const allRegions = regions.getRegions();
+    const existingSpliceRegions = allRegions.filter((r: Region) => r.id.startsWith("splice-marker-"));
+    existingSpliceRegions.forEach(region => region.remove());
+
+    // Create new equally distributed splice markers
+    const newSpliceMarkers: number[] = [];
+    const sliceInterval = duration / numberOfSlices;
+
+    // Add splice marker at time 0 (start)
+    newSpliceMarkers.push(0);
+    regions.addRegion({
+      start: 0,
+      end: 0,
+      color: "rgba(0, 255, 255, 0.8)",
+      drag: true,
+      resize: false,
+      id: `splice-marker-auto-0-${Date.now()}`,
+      content: "⚡",
+    });
+
+    // Create splice markers at the boundaries between slices (excluding end)
+    for (let i = 1; i < numberOfSlices; i++) {
+      const markerTime = i * sliceInterval;
+      newSpliceMarkers.push(markerTime);
+
+      // Create visual splice marker region
+      regions.addRegion({
+        start: markerTime,
+        end: markerTime,
+        color: "rgba(0, 255, 255, 0.8)",
+        drag: true,
+        resize: false,
+        id: `splice-marker-auto-${i}-${Date.now()}`,
+        content: "⚡",
+      });
+    }
+
+    // Update store with new splice marker times
+    setSpliceMarkersStore(newSpliceMarkers.sort((a, b) => a - b));
+
+    // Clear any selection
+    setSelectedSpliceMarker(null);
+    updateSpliceMarkerColors(null);
+
+    console.log(`Auto-slice complete. Created ${newSpliceMarkers.length} splice markers`);
+  }, [numberOfSlices, setSpliceMarkersStore, updateSpliceMarkerColors]);
+
+  // Half markers function to remove every other splice marker starting from the second one
+  // When there's only one marker, it clears all markers instead
+  const handleHalfMarkers = useCallback(() => {
+    const regions = regionsRef.current;
+    if (!regions) return;
+
+    const allRegions = regions.getRegions();
+    const spliceRegions = allRegions.filter((r: Region) => r.id.startsWith("splice-marker-"));
+
+    if (spliceRegions.length === 0) {
+      console.log("No splice markers to process");
+      return;
+    }
+
+    if (spliceRegions.length === 1) {
+      // When there's only one marker, clear all markers
+      console.log("Clearing single splice marker");
+      spliceRegions[0].remove();
+      setSpliceMarkersStore([]);
+      setSelectedSpliceMarker(null);
+      updateSpliceMarkerColors(null);
+      console.log("Single splice marker cleared");
+      return;
+    }
+
+    console.log(`Halving splice markers. Current count: ${spliceRegions.length}`);
+
+    // Sort splice regions by their time position
+    const sortedSpliceRegions = spliceRegions.sort((a, b) => a.start - b.start);
+
+    // Remove every other marker starting from index 1 (second marker)
+    const markersToRemove: Region[] = [];
+    const remainingMarkerTimes: number[] = [];
+
+    sortedSpliceRegions.forEach((region, index) => {
+      if (index % 2 === 1) {
+        // Remove every second marker (index 1, 3, 5, etc.)
+        markersToRemove.push(region);
+      } else {
+        // Keep every first marker (index 0, 2, 4, etc.)
+        remainingMarkerTimes.push(region.start);
+      }
+    });
+
+    // Remove the selected markers from the visual display
+    markersToRemove.forEach(region => region.remove());
+
+    // Update store with remaining splice marker times
+    setSpliceMarkersStore(remainingMarkerTimes.sort((a, b) => a - b));
+
+    // Clear any selection
+    setSelectedSpliceMarker(null);
+    updateSpliceMarkerColors(null);
+
+    console.log(`Half markers complete. Removed ${markersToRemove.length} markers, ${remainingMarkerTimes.length} remaining`);
+  }, [setSpliceMarkersStore, updateSpliceMarkerColors]);
+
+  // Helper function to convert AudioBuffer to WAV with cue points
+  const audioBufferToWavWithCues = useCallback((buffer: AudioBuffer, cuePoints: number[]): ArrayBuffer => {
+    const length = buffer.length;
+    const numberOfChannels = buffer.numberOfChannels;
+    const sampleRate = buffer.sampleRate;
+    const bitsPerSample = 16;
+    const bytesPerSample = bitsPerSample / 8;
+    const blockAlign = numberOfChannels * bytesPerSample;
+    const byteRate = sampleRate * blockAlign;
+    const dataSize = length * blockAlign;
+
+    // Calculate cue chunk size if we have cue points
+    const hasCues = cuePoints.length > 0;
+    const cueChunkSize = hasCues ? 12 + (cuePoints.length * 24) : 0; // 'cue ' + size + count + (24 bytes per cue point)
+    const bufferSize = 44 + dataSize + cueChunkSize;
+
+    const arrayBuffer = new ArrayBuffer(bufferSize);
+    const view = new DataView(arrayBuffer);
+
+    // WAV header
+    const writeString = (offset: number, string: string) => {
+      for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+      }
+    };
+
+    writeString(0, 'RIFF');
+    view.setUint32(4, bufferSize - 8, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, numberOfChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, byteRate, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, bitsPerSample, true);
+    writeString(36, 'data');
+    view.setUint32(40, dataSize, true);
+
+    // Convert float samples to 16-bit PCM
+    let offset = 44;
+    for (let i = 0; i < length; i++) {
+      for (let channel = 0; channel < numberOfChannels; channel++) {
+        const sample = buffer.getChannelData(channel)[i];
+        const intSample = Math.max(-1, Math.min(1, sample)) * 0x7FFF;
+        view.setInt16(offset, intSample, true);
+        offset += 2;
+      }
+    }
+
+    // Add cue points if any
+    if (hasCues) {
+      writeString(offset, 'cue ');
+      offset += 4;
+      view.setUint32(offset, cueChunkSize - 8, true); // Size of cue chunk minus 'cue ' and size fields
+      offset += 4;
+      view.setUint32(offset, cuePoints.length, true); // Number of cue points
+      offset += 4;
+
+      // Write each cue point
+      for (let i = 0; i < cuePoints.length; i++) {
+        const cueTime = cuePoints[i];
+        const cueSample = Math.floor(cueTime * sampleRate);
+
+        view.setUint32(offset, i, true); // Cue point ID
+        view.setUint32(offset + 4, cueSample, true); // Play order position
+        writeString(offset + 8, 'data'); // Data chunk ID
+        view.setUint32(offset + 12, 0, true); // Chunk start
+        view.setUint32(offset + 16, 0, true); // Block start
+        view.setUint32(offset + 20, cueSample, true); // Sample offset
+        offset += 24;
+      }
+    }
+
+    return arrayBuffer;
+  }, []);
+
+  // Helper function to convert AudioBuffer to WAV
+  const audioBufferToWav = useCallback((buffer: AudioBuffer): ArrayBuffer => {
+    return audioBufferToWavWithCues(buffer, spliceMarkersStore);
+  }, [audioBufferToWavWithCues, spliceMarkersStore]);
+
+  // Helper function to convert AudioBuffer to WAV with specific format options
+  const audioBufferToWavFormat = useCallback((buffer: AudioBuffer, format: ExportFormat): ArrayBuffer => {
+    const originalSampleRate = buffer.sampleRate;
+    const originalChannels = buffer.numberOfChannels;
+    let processedBuffer = buffer;
+
+    // Handle sample rate conversion
+    if (originalSampleRate !== format.sampleRate) {
+      const audioContext = new (window.AudioContext || (window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)();
+      const resampleRatio = format.sampleRate / originalSampleRate;
+      const newLength = Math.round(buffer.length * resampleRatio);
+
+      processedBuffer = audioContext.createBuffer(originalChannels, newLength, format.sampleRate);
+
+      for (let channel = 0; channel < originalChannels; channel++) {
+        const originalData = buffer.getChannelData(channel);
+        const newData = processedBuffer.getChannelData(channel);
+
+        // Simple linear interpolation resampling
+        for (let i = 0; i < newLength; i++) {
+          const originalIndex = i / resampleRatio;
+          const index = Math.floor(originalIndex);
+          const fraction = originalIndex - index;
+
+          if (index < originalData.length - 1) {
+            newData[i] = originalData[index] * (1 - fraction) + originalData[index + 1] * fraction;
+          } else if (index < originalData.length) {
+            newData[i] = originalData[index];
+          } else {
+            newData[i] = 0;
+          }
+        }
+      }
+    }
+
+    // Handle channel conversion (stereo to mono if needed)
+    let finalBuffer = processedBuffer;
+    const targetChannels = format.channels === 'mono' ? 1 : Math.min(processedBuffer.numberOfChannels, 2);
+
+    if (format.channels === 'mono' && processedBuffer.numberOfChannels > 1) {
+      const audioContext = new (window.AudioContext || (window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)();
+      finalBuffer = audioContext.createBuffer(1, processedBuffer.length, format.sampleRate);
+
+      const monoData = finalBuffer.getChannelData(0);
+      const leftData = processedBuffer.getChannelData(0);
+      const rightData = processedBuffer.numberOfChannels > 1 ? processedBuffer.getChannelData(1) : leftData;
+
+      // Mix down to mono by averaging left and right channels
+      for (let i = 0; i < processedBuffer.length; i++) {
+        monoData[i] = (leftData[i] + rightData[i]) * 0.5;
+      }
+    }
+
+    // Now convert to WAV format with the specified bit depth
+    const length = finalBuffer.length;
+    const numberOfChannels = targetChannels;
+    const sampleRate = format.sampleRate;
+    const bitsPerSample = format.bitDepth;
+    const bytesPerSample = bitsPerSample / 8;
+    const blockAlign = numberOfChannels * bytesPerSample;
+    const byteRate = sampleRate * blockAlign;
+    const dataSize = length * blockAlign;
+
+    // Calculate cue chunk size if we have splice markers
+    const hasCues = spliceMarkersStore.length > 0;
+    const cueChunkSize = hasCues ? 12 + (spliceMarkersStore.length * 24) : 0;
+    const bufferSize = 44 + dataSize + cueChunkSize;
+
+    const arrayBuffer = new ArrayBuffer(bufferSize);
+    const view = new DataView(arrayBuffer);
+
+    // WAV header
+    const writeString = (offset: number, string: string) => {
+      for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+      }
+    };
+
+    writeString(0, 'RIFF');
+    view.setUint32(4, bufferSize - 8, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, format.format === 'float' ? 3 : 1, true); // 3 for float, 1 for int
+    view.setUint16(22, numberOfChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, byteRate, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, bitsPerSample, true);
+    writeString(36, 'data');
+    view.setUint32(40, dataSize, true);
+
+    // Convert samples based on format
+    let offset = 44;
+    for (let i = 0; i < length; i++) {
+      for (let channel = 0; channel < numberOfChannels; channel++) {
+        const channelIndex = Math.min(channel, finalBuffer.numberOfChannels - 1);
+        const sample = finalBuffer.getChannelData(channelIndex)[i];
+
+        if (format.format === 'float' && format.bitDepth === 32) {
+          view.setFloat32(offset, sample, true);
+          offset += 4;
+        } else if (format.bitDepth === 16) {
+          const intSample = Math.max(-1, Math.min(1, sample)) * 0x7FFF;
+          view.setInt16(offset, intSample, true);
+          offset += 2;
+        }
+      }
+    }
+
+    // Add cue points if any
+    if (hasCues) {
+      writeString(offset, 'cue ');
+      offset += 4;
+      view.setUint32(offset, cueChunkSize - 8, true);
+      offset += 4;
+      view.setUint32(offset, spliceMarkersStore.length, true);
+      offset += 4;
+
+      // Convert splice marker times to sample positions in the exported format
+      for (let i = 0; i < spliceMarkersStore.length; i++) {
+        const cueTime = spliceMarkersStore[i];
+        const resampleRatio = format.sampleRate / originalSampleRate;
+        const cueSample = Math.floor(cueTime * originalSampleRate * resampleRatio);
+
+        view.setUint32(offset, i, true); // Cue point ID
+        view.setUint32(offset + 4, cueSample, true); // Play order position
+        writeString(offset + 8, 'data'); // Data chunk ID
+        view.setUint32(offset + 12, 0, true); // Chunk start
+        view.setUint32(offset + 16, 0, true); // Block start
+        view.setUint32(offset + 20, cueSample, true); // Sample offset
+        offset += 24;
+      }
+    }
+
+    return arrayBuffer;
+  }, [spliceMarkersStore]);
+
+  // Apply audio effects handlers
   const handleApplyCrop = useCallback(() => {
     const ws = wavesurferRef.current;
     const regions = regionsRef.current;
@@ -527,7 +1142,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
     }).catch((error) => {
       console.error("Error loading cropped audio:", error);
     });
-  }, [cropRegion, currentAudioUrl, setPreviousAudioUrl, setCanUndo, setAudioBuffer]); const handleApplyFades = useCallback(() => {
+  }, [cropRegion, currentAudioUrl, setPreviousAudioUrl, setCanUndo, setAudioBuffer, audioBufferToWav]);
+
+  const handleApplyFades = useCallback(() => {
     const ws = wavesurferRef.current;
     const regions = regionsRef.current;
     if (!ws || !regions || (!fadeInMode && !fadeOutMode)) return;
@@ -618,7 +1235,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
     }).catch((error) => {
       console.error("Error loading faded audio:", error);
     });
-  }, [fadeInMode, fadeOutMode, currentAudioUrl, setPreviousAudioUrl, setCanUndo, setAudioBuffer]);
+  }, [fadeInMode, fadeOutMode, currentAudioUrl, setPreviousAudioUrl, setCanUndo, setAudioBuffer, audioBufferToWav]);
 
   // Undo function to restore previous audio state
   const handleUndo = useCallback(() => {
@@ -648,264 +1265,95 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
     });
   }, [canUndo, previousAudioUrl, setPreviousAudioUrl, setCanUndo]);
 
-  // Helper function to convert AudioBuffer to WAV
-  const audioBufferToWav = (buffer: AudioBuffer): ArrayBuffer => {
-    const length = buffer.length;
-    const numberOfChannels = buffer.numberOfChannels;
-    const sampleRate = buffer.sampleRate;
-    const bitsPerSample = 16;
-    const bytesPerSample = bitsPerSample / 8;
-    const blockAlign = numberOfChannels * bytesPerSample;
-    const byteRate = sampleRate * blockAlign;
-    const dataSize = length * blockAlign;
-    const bufferSize = 44 + dataSize;
-
-    const arrayBuffer = new ArrayBuffer(bufferSize);
-    const view = new DataView(arrayBuffer);
-
-    // WAV header
-    const writeString = (offset: number, string: string) => {
-      for (let i = 0; i < string.length; i++) {
-        view.setUint8(offset + i, string.charCodeAt(i));
-      }
-    };
-
-    writeString(0, 'RIFF');
-    view.setUint32(4, bufferSize - 8, true);
-    writeString(8, 'WAVE');
-    writeString(12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true);
-    view.setUint16(22, numberOfChannels, true);
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, byteRate, true);
-    view.setUint16(32, blockAlign, true);
-    view.setUint16(34, bitsPerSample, true);
-    writeString(36, 'data');
-    view.setUint32(40, dataSize, true);
-
-    // Convert float samples to 16-bit PCM
-    let offset = 44;
-    for (let i = 0; i < length; i++) {
-      for (let channel = 0; channel < numberOfChannels; channel++) {
-        const sample = buffer.getChannelData(channel)[i];
-        const intSample = Math.max(-1, Math.min(1, sample)) * 0x7FFF;
-        view.setInt16(offset, intSample, true);
-        offset += 2;
-      }
-    }
-
-    return arrayBuffer;
-  };  // Helper function to convert AudioBuffer to WAV with specific format options
-  const audioBufferToWavFormat = (buffer: AudioBuffer, format: ExportFormat): ArrayBuffer => {
-    const originalSampleRate = buffer.sampleRate;
-    const originalChannels = buffer.numberOfChannels;
-    let processedBuffer = buffer;
-
-    // Handle sample rate conversion
-    if (originalSampleRate !== format.sampleRate) {
-      const audioContext = new (window.AudioContext || (window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)();
-      const resampleRatio = format.sampleRate / originalSampleRate;
-      const newLength = Math.round(buffer.length * resampleRatio);
-
-      processedBuffer = audioContext.createBuffer(originalChannels, newLength, format.sampleRate);
-
-      for (let channel = 0; channel < originalChannels; channel++) {
-        const originalData = buffer.getChannelData(channel);
-        const newData = processedBuffer.getChannelData(channel);
-
-        // Simple linear interpolation resampling
-        for (let i = 0; i < newLength; i++) {
-          const originalIndex = i / resampleRatio;
-          const index = Math.floor(originalIndex);
-          const fraction = originalIndex - index;
-
-          if (index < originalData.length - 1) {
-            newData[i] = originalData[index] * (1 - fraction) + originalData[index + 1] * fraction;
-          } else if (index < originalData.length) {
-            newData[i] = originalData[index];
-          } else {
-            newData[i] = 0;
-          }
-        }
-      }
-    }
-
-    // Handle channel conversion (stereo to mono if needed)
-    let finalBuffer = processedBuffer;
-    const targetChannels = format.channels === 'mono' ? 1 : Math.min(processedBuffer.numberOfChannels, 2);
-
-    if (format.channels === 'mono' && processedBuffer.numberOfChannels > 1) {
-      const audioContext = new (window.AudioContext || (window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)();
-      finalBuffer = audioContext.createBuffer(1, processedBuffer.length, format.sampleRate);
-
-      const monoData = finalBuffer.getChannelData(0);
-      const leftData = processedBuffer.getChannelData(0);
-      const rightData = processedBuffer.numberOfChannels > 1 ? processedBuffer.getChannelData(1) : leftData;
-
-      // Mix down to mono by averaging left and right channels
-      for (let i = 0; i < processedBuffer.length; i++) {
-        monoData[i] = (leftData[i] + rightData[i]) * 0.5;
-      }
-    }
-
-    const length = finalBuffer.length;
-    const numberOfChannels = targetChannels;
-    const sampleRate = format.sampleRate;
-    const bitsPerSample = format.bitDepth;
-    const bytesPerSample = bitsPerSample / 8;
-    const blockAlign = numberOfChannels * bytesPerSample;
-    const byteRate = sampleRate * blockAlign;
-    const dataSize = length * blockAlign;
-    const bufferSize = 44 + dataSize;
-
-    const arrayBuffer = new ArrayBuffer(bufferSize);
-    const view = new DataView(arrayBuffer);
-
-    // WAV header
-    const writeString = (offset: number, string: string) => {
-      for (let i = 0; i < string.length; i++) {
-        view.setUint8(offset + i, string.charCodeAt(i));
-      }
-    };
-
-    writeString(0, 'RIFF');
-    view.setUint32(4, bufferSize - 8, true);
-    writeString(8, 'WAVE');
-    writeString(12, 'fmt ');
-    view.setUint32(16, 16, true);
-
-    // Format code: 1 = PCM integer, 3 = IEEE float
-    const formatCode = format.format === 'float' ? 3 : 1;
-    view.setUint16(20, formatCode, true);
-    view.setUint16(22, numberOfChannels, true);
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, byteRate, true);
-    view.setUint16(32, blockAlign, true);
-    view.setUint16(34, bitsPerSample, true);
-    writeString(36, 'data');
-    view.setUint32(40, dataSize, true);
-
-    // Write audio data
-    let offset = 44;
-    for (let i = 0; i < length; i++) {
-      for (let channel = 0; channel < numberOfChannels; channel++) {
-        const channelIndex = Math.min(channel, finalBuffer.numberOfChannels - 1);
-        const sample = finalBuffer.getChannelData(channelIndex)[i];
-
-        if (format.format === 'float' && format.bitDepth === 32) {
-          // 32-bit float
-          view.setFloat32(offset, sample, true);
-          offset += 4;
-        } else if (format.bitDepth === 16) {
-          // 16-bit integer
-          const intSample = Math.max(-1, Math.min(1, sample)) * 0x7FFF;
-          view.setInt16(offset, intSample, true);
-          offset += 2;
-        }
-      }
-    }
-
-    return arrayBuffer;
-  };
-
-  // Export format interface
-  interface ExportFormat {
-    label: string;
-    sampleRate: number;
-    bitDepth: 16 | 32;
-    channels: 'stereo' | 'mono';
-    format: 'int' | 'float';
-  }
-
-  // Generalized export function
-  const handleExportWavFormat = useCallback((format: ExportFormat) => {
+  // Export handlers
+  const handleExportWav = useCallback(() => {
     const audioBuffer = useAudioStore.getState().audioBuffer;
     if (!audioBuffer) {
-      console.log("No audio buffer available for export");
+      console.log("No audio buffer found");
       return;
     }
 
-    console.log(`Exporting audio as ${format.label}...`);
+    console.log("Exporting WAV with splice markers as cue points:", spliceMarkersStore);
 
-    // Convert to the specified format
+    const wav = audioBufferToWav(audioBuffer);
+    const blob = new Blob([wav], { type: 'audio/wav' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'morphedit-export.wav';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [spliceMarkersStore, audioBufferToWav]);
+
+  const handleExportWavFormat = useCallback((format: ExportFormat) => {
+    const audioBuffer = useAudioStore.getState().audioBuffer;
+    if (!audioBuffer) {
+      console.log("No audio buffer found");
+      return;
+    }
+
+    console.log("Exporting WAV in format:", format, "with splice markers:", spliceMarkersStore);
+
     const wav = audioBufferToWavFormat(audioBuffer, format);
     const blob = new Blob([wav], { type: 'audio/wav' });
-
-    // Create download link
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
 
-    // Generate filename with timestamp and format info
-    const now = new Date();
-    const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, -5);
-    const formatSuffix = `${format.sampleRate}Hz-${format.bitDepth}bit-${format.channels}`;
-    link.download = `morphedit-export-${timestamp}-${formatSuffix}.wav`;
-
-    // Trigger download
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    // Clean up
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `morphedit-export-${format.label.toLowerCase().replace(/[^a-z0-9]/g, '-')}.wav`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    console.log("Export completed successfully");
-
-    // Close the dropdown menu
+    // Close the export menu
     setExportAnchorEl(null);
-  }, [audioBufferToWavFormat]);
+  }, [spliceMarkersStore, audioBufferToWavFormat]);
 
-  // Export current audio as default 32-bit float WAV at 48kHz (for the main button)
-  const handleExportWav = useCallback(() => {
-    handleExportWavFormat(exportFormats[0]); // Default to first format
-  }, [handleExportWavFormat]);
-
-  // Skip navigation functions
+  // Navigation controls
   const handleSkipForward = useCallback(() => {
     const ws = wavesurferRef.current;
-    if (!ws) return;
-
-    const currentTime = ws.getCurrentTime();
-    const duration = ws.getDuration();
-    const newTime = Math.min(currentTime + skipIncrement, duration);
-    ws.seekTo(newTime / duration);
+    if (ws) {
+      const currentTime = ws.getCurrentTime();
+      const newTime = Math.min(currentTime + skipIncrement, ws.getDuration());
+      ws.seekTo(newTime / ws.getDuration());
+    }
   }, [skipIncrement]);
 
   const handleSkipBackward = useCallback(() => {
     const ws = wavesurferRef.current;
-    if (!ws) return;
-
-    const currentTime = ws.getCurrentTime();
-    const duration = ws.getDuration();
-    const newTime = Math.max(currentTime - skipIncrement, 0);
-    ws.seekTo(newTime / duration);
+    if (ws) {
+      const currentTime = ws.getCurrentTime();
+      const newTime = Math.max(currentTime - skipIncrement, 0);
+      ws.seekTo(newTime / ws.getDuration());
+    }
   }, [skipIncrement]);
 
   const handleIncreaseSkipIncrement = useCallback(() => {
-    setSkipIncrement((prev) => {
-      // Logarithmic increase: small increments get smaller increases, large increments get larger increases
+    setSkipIncrement((prev: number) => {
       if (prev < 0.1) return prev + 0.01; // 0.01s increments for very small values
       if (prev < 1) return prev + 0.1; // 0.1s increments for small values
       if (prev < 10) return prev + 1; // 1s increments for medium values
-      if (prev < 60) return prev + 5; // 5s increments for large values
-      return Math.min(prev + 30, 300); // 30s increments for very large values, max 5 minutes
+      if (prev < 60) return prev + 10; // 10s increments for large values
+      return prev + 30; // 30s increments for very large values
     });
   }, []);
 
   const handleDecreaseSkipIncrement = useCallback(() => {
-    setSkipIncrement((prev) => {
-      // Logarithmic decrease: reverse of the increase logic
+    setSkipIncrement((prev: number) => {
       if (prev > 60) return prev - 30; // 30s decrements for very large values
-      if (prev > 10) return prev - 5; // 5s decrements for large values
+      if (prev > 10) return prev - 10; // 10s decrements for large values
       if (prev > 1) return prev - 1; // 1s decrements for medium values
       if (prev > 0.1) return prev - 0.1; // 0.1s decrements for small values
-      return Math.max(prev - 0.01, 0.01); // 0.01s decrements for very small values, min 0.01s
+      if (prev > 0.01) return prev - 0.01; // 0.01s decrements for very small values
+      return 0.01; // Minimum value
     });
   }, []);
 
-  // Expose functions to parent component via ref
+  // Expose methods to parent component via ref
   useImperativeHandle(
     ref,
     () => ({
@@ -924,11 +1372,16 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
       handleApplyFades,
       handleUndo,
       handleExportWav,
+      handleAddSpliceMarker,
+      handleRemoveSpliceMarker,
+      handleAutoSlice,
+      handleHalfMarkers,
     }),
     [
       handlePlayPause,
       handleCropRegion,
       handleLoop,
+      handleZoom,
       handleSkipForward,
       handleSkipBackward,
       handleIncreaseSkipIncrement,
@@ -939,102 +1392,84 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
       handleApplyFades,
       handleUndo,
       handleExportWav,
+      handleAddSpliceMarker,
+      handleRemoveSpliceMarker,
+      handleAutoSlice,
+      handleHalfMarkers,
       zoom,
     ],
   );
 
+  // Format time for display
+  const formatTime = (seconds: number) => {
+    if (isNaN(seconds)) return "0:00";
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
+  };
+
   return (
-    <Container>
-      <Container className="info-container">
-        <Container className="info-item">
-          <Typography variant="body2" color="primary">
-            Duration: {duration.toFixed(2)}s
-          </Typography>
-        </Container>
-        <Container className="info-item">
-          <Typography variant="body2" color="primary">
-            Position: {currentTime.toFixed(2)}s
-          </Typography>
-        </Container>
-        <Container className="info-item">
-          <Typography variant="body2" color="primary">
-            Skip:{" "}
-            {skipIncrement < 1
-              ? `${(skipIncrement * 1000).toFixed(0)}ms`
-              : `${skipIncrement.toFixed(1)}s`}
-          </Typography>
-        </Container>
-        <Container className="info-item-zoom">
-          <Typography variant="body2" color="primary">
-            Zoom
-          </Typography>
-          <Container className="zoom-controls">
-            <IconButton
-              onClick={() => handleZoom(Math.max(zoom - 20, 0))}
-              size="small"
-              color="primary"
-            >
-              <ZoomOutIcon fontSize="small" />
-            </IconButton>
+    <Container maxWidth="xl" sx={{ mt: 2, mb: 2 }}>
+      {/* Playback controls */}
+      <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 2 }}>
+        <Tooltip title="Play/Pause" enterDelay={500} leaveDelay={200}>
+          <IconButton
+            onClick={handlePlayPause}
+            color="primary"
+            size="large"
+          >
+            {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Loop region" enterDelay={500} leaveDelay={200}>
+          <IconButton
+            onClick={handleLoop}
+            color={isLooping ? "primary" : "default"}
+          >
+            <RepeatIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Rewind to start" enterDelay={500} leaveDelay={200}>
+          <IconButton onClick={handleRewind} color="primary">
+            <FirstPageIcon />
+          </IconButton>
+        </Tooltip>
+
+        {/* Zoom controls */}
+        <Tooltip title="Zoom" enterDelay={500} leaveDelay={200}>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ ml: 2 }}>
+            <ZoomOutIcon color="action" />
             <Slider
+              value={zoom}
+              onChange={(_, value) => handleZoom(value as number)}
               min={0}
               max={500}
               step={10}
-              value={zoom}
-              onChange={(_, value) => handleZoom(value as number)}
-              sx={{ width: 80 }}
+              sx={{ width: 100 }}
               size="small"
             />
-            <IconButton
-              onClick={() => handleZoom(Math.min(zoom + 20, 500))}
-              size="small"
-              color="primary"
-            >
-              <ZoomInIcon fontSize="small" />
-            </IconButton>
-          </Container>
-        </Container >
-      </Container >
-      <Stack
-        direction="row"
-        spacing={2}
-        alignItems="center"
-        justifyContent="center"
-        mb={2}
-      >
-        {/* <Container id="transport-controls"> */}
-        <Tooltip title="Rewind to beginning" enterDelay={500} leaveDelay={200}>
-          <Button
-            variant="outlined"
-            color="primary"
-            sx={{ ml: 2 }}
-            onClick={handleRewind}
-          >
-            <FirstPageIcon />
-          </Button>
+            <ZoomInIcon color="action" />
+          </Stack>
         </Tooltip>
-        <Tooltip title="Play/Pause" enterDelay={500} leaveDelay={200}>
-          <Button
-            variant="outlined"
-            color="primary"
-            sx={{ ml: 2 }}
-            onClick={handlePlayPause}
-          >
-            {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </Button>
-        </Tooltip>
-        <Tooltip title="Loop thru the audio or loop region if enabled" enterDelay={500} leaveDelay={200}>
-          <Button
-            variant={isLooping ? "contained" : "outlined"}
-            color="primary"
-            onClick={handleLoop}
-            sx={{ ml: 2 }}
-          >
-            <RepeatIcon />
-          </Button>
-        </Tooltip>
-        <Tooltip title="Export current audio as 32-bit float WAV at 48kHz" enterDelay={500} leaveDelay={200}>
-          <ButtonGroup variant="contained" color="secondary" sx={{ ml: 2 }}>
+        {/* Times */}
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ ml: 2 }}>
+          <Typography variant="body2">
+            {formatTime(currentTime)} / {formatTime(duration)}
+          </Typography>
+          <Typography variant="body2">
+            Skip: {skipIncrement}s
+          </Typography>
+          {spliceMarkersStore.length > 0 && (
+            <Typography variant="body2" color="primary">
+              Splice markers: {spliceMarkersStore.length}
+            </Typography>
+          )}
+        </Stack>
+      </Stack>
+      {/* Export controls */}
+      <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 2 }}>
+        <Tooltip title="Export audio" enterDelay={500} leaveDelay={200}>
+          <ButtonGroup variant="outlined" sx={{ ml: 2 }}>
             <Button
               onClick={handleExportWav}
               startIcon={<DownloadIcon />}
@@ -1068,7 +1503,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
             </MenuItem>
           ))}
         </Menu>
-        {/* </Container> */}
+        {/* Region Controls */}
         <Tooltip title="Create crop/loop region" enterDelay={500} leaveDelay={200}>
           <Button
             variant={cropMode ? "contained" : "outlined"}
@@ -1136,7 +1571,64 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
           </Button>
         </Tooltip>
       </Stack>
-    </Container>
+      <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 2 }}>
+        <Tooltip title="Add splice marker at current time" enterDelay={500} leaveDelay={200}>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={handleAddSpliceMarker}
+          >
+            <AddIcon />
+          </Button>
+        </Tooltip>
+        <Tooltip title="Remove selected splice marker" enterDelay={500} leaveDelay={200}>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={handleRemoveSpliceMarker}
+            disabled={!selectedSpliceMarker}
+          >
+            <DeleteIcon />
+          </Button>
+        </Tooltip>
+        {/* Auto-slice controls */}
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ ml: 3 }}>
+          <Tooltip title="Number of equal slices to create" enterDelay={500} leaveDelay={200}>
+            <TextField
+              label="Slices"
+              type="number"
+              value={numberOfSlices}
+              onChange={(e) => setNumberOfSlices(Math.max(2, parseInt(e.target.value) || 2))}
+              size="small"
+              inputProps={{ min: 2, max: 100 }}
+              sx={{ width: 80 }}
+            />
+          </Tooltip>
+          <Tooltip title="Create equally distributed splice markers" enterDelay={500} leaveDelay={200}>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={handleAutoSlice}
+              startIcon={<ContentCutIcon />}
+              disabled={!duration || duration <= 0}
+            >
+              Auto Slice
+            </Button>
+          </Tooltip>
+          <Tooltip title={spliceMarkersStore.length === 1 ? "Clear the single splice marker" : "Remove every other splice marker (keep 1st, 3rd, 5th...)"} enterDelay={500} leaveDelay={200}>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={handleHalfMarkers}
+              startIcon={spliceMarkersStore.length === 1 ? <ClearIcon /> : <FilterListIcon />}
+              disabled={spliceMarkersStore.length === 0}
+            >
+              {spliceMarkersStore.length === 1 ? "Clear Markers" : "Half Markers"}
+            </Button>
+          </Tooltip>
+        </Stack>
+      </Stack>
+    </Container >
   );
 });
 
