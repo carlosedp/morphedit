@@ -170,6 +170,7 @@ export const applyCrop = async (
     setCurrentAudioUrl: (url: string | null) => void;
     setFadeInMode: (mode: boolean) => void;
     setFadeOutMode: (mode: boolean) => void;
+    setSpliceMarkersStore: (markers: number[]) => void;
     setZoom?: (zoom: number) => void;
   }
 ): Promise<void> => {
@@ -273,13 +274,45 @@ export const applyCrop = async (
 
   console.log("New buffer created, converting to WAV...");
 
-  // Convert to WAV blob and create new URL
-  const wav = audioBufferToWavWithCues(newBuffer, spliceMarkersStore);
-  const blob = new Blob([wav], { type: "audio/wav" });
-  const newUrl = URL.createObjectURL(blob);
+  // Get current splice markers from store for debugging
+  console.log("DEBUG: Current splice markers from store:", spliceMarkersStore);
+  console.log("DEBUG: Store markers count:", spliceMarkersStore.length);
 
-  console.log("Loading new cropped URL:", newUrl);
-  console.log("Saving for undo - currentAudioUrl:", currentAudioUrl);
+  // Also check visual markers for comparison
+  const allRegions = regions.getRegions();
+  const visualSpliceMarkers = allRegions.filter((r: Region) =>
+    r.id.startsWith("splice-marker-")
+  );
+  console.log(
+    "DEBUG: Visual splice markers count:",
+    visualSpliceMarkers.length
+  );
+  console.log(
+    "DEBUG: Visual marker times:",
+    visualSpliceMarkers.map((m) => m.start.toFixed(3))
+  );
+
+  // Filter and adjust splice markers to only include those within the cropped region
+  const filteredSpliceMarkers = spliceMarkersStore.filter(
+    (markerTime) =>
+      markerTime >= adjustedStartTime && markerTime <= adjustedEndTime
+  );
+
+  // Adjust marker times relative to the new start time (subtract crop start)
+  const adjustedSpliceMarkers = filteredSpliceMarkers.map(
+    (markerTime) => markerTime - adjustedStartTime
+  );
+
+  console.log(
+    `Crop markers: ${spliceMarkersStore.length} -> ${filteredSpliceMarkers.length} (filtered) -> ${adjustedSpliceMarkers.length} (adjusted)`
+  );
+
+  // Convert to WAV blob and create new URL
+  const wav = audioBufferToWavWithCues(newBuffer, adjustedSpliceMarkers);
+  const blob = new Blob([wav], { type: "audio/wav" });
+  const newUrl = URL.createObjectURL(blob) + "#morphedit-cropped";
+
+  console.log("Loading cropped audio...");
 
   // Save current audio URL for undo before loading new one
   callbacks.setPreviousAudioUrl(currentAudioUrl);
@@ -293,15 +326,62 @@ export const applyCrop = async (
     callbacks.setCurrentAudioUrl(newUrl);
     // Update the audio buffer in the store with the new cropped buffer
     callbacks.setAudioBuffer(newBuffer);
-    console.log(
-      "Updated audio buffer in store with cropped version - duration:",
-      newBuffer.length / newBuffer.sampleRate,
-      "seconds"
-    );
+    console.log("Updated audio buffer with cropped version");
+
     // Clear crop region after applying
     callbacks.setCropMode(false);
     callbacks.setCropRegion(null);
     cropRegionData.remove();
+
+    // Update splice markers store with filtered and adjusted markers
+    console.log(
+      "DEBUG: About to update store with adjusted markers:",
+      adjustedSpliceMarkers
+    );
+    callbacks.setSpliceMarkersStore(adjustedSpliceMarkers);
+    console.log(
+      `Updated splice markers store: ${adjustedSpliceMarkers.length} markers for cropped audio`
+    );
+
+    // Remove existing visual splice markers and create new ones for the cropped audio
+    const allRegions = regions.getRegions();
+    const existingSpliceMarkers = allRegions.filter((r: Region) =>
+      r.id.startsWith("splice-marker-")
+    );
+    console.log(
+      `🔍 MARKER DEBUGGING - Found ${existingSpliceMarkers.length} existing visual markers to remove`
+    );
+    console.log(
+      `  Existing marker IDs: [${existingSpliceMarkers
+        .map((m) => m.id)
+        .join(", ")}]`
+    );
+    existingSpliceMarkers.forEach((marker: Region) => marker.remove());
+
+    // Create new visual splice markers for the filtered and adjusted markers
+    console.log(
+      `🔍 MARKER DEBUGGING - Creating ${adjustedSpliceMarkers.length} new visual markers`
+    );
+    adjustedSpliceMarkers.forEach((markerTime, index) => {
+      const markerId = `splice-marker-crop-${index}-${Date.now()}`;
+      console.log(
+        `  Creating visual marker ${index}: time=${markerTime.toFixed(
+          3
+        )}s, id=${markerId}`
+      );
+      regions.addRegion({
+        start: markerTime,
+        color: "rgba(0, 255, 255, 0.8)",
+        drag: true,
+        resize: false,
+        id: markerId,
+        content: "🔻",
+      });
+    });
+
+    console.log(
+      `🔍 MARKER DEBUGGING - Created ${adjustedSpliceMarkers.length} visual splice markers for cropped audio`
+    );
 
     // Also remove any existing fade regions since crop was applied
     const existingFadeInRegion = regions
@@ -369,6 +449,7 @@ export const applyFades = async (
     setCurrentAudioUrl: (url: string | null) => void;
     setCropMode: (mode: boolean) => void;
     setCropRegion: (region: Region | null) => void;
+    setSpliceMarkersStore: (markers: number[]) => void;
     setZoom?: (zoom: number) => void;
   }
 ): Promise<void> => {
@@ -487,7 +568,7 @@ export const applyFades = async (
   // Convert to WAV blob and create new URL
   const wav = audioBufferToWavWithCues(newBuffer, spliceMarkersStore);
   const blob = new Blob([wav], { type: "audio/wav" });
-  const newUrl = URL.createObjectURL(blob);
+  const newUrl = URL.createObjectURL(blob) + "#morphedit-faded";
 
   console.log("Loading new faded URL:", newUrl);
   console.log("Saving for undo - currentAudioUrl:", currentAudioUrl);

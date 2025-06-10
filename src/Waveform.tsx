@@ -186,9 +186,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     const memoizedUpdateSpliceMarkerColors = useCallback(
       (selectedMarker: Region | null) => {
         updateSpliceMarkerColors(regionsRef.current!, selectedMarker, theme);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
       },
-      [theme],
+      [theme, regionsRef],
     );
 
     // Main wavesurfer initialization effect
@@ -253,6 +252,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
       // Set up event listeners
       ws.on("ready", async () => {
+        console.log("WaveSurfer ready");
         actions.setDuration(ws.getDuration());
 
         // Apply zoom - either current zoom or calculate initial zoom to fill container
@@ -287,16 +287,34 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         ws.zoom(zoomToApply);
 
         // Parse WAV file for existing cue points and load them as splice markers
+        // Skip this for cropped/faded URLs (processed audio) since markers are handled manually
         const urlToLoad = state.currentAudioUrl || audioUrl;
-        try {
-          const existingCuePoints = await parseWavCuePoints(urlToLoad);
-          loadExistingCuePoints(
-            regions,
-            existingCuePoints,
-            setSpliceMarkersStore,
-          );
-        } catch (error) {
-          console.error("Error loading cue points:", error);
+        const isProcessedAudio = urlToLoad.includes("#morphedit-cropped") || urlToLoad.includes("#morphedit-faded");
+
+        console.log("DEBUG: Ready event - Checking for cue points in:", urlToLoad);
+        console.log("DEBUG: Ready event - Is processed audio:", isProcessedAudio);
+        console.log("DEBUG: Ready event - Current store markers:", spliceMarkersStore.length);
+
+        // Load cue points from all URLs except processed (cropped/faded) audio
+        if (!isProcessedAudio) {
+          console.log("DEBUG: Ready event - Loading cue points from audio file...");
+          try {
+            const existingCuePoints = await parseWavCuePoints(urlToLoad);
+            if (existingCuePoints.length > 0) {
+              console.log("DEBUG: Ready event - Found cue points, loading as splice markers:", existingCuePoints);
+              loadExistingCuePoints(
+                regions,
+                existingCuePoints,
+                setSpliceMarkersStore,
+              );
+            } else {
+              console.log("DEBUG: Ready event - No cue points found in audio file");
+            }
+          } catch (error) {
+            console.error("DEBUG: Ready event - Error loading cue points:", error);
+          }
+        } else {
+          console.log("DEBUG: Ready event - Skipping cue point loading for processed audio (markers managed manually)");
         }
 
         // Update audio buffer in store - but only if not already correctly set
@@ -308,7 +326,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           currentStoredBuffer &&
           Math.abs(
             currentStoredBuffer.length / currentStoredBuffer.sampleRate -
-              wsDuration,
+            wsDuration,
           ) < 0.01;
 
         if (bufferAlreadyCorrect) {
@@ -346,9 +364,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
                 const audioContext = new (window.AudioContext ||
                   (
                     window as Window &
-                      typeof globalThis & {
-                        webkitAudioContext?: typeof AudioContext;
-                      }
+                    typeof globalThis & {
+                      webkitAudioContext?: typeof AudioContext;
+                    }
                   ).webkitAudioContext)();
                 return audioContext.decodeAudioData(arrayBuffer);
               })
@@ -422,6 +440,16 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             "🔄 Preprocessing audio for truncation before loading...",
           );
           try {
+            // Parse cue points from original file BEFORE truncation
+            let originalCuePoints: number[] = [];
+            try {
+              console.log("🔍 Parsing cue points from original file before truncation...");
+              originalCuePoints = await parseWavCuePoints(audioUrl);
+              console.log("🔍 Found cue points in original file:", originalCuePoints);
+            } catch (error) {
+              console.warn("Could not parse cue points from original file:", error);
+            }
+
             // Fetch and decode the original audio to check if truncation is needed
             const response = await fetch(audioUrl);
             const arrayBuffer = await response.arrayBuffer();
@@ -429,9 +457,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             const audioContext = new (window.AudioContext ||
               (
                 window as Window &
-                  typeof globalThis & {
-                    webkitAudioContext?: typeof AudioContext;
-                  }
+                typeof globalThis & {
+                  webkitAudioContext?: typeof AudioContext;
+                }
               ).webkitAudioContext)();
 
             const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -448,6 +476,12 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               console.log(
                 "✂️ Audio exceeds max duration, creating truncated version",
               );
+
+              // Filter cue points to only include those within the truncated range
+              const filteredCuePoints = originalCuePoints.filter(
+                (cueTime) => cueTime <= MORPHAGENE_MAX_DURATION
+              );
+              console.log("🔍 Filtered cue points for truncated audio:", filteredCuePoints);
 
               // Truncate the buffer
               const truncatedBuffer = truncateAudioBuffer(
@@ -468,7 +502,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               const wavArrayBuffer = audioBufferToWavFormat(
                 truncatedBuffer,
                 defaultFormat,
-                [],
+                filteredCuePoints, // Include the filtered cue points in the truncated file
               );
               const wavBlob = new Blob([wavArrayBuffer], { type: "audio/wav" });
               urlToLoad = URL.createObjectURL(wavBlob);
@@ -845,6 +879,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           setCurrentAudioUrl: actions.setCurrentAudioUrl,
           setFadeInMode: actions.setFadeInMode,
           setFadeOutMode: actions.setFadeOutMode,
+          setSpliceMarkersStore,
           setZoom: actions.setZoom,
         },
       );
@@ -889,6 +924,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           setCurrentAudioUrl: actions.setCurrentAudioUrl,
           setCropMode: actions.setCropMode,
           setCropRegion: actions.setCropRegion,
+          setSpliceMarkersStore,
           setZoom: actions.setZoom,
         },
       );

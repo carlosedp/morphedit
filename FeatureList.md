@@ -19,3 +19,14 @@
 - [ ] Settings menu for:
   - [ ]  Fade in/out curve type (linear, exponential, etc.)
   - [ ]  Truncate size
+
+
+## To Test
+
+- [ ] Check if splice points are detected correctly when audio is truncated
+- [ ] Fix bug where splice points are not detected correctly when audio is appended
+
+## Bugs
+
+- [x] Fix bug where splice points are not correctly placed after the audio is cropped
+- [x] Fix bug where audio files with existing splice markers (cue points) are not being imported/loaded

@@ -386,42 +386,93 @@ export const loadExistingCuePoints = (
   existingCuePoints: number[],
   setSpliceMarkersStore: (markers: number[]) => void
 ) => {
-  if (existingCuePoints.length > 0) {
+  console.log(
+    `Loading ${existingCuePoints.length} existing cue points as splice markers`
+  );
+
+  if (existingCuePoints.length === 0) {
+    return;
+  }
+
+  // Check if there are already markers in the store
+  const currentStoreMarkers = useAudioStore.getState().spliceMarkers;
+  console.log(
+    `Current store has ${currentStoreMarkers.length} existing markers`
+  );
+
+  // Clear all existing visual splice markers first to avoid duplicates
+  const allRegions = regions.getRegions();
+  const existingSpliceMarkers = allRegions.filter((r: Region) =>
+    r.id.startsWith("splice-marker-")
+  );
+  console.log(
+    `Removing ${existingSpliceMarkers.length} existing visual markers`
+  );
+  existingSpliceMarkers.forEach((marker: Region) => marker.remove());
+
+  // If there are existing markers in the store, use those instead of loading cue points
+  // This prevents overwriting manually added markers when files are reloaded
+  if (currentStoreMarkers.length > 0) {
     console.log(
-      "Loading existing cue points as splice markers:",
-      existingCuePoints
+      "Store has existing markers, recreating visual markers from store instead of loading cue points"
     );
 
-    // Get audio buffer for zero-crossing detection
-    const audioBuffer = useAudioStore.getState().audioBuffer;
-    const adjustedCuePoints: number[] = [];
-
-    // Create visual splice marker regions for each cue point
-    existingCuePoints.forEach((cueTime, index) => {
-      let adjustedCueTime = cueTime;
-
-      if (audioBuffer) {
-        // Snap to nearest zero crossing to avoid audio artifacts
-        adjustedCueTime = findNearestZeroCrossing(audioBuffer, cueTime);
-        console.log(
-          `Cue point ${index} snapped to zero crossing:`,
-          `${cueTime} -> ${adjustedCueTime}`
-        );
-      }
-
-      adjustedCuePoints.push(adjustedCueTime);
-
+    // Recreate visual markers from store
+    currentStoreMarkers.forEach((markerTime, index) => {
       regions.addRegion({
-        start: adjustedCueTime,
+        start: markerTime,
         color: "rgba(0, 255, 255, 0.8)",
         drag: true,
         resize: false,
-        id: `splice-marker-cue-${index}-${Date.now()}`,
+        id: `splice-marker-store-${index}-${Date.now()}`,
         content: "🔻",
       });
     });
 
-    // Update store with adjusted cue points
-    setSpliceMarkersStore(adjustedCuePoints.sort((a, b) => a - b));
+    console.log(
+      `Recreated ${currentStoreMarkers.length} visual markers from store`
+    );
+    return;
   }
+
+  // No existing markers in store, proceed with loading cue points
+  console.log(
+    "No existing markers in store, loading cue points as new splice markers:",
+    existingCuePoints
+  );
+
+  // Get audio buffer for zero-crossing detection
+  const audioBuffer = useAudioStore.getState().audioBuffer;
+  const adjustedCuePoints: number[] = [];
+
+  // Create visual splice marker regions for each cue point
+  existingCuePoints.forEach((cueTime, index) => {
+    let adjustedCueTime = cueTime;
+
+    if (audioBuffer) {
+      // Snap to nearest zero crossing to avoid audio artifacts
+      adjustedCueTime = findNearestZeroCrossing(audioBuffer, cueTime);
+      console.log(
+        `Cue point ${index} snapped to zero crossing:`,
+        `${cueTime} -> ${adjustedCueTime}`
+      );
+    }
+
+    adjustedCuePoints.push(adjustedCueTime);
+
+    regions.addRegion({
+      start: adjustedCueTime,
+      color: "rgba(0, 255, 255, 0.8)",
+      drag: true,
+      resize: false,
+      id: `splice-marker-cue-${index}-${Date.now()}`,
+      content: "🔻",
+    });
+  });
+
+  // Update store with adjusted cue points
+  setSpliceMarkersStore(adjustedCuePoints.sort((a, b) => a - b));
+  console.log(
+    `Loaded ${adjustedCuePoints.length} cue points as splice markers`
+  );
 };
