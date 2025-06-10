@@ -84,9 +84,9 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
             <Slider
               value={zoom}
               onChange={(_, value) => onZoom(value as number)}
-              min={10}
+              min={1}
               max={3000}
-              step={10}
+              step={1}
               sx={{ width: 100 }}
               size="small"
             />

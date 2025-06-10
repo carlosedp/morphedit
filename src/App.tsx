@@ -13,6 +13,8 @@ import Waveform from "./Waveform";
 import { useAudioStore } from "./audioStore";
 import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
 import { KeyboardShortcutsHelp } from "./KeyboardShortcutsHelp";
+import { FileLengthWarningDialog } from "./components/FileLengthWarningDialog";
+import { getAudioFileDuration, isFileTooLong } from "./utils/fileLengthUtils";
 import type { ShortcutAction } from "./keyboardShortcuts";
 import "./App.css";
 import { theme } from "./theme";
@@ -20,6 +22,10 @@ import { theme } from "./theme";
 function App() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [lengthWarningOpen, setLengthWarningOpen] = useState(false);
+  const [pendingDuration, setPendingDuration] = useState(0);
+  const [shouldTruncateAudio, setShouldTruncateAudio] = useState(false);
   const reset = useAudioStore((state) => state.reset);
   const waveformRef = useRef<{
     handlePlayPause: () => void;
@@ -42,18 +48,73 @@ function App() {
     handleRemoveSpliceMarker: () => void;
     handleAutoSlice: () => void;
     handleHalfMarkers: () => void;
+    handleTruncateAudio: () => void;
   } | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setAudioUrl(URL.createObjectURL(file));
+      loadAudioFile(file);
     }
   };
 
-  const loadAudioFile = (file: File) => {
+  const loadAudioFile = async (file: File) => {
     if (file.type.startsWith('audio/')) {
-      setAudioUrl(URL.createObjectURL(file));
+      try {
+        // First, check the file duration
+        const duration = await getAudioFileDuration(file);
+
+        if (isFileTooLong(duration)) {
+          // File is too long, store it and show warning dialog
+          setPendingFile(file);
+          handleLengthWarning(duration);
+        } else {
+          // File is acceptable length, load it directly
+          setShouldTruncateAudio(false);
+          setAudioUrl(URL.createObjectURL(file));
+        }
+      } catch (error) {
+        console.error('Error getting audio file duration:', error);
+        // If we can't get duration, just load the file anyway
+        setShouldTruncateAudio(false);
+        setAudioUrl(URL.createObjectURL(file));
+      }
+    }
+  };
+
+  const handleLengthWarning = (duration: number) => {
+    setPendingDuration(duration);
+    setLengthWarningOpen(true);
+  };
+
+  const handleTruncateFile = () => {
+    setLengthWarningOpen(false);
+    if (pendingFile) {
+      // Load the file with truncation enabled
+      setShouldTruncateAudio(true);
+      setAudioUrl(URL.createObjectURL(pendingFile));
+      setPendingFile(null);
+    }
+  };
+
+  const handleImportFullFile = () => {
+    setLengthWarningOpen(false);
+    if (pendingFile) {
+      // Load the full file without truncation
+      setShouldTruncateAudio(false);
+      setAudioUrl(URL.createObjectURL(pendingFile));
+      setPendingFile(null);
+    }
+  };
+
+  const handleCancelImport = () => {
+    setLengthWarningOpen(false);
+    // Clear the pending file
+    setPendingFile(null);
+    // If there was already an audio URL loaded, leave it as is
+    // Otherwise just reset
+    if (!audioUrl) {
+      reset();
     }
   };
 
@@ -275,13 +336,21 @@ function App() {
           {!audioUrl && "Click here, use the button above, or drag and drop an audio file to load it"}
         </Box>
 
-        {audioUrl && <Waveform audioUrl={audioUrl} ref={waveformRef} />}
+        {audioUrl && <Waveform audioUrl={audioUrl} shouldTruncate={shouldTruncateAudio} ref={waveformRef} />}
         <Box mt={4}>
           <Typography variant="body2" color="text.secondary">
             Beat detection features coming soon.
           </Typography>
         </Box>
       </Container>
+
+      <FileLengthWarningDialog
+        open={lengthWarningOpen}
+        duration={pendingDuration}
+        onTruncate={handleTruncateFile}
+        onImportFull={handleImportFullFile}
+        onCancel={handleCancelImport}
+      />
     </ThemeProvider >
   );
 }

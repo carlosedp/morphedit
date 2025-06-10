@@ -28,14 +28,16 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
 
   return (
     <>
-      <Tooltip title="Export audio" enterDelay={500} leaveDelay={200}>
-        <ButtonGroup variant="outlined" sx={{ ml: 2 }}>
+      <ButtonGroup variant="outlined" sx={{ ml: 2 }}>
+        <Tooltip title="Export audio for MakeNoise Morphagene (48Khz/32-bit Float Stereo)" enterDelay={500} leaveDelay={200}>
           <Button
             onClick={onExportWav}
             startIcon={<DownloadIcon />}
           >
             Export WAV
           </Button>
+        </Tooltip>
+        <Tooltip title="Export audio for other formats" enterDelay={500} leaveDelay={200}>
           <Button
             size="small"
             onClick={(event) => onSetExportAnchorEl(event.currentTarget)}
@@ -43,8 +45,8 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
           >
             <ArrowDropDownIcon />
           </Button>
-        </ButtonGroup>
-      </Tooltip>
+        </Tooltip>
+      </ButtonGroup>
 
       <Menu
         anchorEl={exportAnchorEl}

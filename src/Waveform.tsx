@@ -23,8 +23,9 @@ import "./App.css";
 import { Container, Stack } from "@mui/material";
 
 // Import separated utilities and components
-import { parseWavCuePoints, audioBufferToWavWithCues } from "./utils/audioProcessing";
-import { audioBufferToWavFormat, downloadWav, type ExportFormat } from "./utils/exportUtils";
+import { parseWavCuePoints } from "./utils/audioProcessing";
+import { truncateAudioBuffer, MORPHAGENE_MAX_DURATION } from "./utils/fileLengthUtils";
+import { audioBufferToWavFormat, downloadWav, exportFormats, type ExportFormat } from "./utils/exportUtils";
 import {
   addSpliceMarker,
   removeSpliceMarker,
@@ -59,6 +60,7 @@ import { SpliceMarkerControls } from "./components/SpliceMarkerControls";
 
 interface WaveformProps {
   audioUrl: string;
+  shouldTruncate?: boolean;
 }
 
 export interface WaveformRef {
@@ -84,7 +86,7 @@ export interface WaveformRef {
   handleHalfMarkers: () => void;
 }
 
-const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
+const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl, shouldTruncate = false }, ref) => {
   const theme = useTheme();
 
   // Use custom hooks for state and refs management
@@ -226,8 +228,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
 
         // Calculate appropriate zoom to fill the container
         const duration = ws.getDuration();
-        const minPxPerSec = Math.max(20, containerWidth / duration);
-        zoomToApply = Math.min(1000, Math.max(50, minPxPerSec));
+        const minPxPerSec = containerWidth / duration;
+        // Allow very low zoom values for long audio files, but ensure minimum usability
+        zoomToApply = Math.min(1000, Math.max(1, minPxPerSec));
         actions.setZoom(zoomToApply);
 
         console.log("Initial zoom calculated:", { duration, containerWidth, zoomToApply });
@@ -318,7 +321,75 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
       actions.setCurrentTime(ws.getCurrentTime());
     });
 
-    ws.load(state.currentAudioUrl || audioUrl);
+    // Load audio - preprocess for truncation if needed
+    const loadAudio = async () => {
+      let urlToLoad = audioUrl;
+      
+      console.log("=== loadAudio called ===");
+      console.log("shouldTruncate:", shouldTruncate);
+      console.log("Original audioUrl:", audioUrl);
+      console.log("state.currentAudioUrl:", state.currentAudioUrl);
+      
+      // Check if we already have a truncated URL for this audio file to prevent loops
+      const currentUrl = state.currentAudioUrl;
+      const isAlreadyTruncated = currentUrl && currentUrl.startsWith('blob:') && currentUrl !== audioUrl;
+      
+      if (shouldTruncate && !isAlreadyTruncated) {
+        console.log("🔄 Preprocessing audio for truncation before loading...");
+        try {
+          // Fetch and decode the original audio to check if truncation is needed
+          const response = await fetch(audioUrl);
+          const arrayBuffer = await response.arrayBuffer();
+          
+          const audioContext = new (window.AudioContext || 
+            (window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)();
+          
+          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+          const originalDuration = audioBuffer.length / audioBuffer.sampleRate;
+          
+          console.log("Original audio duration:", originalDuration, "seconds");
+          
+          if (originalDuration > MORPHAGENE_MAX_DURATION) {
+            console.log("✂️ Audio exceeds max duration, creating truncated version");
+            
+            // Truncate the buffer
+            const truncatedBuffer = truncateAudioBuffer(audioBuffer, MORPHAGENE_MAX_DURATION);
+            const truncatedDuration = truncatedBuffer.length / truncatedBuffer.sampleRate;
+            console.log("Truncated duration:", truncatedDuration, "seconds");
+            
+            // Convert to WAV blob
+            const { audioBufferToWavFormat } = await import('./utils/exportUtils');
+            const { exportFormats } = await import('./utils/exportUtils');
+            const defaultFormat = exportFormats[0];
+            
+            const wavArrayBuffer = audioBufferToWavFormat(truncatedBuffer, defaultFormat, []);
+            const wavBlob = new Blob([wavArrayBuffer], { type: "audio/wav" });
+            urlToLoad = URL.createObjectURL(wavBlob);
+            
+            console.log("Created truncated URL for loading:", urlToLoad);
+            
+            // Store the truncated buffer in the store immediately
+            setAudioBuffer(truncatedBuffer);
+            
+            // Update current audio URL
+            actions.setCurrentAudioUrl(urlToLoad);
+          } else {
+            console.log("✅ Audio is within limits, no truncation needed");
+          }
+        } catch (error) {
+          console.error("❌ Error preprocessing audio for truncation:", error);
+          // If preprocessing fails, use original URL
+        }
+      } else if (isAlreadyTruncated) {
+        console.log("🔄 Using already truncated URL:", currentUrl);
+        urlToLoad = currentUrl;
+      }
+      
+      console.log("Loading URL into WaveSurfer:", urlToLoad);
+      ws.load(urlToLoad);
+    };
+    
+    loadAudio();
 
     // Set up region event listeners
     regions.on("region-out", (region: Region) => {
@@ -397,7 +468,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [audioUrl, state.currentAudioUrl, setAudioBuffer, setMarkers, setRegions, theme, setSpliceMarkersStore, memoizedUpdateSpliceMarkerColors, actions]);
+  }, [audioUrl, setAudioBuffer, setMarkers, setRegions, theme, setSpliceMarkersStore, memoizedUpdateSpliceMarkerColors, actions, shouldTruncate]);
 
   // Handler functions using extracted utilities
   const handlePlayPause = useCallback(() => {
@@ -429,8 +500,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
     }
 
     // Calculate appropriate zoom to fill the container
-    const minPxPerSec = Math.max(20, containerWidth / duration);
-    const resetZoom = Math.min(1000, Math.max(50, minPxPerSec));
+    const minPxPerSec = containerWidth / duration;
+    // Allow very low zoom values for long audio files, but ensure minimum usability
+    const resetZoom = Math.min(1000, Math.max(1, minPxPerSec));
 
     console.log("Zoom reset:", { duration, containerWidth, resetZoom });
 
@@ -596,7 +668,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
 
     console.log("Exporting WAV with splice markers as cue points:", spliceMarkersStore);
 
-    const wav = audioBufferToWavWithCues(audioBuffer, spliceMarkersStore);
+    // Use the default export format (48kHz 32-bit Float Stereo)
+    const defaultFormat = exportFormats[0]; // 48kHz 32-bit Float Stereo
+    const wav = audioBufferToWavFormat(audioBuffer, defaultFormat, spliceMarkersStore);
     downloadWav(wav, 'morphedit-export.wav');
   }, [spliceMarkersStore]);
 

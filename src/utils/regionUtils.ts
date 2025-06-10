@@ -318,8 +318,9 @@ export const applyCrop = async (
 
       const newDuration = ws.getDuration();
       if (newDuration > 0) {
-        const minPxPerSec = Math.max(20, containerWidth / newDuration);
-        const resetZoom = Math.min(1000, Math.max(50, minPxPerSec));
+        const minPxPerSec = containerWidth / newDuration;
+        // Allow very low zoom values for long audio files, but ensure minimum usability
+        const resetZoom = Math.min(1000, Math.max(1, minPxPerSec));
         console.log("Recalculating zoom after crop:", {
           newDuration,
           containerWidth,
@@ -512,8 +513,9 @@ export const applyFades = async (
 
       const duration = ws.getDuration();
       if (duration > 0) {
-        const minPxPerSec = Math.max(20, containerWidth / duration);
-        const resetZoom = Math.min(1000, Math.max(50, minPxPerSec));
+        const minPxPerSec = containerWidth / duration;
+        // Allow very low zoom values for long audio files, but ensure minimum usability
+        const resetZoom = Math.min(1000, Math.max(1, minPxPerSec));
         console.log("Recalculating zoom after fades:", {
           duration,
           containerWidth,
