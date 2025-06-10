@@ -61,6 +61,9 @@ import { SpliceMarkerControls } from "./components/SpliceMarkerControls";
 interface WaveformProps {
   audioUrl: string;
   shouldTruncate?: boolean;
+  onLoadingComplete?: () => void;
+  onProcessingStart?: (message: string) => void;
+  onProcessingComplete?: () => void;
 }
 
 export interface WaveformRef {
@@ -86,7 +89,7 @@ export interface WaveformRef {
   handleHalfMarkers: () => void;
 }
 
-const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl, shouldTruncate = false }, ref) => {
+const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl, shouldTruncate = false, onLoadingComplete, onProcessingStart, onProcessingComplete }, ref) => {
   const theme = useTheme();
 
   // Use custom hooks for state and refs management
@@ -291,6 +294,11 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl, shouldTrunc
         } else {
           console.log("No URL available for manual decode");
         }
+      }
+
+      // Call loading complete callback after everything is set up
+      if (onLoadingComplete) {
+        onLoadingComplete();
       }
     });
 
@@ -580,6 +588,10 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl, shouldTrunc
   }, [setSpliceMarkersStore, actions, memoizedUpdateSpliceMarkerColors, regionsRef]);
 
   const handleApplyCrop = useCallback(async () => {
+    if (onProcessingStart) {
+      onProcessingStart("Applying crop to audio...");
+    }
+    
     await applyCrop(
       wavesurferRef.current!,
       regionsRef.current!,
@@ -599,9 +611,17 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl, shouldTrunc
       }
     );
     cropRegionRef.current = null;
-  }, [state.cropRegion, state.currentAudioUrl, spliceMarkersStore, setPreviousAudioUrl, setCanUndo, setAudioBuffer, actions, wavesurferRef, regionsRef, cropRegionRef]);
+    
+    if (onProcessingComplete) {
+      onProcessingComplete();
+    }
+  }, [state.cropRegion, state.currentAudioUrl, spliceMarkersStore, setPreviousAudioUrl, setCanUndo, setAudioBuffer, actions, wavesurferRef, regionsRef, cropRegionRef, onProcessingStart, onProcessingComplete]);
 
   const handleApplyFades = useCallback(async () => {
+    if (onProcessingStart) {
+      onProcessingStart("Applying fades to audio...");
+    }
+    
     await applyFades(
       wavesurferRef.current!,
       regionsRef.current!,
@@ -621,7 +641,11 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl, shouldTrunc
         setZoom: actions.setZoom,
       }
     );
-  }, [state.fadeInMode, state.fadeOutMode, state.currentAudioUrl, spliceMarkersStore, setPreviousAudioUrl, setCanUndo, setAudioBuffer, actions, wavesurferRef, regionsRef]);
+    
+    if (onProcessingComplete) {
+      onProcessingComplete();
+    }
+  }, [state.fadeInMode, state.fadeOutMode, state.currentAudioUrl, spliceMarkersStore, setPreviousAudioUrl, setCanUndo, setAudioBuffer, actions, wavesurferRef, regionsRef, onProcessingStart, onProcessingComplete]);
 
   const handleUndo = useCallback(async () => {
     await undo(

@@ -14,6 +14,7 @@ import { useAudioStore } from "./audioStore";
 import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
 import { KeyboardShortcutsHelp } from "./KeyboardShortcutsHelp";
 import { FileLengthWarningDialog } from "./components/FileLengthWarningDialog";
+import { LoadingDialog } from "./components/LoadingDialog";
 import { getAudioFileDuration, isFileTooLong } from "./utils/fileLengthUtils";
 import type { ShortcutAction } from "./keyboardShortcuts";
 import "./App.css";
@@ -26,6 +27,8 @@ function App() {
   const [lengthWarningOpen, setLengthWarningOpen] = useState(false);
   const [pendingDuration, setPendingDuration] = useState(0);
   const [shouldTruncateAudio, setShouldTruncateAudio] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("");
   const reset = useAudioStore((state) => state.reset);
   const waveformRef = useRef<{
     handlePlayPause: () => void;
@@ -60,24 +63,32 @@ function App() {
 
   const loadAudioFile = async (file: File) => {
     if (file.type.startsWith('audio/')) {
+      setIsLoading(true);
+      setLoadingMessage("Analyzing audio file...");
+      
       try {
         // First, check the file duration
         const duration = await getAudioFileDuration(file);
 
         if (isFileTooLong(duration)) {
           // File is too long, store it and show warning dialog
+          setIsLoading(false);
           setPendingFile(file);
           handleLengthWarning(duration);
         } else {
           // File is acceptable length, load it directly
+          setLoadingMessage("Loading audio file...");
           setShouldTruncateAudio(false);
           setAudioUrl(URL.createObjectURL(file));
+          // Loading dialog will be closed when Waveform is ready
         }
       } catch (error) {
         console.error('Error getting audio file duration:', error);
         // If we can't get duration, just load the file anyway
+        setLoadingMessage("Loading audio file...");
         setShouldTruncateAudio(false);
         setAudioUrl(URL.createObjectURL(file));
+        // Loading dialog will be closed when Waveform is ready
       }
     }
   };
@@ -90,20 +101,30 @@ function App() {
   const handleTruncateFile = () => {
     setLengthWarningOpen(false);
     if (pendingFile) {
+      // Show loading dialog for truncation
+      setIsLoading(true);
+      setLoadingMessage("Processing audio for truncation...");
+      
       // Load the file with truncation enabled
       setShouldTruncateAudio(true);
       setAudioUrl(URL.createObjectURL(pendingFile));
       setPendingFile(null);
+      // Loading dialog will be closed when Waveform is ready
     }
   };
 
   const handleImportFullFile = () => {
     setLengthWarningOpen(false);
     if (pendingFile) {
+      // Show loading dialog for full file import
+      setIsLoading(true);
+      setLoadingMessage("Loading full audio file...");
+      
       // Load the full file without truncation
       setShouldTruncateAudio(false);
       setAudioUrl(URL.createObjectURL(pendingFile));
       setPendingFile(null);
+      // Loading dialog will be closed when Waveform is ready
     }
   };
 
@@ -116,6 +137,21 @@ function App() {
     if (!audioUrl) {
       reset();
     }
+  };
+
+  const handleLoadingComplete = () => {
+    setIsLoading(false);
+    setLoadingMessage("");
+  };
+
+  const handleProcessingStart = (message: string) => {
+    setIsLoading(true);
+    setLoadingMessage(message);
+  };
+
+  const handleProcessingComplete = () => {
+    setIsLoading(false);
+    setLoadingMessage("");
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -336,7 +372,7 @@ function App() {
           {!audioUrl && "Click here, use the button above, or drag and drop an audio file to load it"}
         </Box>
 
-        {audioUrl && <Waveform audioUrl={audioUrl} shouldTruncate={shouldTruncateAudio} ref={waveformRef} />}
+        {audioUrl && <Waveform audioUrl={audioUrl} shouldTruncate={shouldTruncateAudio} onLoadingComplete={handleLoadingComplete} onProcessingStart={handleProcessingStart} onProcessingComplete={handleProcessingComplete} ref={waveformRef} />}
         <Box mt={4}>
           <Typography variant="body2" color="text.secondary">
             Beat detection features coming soon.
@@ -350,6 +386,11 @@ function App() {
         onTruncate={handleTruncateFile}
         onImportFull={handleImportFullFile}
         onCancel={handleCancelImport}
+      />
+
+      <LoadingDialog
+        open={isLoading}
+        message={loadingMessage}
       />
     </ThemeProvider >
   );
