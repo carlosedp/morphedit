@@ -1,12 +1,6 @@
 // Waveform controls component - playback, zoom, and navigation
 import React from "react";
-import {
-  IconButton,
-  Slider,
-  Stack,
-  Typography,
-  Tooltip,
-} from "@mui/material";
+import { IconButton, Slider, Stack, Typography, Tooltip } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
@@ -49,15 +43,11 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
   onZoomReset,
 }) => {
   return (
-    <Stack direction="row" alignItems="center" sx={{ mt: 2, width: '100%' }}>
+    <Stack direction="row" alignItems="center" sx={{ mt: 2, width: "100%" }}>
       {/* Left column - Controls */}
       <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1 }}>
         <Tooltip title="Play/Pause" enterDelay={500} leaveDelay={200}>
-          <IconButton
-            onClick={onPlayPause}
-            color="primary"
-            size="large"
-          >
+          <IconButton onClick={onPlayPause} color="primary" size="large">
             {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
           </IconButton>
         </Tooltip>
@@ -99,15 +89,18 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
       </Stack>
 
       {/* Right column - Times and info */}
-      <Stack direction="column" spacing={0} alignItems="flex-end" sx={{ flex: 1, justifyContent: 'flex-end' }}>
+      <Stack
+        direction="column"
+        spacing={0}
+        alignItems="flex-end"
+        sx={{ flex: 1, justifyContent: "flex-end" }}
+      >
         {/* Main audio time */}
         <Stack direction="row" spacing={1} alignItems="center">
           <Typography variant="body2">
             {formatTime(currentTime)} / {formatTime(duration)}
           </Typography>
-          <Typography variant="body2">
-            Skip: {skipIncrement}s
-          </Typography>
+          <Typography variant="body2">Skip: {skipIncrement}s</Typography>
           {spliceMarkersCount > 0 && (
             <Typography variant="body2" color="primary">
               Splice markers: {spliceMarkersCount}
@@ -116,21 +109,34 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
         </Stack>
 
         {/* Region information */}
-        {(regionInfo.cropRegion || regionInfo.fadeInRegion || regionInfo.fadeOutRegion) && (
-          <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 0.5 }}>
+        {(regionInfo.cropRegion ||
+          regionInfo.fadeInRegion ||
+          regionInfo.fadeOutRegion) && (
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            sx={{ mt: 0.5 }}
+          >
             {regionInfo.cropRegion && (
               <Typography variant="caption" color="warning.main">
-                Crop: {formatTime(regionInfo.cropRegion.start)} - {formatTime(regionInfo.cropRegion.end)} (Δ{formatTime(regionInfo.cropRegion.duration)})
+                Crop: {formatTime(regionInfo.cropRegion.start)} -{" "}
+                {formatTime(regionInfo.cropRegion.end)} (Δ
+                {formatTime(regionInfo.cropRegion.duration)})
               </Typography>
             )}
             {regionInfo.fadeInRegion && (
               <Typography variant="caption" color="success.main">
-                Fade In: {formatTime(regionInfo.fadeInRegion.start)} - {formatTime(regionInfo.fadeInRegion.end)} (Δ{formatTime(regionInfo.fadeInRegion.duration)})
+                Fade In: {formatTime(regionInfo.fadeInRegion.start)} -{" "}
+                {formatTime(regionInfo.fadeInRegion.end)} (Δ
+                {formatTime(regionInfo.fadeInRegion.duration)})
               </Typography>
             )}
             {regionInfo.fadeOutRegion && (
               <Typography variant="caption" color="error.main">
-                Fade Out: {formatTime(regionInfo.fadeOutRegion.start)} - {formatTime(regionInfo.fadeOutRegion.end)} (Δ{formatTime(regionInfo.fadeOutRegion.duration)})
+                Fade Out: {formatTime(regionInfo.fadeOutRegion.start)} -{" "}
+                {formatTime(regionInfo.fadeOutRegion.end)} (Δ
+                {formatTime(regionInfo.fadeOutRegion.duration)})
               </Typography>
             )}
           </Stack>

@@ -65,7 +65,7 @@ function App() {
   };
 
   const loadAudioFile = async (file: File) => {
-    if (file.type.startsWith('audio/')) {
+    if (file.type.startsWith("audio/")) {
       setIsLoading(true);
       setLoadingMessage("Analyzing audio file...");
 
@@ -86,7 +86,7 @@ function App() {
           // Loading dialog will be closed when Waveform is ready
         }
       } catch (error) {
-        console.error('Error getting audio file duration:', error);
+        console.error("Error getting audio file duration:", error);
         // If we can't get duration, just load the file anyway
         setLoadingMessage("Loading audio file...");
         setShouldTruncateAudio(false);
@@ -160,7 +160,7 @@ function App() {
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!audioUrl && e.dataTransfer.types.includes('Files')) {
+    if (!audioUrl && e.dataTransfer.types.includes("Files")) {
       setIsDragOver(true);
     }
   };
@@ -181,7 +181,7 @@ function App() {
 
     if (!audioUrl) {
       const files = Array.from(e.dataTransfer.files);
-      const audioFile = files.find(file => file.type.startsWith('audio/'));
+      const audioFile = files.find((file) => file.type.startsWith("audio/"));
       if (audioFile) {
         loadAudioFile(audioFile);
       }
@@ -191,7 +191,9 @@ function App() {
   const handleWaveformClick = () => {
     if (!audioUrl) {
       // Trigger the file input when clicking on empty waveform
-      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      const fileInput = document.querySelector(
+        'input[type="file"]',
+      ) as HTMLInputElement;
       if (fileInput) {
         fileInput.click();
       }
@@ -283,7 +285,7 @@ function App() {
       <CssBaseline />
       <Container
         maxWidth="lg"
-        sx={{ py: 4, position: 'relative' }}
+        sx={{ py: 4, position: "relative" }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -292,24 +294,24 @@ function App() {
         {isDragOver && !audioUrl && (
           <Box
             sx={{
-              position: 'absolute',
+              position: "absolute",
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.7)',
-              color: 'white',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
+              backgroundColor: "rgba(0, 0, 0, 0.7)",
+              color: "white",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
               zIndex: 1000,
               borderRadius: 2,
-              border: '2px dashed',
-              borderColor: 'primary.main',
+              border: "2px dashed",
+              borderColor: "primary.main",
             }}
           >
-            <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold' }}>
+            <Typography variant="h4" sx={{ mb: 2, fontWeight: "bold" }}>
               Drop Audio File Here
             </Typography>
             <Typography variant="body1" color="grey.300">
@@ -368,17 +370,29 @@ function App() {
             color: "text.secondary",
             fontSize: "14px",
             cursor: !audioUrl ? "pointer" : "default",
-            "&:hover": !audioUrl ? {
-              backgroundColor: "action.hover",
-              borderColor: "primary.light",
-            } : {},
+            "&:hover": !audioUrl
+              ? {
+                  backgroundColor: "action.hover",
+                  borderColor: "primary.light",
+                }
+              : {},
             transition: "background-color 0.2s, border-color 0.2s",
           }}
         >
-          {!audioUrl && "Click here, use the button above, or drag and drop an audio file to load it"}
+          {!audioUrl &&
+            "Click here, use the button above, or drag and drop an audio file to load it"}
         </Box>
 
-        {audioUrl && <Waveform audioUrl={audioUrl} shouldTruncate={shouldTruncateAudio} onLoadingComplete={handleLoadingComplete} onProcessingStart={handleProcessingStart} onProcessingComplete={handleProcessingComplete} ref={waveformRef} />}
+        {audioUrl && (
+          <Waveform
+            audioUrl={audioUrl}
+            shouldTruncate={shouldTruncateAudio}
+            onLoadingComplete={handleLoadingComplete}
+            onProcessingStart={handleProcessingStart}
+            onProcessingComplete={handleProcessingComplete}
+            ref={waveformRef}
+          />
+        )}
         <Box mt={4}>
           <Typography variant="body2" color="text.secondary">
             Beat detection features coming soon.
@@ -394,11 +408,8 @@ function App() {
         onCancel={handleCancelImport}
       />
 
-      <LoadingDialog
-        open={isLoading}
-        message={loadingMessage}
-      />
-    </ThemeProvider >
+      <LoadingDialog open={isLoading} message={loadingMessage} />
+    </ThemeProvider>
   );
 }
 

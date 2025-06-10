@@ -220,15 +220,21 @@ export const applyCrop = async (
 
   const sampleRate = audioBuffer.sampleRate;
   const numberOfChannels = audioBuffer.numberOfChannels;
-  
+
   // Snap crop boundaries to nearest zero crossings to avoid audio artifacts
-  const adjustedStartTime = findNearestZeroCrossing(audioBuffer, cropRegionData.start);
-  const adjustedEndTime = findNearestZeroCrossing(audioBuffer, cropRegionData.end);
-  
+  const adjustedStartTime = findNearestZeroCrossing(
+    audioBuffer,
+    cropRegionData.start
+  );
+  const adjustedEndTime = findNearestZeroCrossing(
+    audioBuffer,
+    cropRegionData.end
+  );
+
   const startSample = Math.floor(adjustedStartTime * sampleRate);
   const endSample = Math.floor(adjustedEndTime * sampleRate);
   const newLength = endSample - startSample;
-  
+
   console.log(
     "Zero-crossing adjusted crop region:",
     `${cropRegionData.start} -> ${adjustedStartTime}`,
@@ -442,7 +448,10 @@ export const applyFades = async (
     // Apply fade-in if exists
     if (fadeInRegionData) {
       // Snap fade-in end to nearest zero crossing to avoid audio artifacts
-      const adjustedFadeInEnd = findNearestZeroCrossing(audioBuffer, fadeInRegionData.end);
+      const adjustedFadeInEnd = findNearestZeroCrossing(
+        audioBuffer,
+        fadeInRegionData.end
+      );
       const fadeInEndSample = Math.floor(adjustedFadeInEnd * sampleRate);
       console.log(
         "Zero-crossing adjusted fade-in end:",
@@ -457,7 +466,10 @@ export const applyFades = async (
     // Apply fade-out if exists
     if (fadeOutRegionData) {
       // Snap fade-out start to nearest zero crossing to avoid audio artifacts
-      const adjustedFadeOutStart = findNearestZeroCrossing(audioBuffer, fadeOutRegionData.start);
+      const adjustedFadeOutStart = findNearestZeroCrossing(
+        audioBuffer,
+        fadeOutRegionData.start
+      );
       const fadeOutStartSample = Math.floor(adjustedFadeOutStart * sampleRate);
       console.log(
         "Zero-crossing adjusted fade-out start:",

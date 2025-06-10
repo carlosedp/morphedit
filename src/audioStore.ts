@@ -22,7 +22,11 @@ export const useAudioStore = create<AudioState>(
   (set: (partial: Partial<AudioState>) => void) => ({
     audioBuffer: null,
     setAudioBuffer: (buffer) => {
-      console.log("AudioStore - setAudioBuffer called with:", !!buffer, buffer ? `duration: ${buffer.length / buffer.sampleRate}s` : 'null');
+      console.log(
+        "AudioStore - setAudioBuffer called with:",
+        !!buffer,
+        buffer ? `duration: ${buffer.length / buffer.sampleRate}s` : "null",
+      );
       set({ audioBuffer: buffer });
     },
     markers: [],
@@ -37,13 +41,14 @@ export const useAudioStore = create<AudioState>(
     setPreviousAudioUrl: (url) => set({ previousAudioUrl: url }),
     canUndo: false,
     setCanUndo: (canUndo) => set({ canUndo }),
-    reset: () => set({
-      audioBuffer: null,
-      markers: [],
-      regions: [],
-      spliceMarkers: [],
-      previousAudioUrl: null,
-      canUndo: false
-    }),
+    reset: () =>
+      set({
+        audioBuffer: null,
+        markers: [],
+        regions: [],
+        spliceMarkers: [],
+        previousAudioUrl: null,
+        canUndo: false,
+      }),
   }),
 );

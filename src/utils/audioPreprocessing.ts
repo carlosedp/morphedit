@@ -12,7 +12,7 @@ import { audioBufferToWavFormat, exportFormats } from "./exportUtils";
  */
 export const preprocessAudioForTruncation = async (
   originalUrl: string,
-  shouldTruncate: boolean
+  shouldTruncate: boolean,
 ): Promise<string> => {
   if (!shouldTruncate) {
     return originalUrl;
@@ -44,13 +44,13 @@ export const preprocessAudioForTruncation = async (
     console.log(
       "Audio exceeds limits, truncating to",
       MORPHAGENE_MAX_DURATION,
-      "seconds"
+      "seconds",
     );
 
     // Truncate the buffer
     const truncatedBuffer = truncateAudioBuffer(
       audioBuffer,
-      MORPHAGENE_MAX_DURATION
+      MORPHAGENE_MAX_DURATION,
     );
     const truncatedDuration =
       truncatedBuffer.length / truncatedBuffer.sampleRate;
@@ -62,7 +62,7 @@ export const preprocessAudioForTruncation = async (
     const wavArrayBuffer = audioBufferToWavFormat(
       truncatedBuffer,
       defaultFormat,
-      []
+      [],
     );
     const wavBlob = new Blob([wavArrayBuffer], { type: "audio/wav" });
     const truncatedUrl = URL.createObjectURL(wavBlob);

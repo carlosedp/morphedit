@@ -7,7 +7,7 @@ export const playPause = (
   ws: WaveSurfer,
   regions: RegionsPlugin,
   isPlaying: boolean,
-  cropRegion: Region | null
+  cropRegion: Region | null,
 ) => {
   if (!ws) return;
 
@@ -32,7 +32,7 @@ export const playPause = (
 export const rewind = (
   ws: WaveSurfer,
   regions: RegionsPlugin,
-  cropRegion: Region | null
+  cropRegion: Region | null,
 ) => {
   if (!ws) return;
 
@@ -99,10 +99,12 @@ export const undo = async (
     setCropRegion: (region: Region | null) => void;
     setFadeInMode: (mode: boolean) => void;
     setFadeOutMode: (mode: boolean) => void;
-  }
+  },
 ): Promise<void> => {
   if (!ws || !canUndo || !previousAudioUrl) {
-    console.log("Cannot undo: no wavesurfer, undo not available, or no previous URL");
+    console.log(
+      "Cannot undo: no wavesurfer, undo not available, or no previous URL",
+    );
     return;
   }
 

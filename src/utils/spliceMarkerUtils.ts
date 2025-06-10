@@ -56,7 +56,7 @@ export const addSpliceMarker = (
   // Get audio buffer for zero-crossing detection
   const audioBuffer = useAudioStore.getState().audioBuffer;
   let adjustedTime = currentTime;
-  
+
   if (audioBuffer) {
     // Snap to nearest zero crossing to avoid audio artifacts
     adjustedTime = findNearestZeroCrossing(audioBuffer, currentTime);
@@ -215,7 +215,7 @@ export const autoSlice = (
   for (let i = 1; i < numberOfSlices; i++) {
     const markerTime = i * sliceInterval;
     let adjustedMarkerTime = markerTime;
-    
+
     if (audioBuffer) {
       // Snap to nearest zero crossing to avoid audio artifacts
       adjustedMarkerTime = findNearestZeroCrossing(audioBuffer, markerTime);
@@ -224,7 +224,7 @@ export const autoSlice = (
         `${markerTime} -> ${adjustedMarkerTime}`
       );
     }
-    
+
     newSpliceMarkers.push(adjustedMarkerTime);
 
     // Create visual splice marker region
@@ -246,7 +246,9 @@ export const autoSlice = (
   updateSpliceMarkerColors(null);
 
   console.log(
-    `Auto-slice complete. Created ${newSpliceMarkers.length} splice markers${audioBuffer ? ' with zero-crossing adjustment' : ''}`
+    `Auto-slice complete. Created ${newSpliceMarkers.length} splice markers${
+      audioBuffer ? " with zero-crossing adjustment" : ""
+    }`
   );
 };
 
@@ -397,7 +399,7 @@ export const loadExistingCuePoints = (
     // Create visual splice marker regions for each cue point
     existingCuePoints.forEach((cueTime, index) => {
       let adjustedCueTime = cueTime;
-      
+
       if (audioBuffer) {
         // Snap to nearest zero crossing to avoid audio artifacts
         adjustedCueTime = findNearestZeroCrossing(audioBuffer, cueTime);
@@ -406,9 +408,9 @@ export const loadExistingCuePoints = (
           `${cueTime} -> ${adjustedCueTime}`
         );
       }
-      
+
       adjustedCuePoints.push(adjustedCueTime);
-      
+
       regions.addRegion({
         start: adjustedCueTime,
         color: "rgba(0, 255, 255, 0.8)",

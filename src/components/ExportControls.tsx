@@ -1,12 +1,6 @@
 // Export controls component
 import React from "react";
-import {
-  Button,
-  ButtonGroup,
-  Menu,
-  MenuItem,
-  Tooltip,
-} from "@mui/material";
+import { Button, ButtonGroup, Menu, MenuItem, Tooltip } from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { exportFormats, type ExportFormat } from "../utils/exportUtils";
@@ -29,15 +23,20 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
   return (
     <>
       <ButtonGroup variant="outlined" sx={{ ml: 2 }}>
-        <Tooltip title="Export audio for MakeNoise Morphagene (48Khz/32-bit Float Stereo)" enterDelay={500} leaveDelay={200}>
-          <Button
-            onClick={onExportWav}
-            startIcon={<DownloadIcon />}
-          >
+        <Tooltip
+          title="Export audio for MakeNoise Morphagene (48Khz/32-bit Float Stereo)"
+          enterDelay={500}
+          leaveDelay={200}
+        >
+          <Button onClick={onExportWav} startIcon={<DownloadIcon />}>
             Export WAV
           </Button>
         </Tooltip>
-        <Tooltip title="Export audio for other formats" enterDelay={500} leaveDelay={200}>
+        <Tooltip
+          title="Export audio for other formats"
+          enterDelay={500}
+          leaveDelay={200}
+        >
           <Button
             size="small"
             onClick={(event) => onSetExportAnchorEl(event.currentTarget)}
@@ -53,7 +52,7 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
         open={exportMenuOpen}
         onClose={() => onSetExportAnchorEl(null)}
         MenuListProps={{
-          'aria-labelledby': 'export-split-button',
+          "aria-labelledby": "export-split-button",
         }}
       >
         {exportFormats.map((format, index) => (

@@ -58,7 +58,7 @@ export const exportFormats: ExportFormat[] = [
 export const audioBufferToWavFormat = (
   buffer: AudioBuffer,
   format: ExportFormat,
-  spliceMarkersStore: number[]
+  spliceMarkersStore: number[],
 ): ArrayBuffer => {
   const originalSampleRate = buffer.sampleRate;
   const originalChannels = buffer.numberOfChannels;
@@ -77,7 +77,7 @@ export const audioBufferToWavFormat = (
     processedBuffer = audioContext.createBuffer(
       originalChannels,
       newLength,
-      format.sampleRate
+      format.sampleRate,
     );
 
     for (let channel = 0; channel < originalChannels; channel++) {
@@ -119,7 +119,7 @@ export const audioBufferToWavFormat = (
     finalBuffer = audioContext.createBuffer(
       1,
       processedBuffer.length,
-      format.sampleRate
+      format.sampleRate,
     );
 
     const monoData = finalBuffer.getChannelData(0);
@@ -206,7 +206,7 @@ export const audioBufferToWavFormat = (
       const cueTime = spliceMarkersStore[i];
       const resampleRatio = format.sampleRate / originalSampleRate;
       const cueSample = Math.floor(
-        cueTime * originalSampleRate * resampleRatio
+        cueTime * originalSampleRate * resampleRatio,
       );
 
       view.setUint32(offset, i, true); // Cue point ID
@@ -225,7 +225,7 @@ export const audioBufferToWavFormat = (
 // Export handlers
 export const downloadWav = (
   arrayBuffer: ArrayBuffer,
-  filename: string = "morphedit-export.wav"
+  filename: string = "morphedit-export.wav",
 ) => {
   const blob = new Blob([arrayBuffer], { type: "audio/wav" });
   const url = URL.createObjectURL(blob);

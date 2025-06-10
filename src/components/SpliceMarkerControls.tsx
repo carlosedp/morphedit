@@ -1,6 +1,14 @@
 // Splice marker controls component
 import React from "react";
-import { Button, Stack, TextField, Tooltip, Slider, Typography, Box } from "@mui/material";
+import {
+  Button,
+  Stack,
+  TextField,
+  Tooltip,
+  Slider,
+  Typography,
+  Box,
+} from "@mui/material";
 import AddIcon from "@mui/icons-material/Create";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ContentCutIcon from "@mui/icons-material/ContentCut";
@@ -52,7 +60,7 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
 }) => {
   return (
     <Stack spacing={2} sx={{ mt: 2 }}>
-      <Box sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}>
+      <Box sx={{ p: 2, border: 1, borderColor: "divider", borderRadius: 1 }}>
         <Typography variant="subtitle2" gutterBottom>
           Manual Splice Marker Controls
         </Typography>
@@ -60,7 +68,11 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
         {/* Auto-slice controls */}
         {/* <Box sx={{ mt: 2, mb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}> */}
         <Stack direction="row" spacing={1} alignItems="center">
-          <Tooltip title="Add splice marker at current time" enterDelay={500} leaveDelay={200}>
+          <Tooltip
+            title="Add splice marker at current time"
+            enterDelay={500}
+            leaveDelay={200}
+          >
             <Button
               variant="outlined"
               color="primary"
@@ -70,7 +82,11 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             </Button>
           </Tooltip>
 
-          <Tooltip title="Remove selected splice marker" enterDelay={500} leaveDelay={200}>
+          <Tooltip
+            title="Remove selected splice marker"
+            enterDelay={500}
+            leaveDelay={200}
+          >
             <Button
               variant="outlined"
               color="primary"
@@ -81,19 +97,29 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             </Button>
           </Tooltip>
 
-          <Tooltip title="Number of equal slices to create" enterDelay={500} leaveDelay={200}>
+          <Tooltip
+            title="Number of equal slices to create"
+            enterDelay={500}
+            leaveDelay={200}
+          >
             <TextField
               label="Slices"
               type="number"
               value={numberOfSlices}
-              onChange={(e) => onSetNumberOfSlices(Math.max(2, parseInt(e.target.value) || 2))}
+              onChange={(e) =>
+                onSetNumberOfSlices(Math.max(2, parseInt(e.target.value) || 2))
+              }
               size="small"
               inputProps={{ min: 2, max: 100 }}
               sx={{ width: 80 }}
             />
           </Tooltip>
 
-          <Tooltip title="Create equally distributed splice markers" enterDelay={500} leaveDelay={200}>
+          <Tooltip
+            title="Create equally distributed splice markers"
+            enterDelay={500}
+            leaveDelay={200}
+          >
             <Button
               variant="outlined"
               color="primary"
@@ -105,7 +131,11 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             </Button>
           </Tooltip>
 
-          <Tooltip title="Remove every other splice marker (keep 1st, 3rd, 5th...)" enterDelay={500} leaveDelay={200}>
+          <Tooltip
+            title="Remove every other splice marker (keep 1st, 3rd, 5th...)"
+            enterDelay={500}
+            leaveDelay={200}
+          >
             <Button
               variant="outlined"
               color="primary"
@@ -117,7 +147,11 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             </Button>
           </Tooltip>
 
-          <Tooltip title="Clear all splice markers" enterDelay={500} leaveDelay={200}>
+          <Tooltip
+            title="Clear all splice markers"
+            enterDelay={500}
+            leaveDelay={200}
+          >
             <Button
               variant="outlined"
               color="error"
@@ -129,7 +163,11 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             </Button>
           </Tooltip>
 
-          <Tooltip title="Snap all existing markers to zero crossings (reduces audio artifacts)" enterDelay={500} leaveDelay={200}>
+          <Tooltip
+            title="Snap all existing markers to zero crossings (reduces audio artifacts)"
+            enterDelay={500}
+            leaveDelay={200}
+          >
             <Button
               variant="outlined"
               color="primary"
@@ -144,27 +182,28 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
         </Stack>
       </Box>
       {/* Transient detection controls */}
-      <Box sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}>
+      <Box sx={{ p: 2, border: 1, borderColor: "divider", borderRadius: 1 }}>
         <Typography variant="subtitle2" gutterBottom>
           Splice Detection
         </Typography>
         <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-
           <Typography variant="body2" width={120} align="left">
             Sensitivity:
           </Typography>
           <Box sx={{ width: 200 }}>
             <Slider
               value={transientSensitivity}
-              onChange={(_, value) => onSetTransientSensitivity(value as number)}
+              onChange={(_, value) =>
+                onSetTransientSensitivity(value as number)
+              }
               min={0}
               max={100}
               step={1}
               valueLabelDisplay="auto"
               marks={[
-                { value: 0, label: 'Low' },
-                { value: 50, label: 'Med' },
-                { value: 100, label: 'High' }
+                { value: 0, label: "Low" },
+                { value: 50, label: "Med" },
+                { value: 100, label: "High" },
               ]}
             />
           </Box>
@@ -206,18 +245,33 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             />
           </Box>
         </Stack>
-        <Stack direction="row" spacing={2} alignItems="flex-start" sx={{ mb: 2 }}>
-          <Typography variant="caption" color="text.disabled" sx={{ minWidth: 60, textAlign: 'left' }}>
-            Sensitivity affects how many transients are detected. Higher values detect more transients but may include noise.
-            Frame size determines the duration of each analysis window (5-50ms).
-            Overlap controls how much each frame overlaps with the next (50-90%).
-            In general, higher sensitivity and overlap values will detect more transients, but may also include more noise.
+        <Stack
+          direction="row"
+          spacing={2}
+          alignItems="flex-start"
+          sx={{ mb: 2 }}
+        >
+          <Typography
+            variant="caption"
+            color="text.disabled"
+            sx={{ minWidth: 60, textAlign: "left" }}
+          >
+            Sensitivity affects how many transients are detected. Higher values
+            detect more transients but may include noise. Frame size determines
+            the duration of each analysis window (5-50ms). Overlap controls how
+            much each frame overlaps with the next (50-90%). In general, higher
+            sensitivity and overlap values will detect more transients, but may
+            also include more noise.
           </Typography>
         </Stack>
 
         {/* Detect button */}
         <Stack direction="row" spacing={1} justifyContent="center">
-          <Tooltip title="Detect transients and create splice markers" enterDelay={500} leaveDelay={200}>
+          <Tooltip
+            title="Detect transients and create splice markers"
+            enterDelay={500}
+            leaveDelay={200}
+          >
             <Button
               variant="contained"
               color="primary"
@@ -229,8 +283,7 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             </Button>
           </Tooltip>
         </Stack>
-
-      </Box >
-    </Stack >
+      </Box>
+    </Stack>
   );
 };

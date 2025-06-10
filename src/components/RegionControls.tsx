@@ -32,7 +32,11 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
 }) => {
   return (
     <Stack direction="row" spacing={1} alignItems="center">
-      <Tooltip title="Create crop/loop region" enterDelay={500} leaveDelay={200}>
+      <Tooltip
+        title="Create crop/loop region"
+        enterDelay={500}
+        leaveDelay={200}
+      >
         <Button
           variant={cropMode ? "contained" : "outlined"}
           color="primary"
@@ -43,7 +47,11 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
         </Button>
       </Tooltip>
 
-      <Tooltip title="Create a fade-in region" enterDelay={500} leaveDelay={200}>
+      <Tooltip
+        title="Create a fade-in region"
+        enterDelay={500}
+        leaveDelay={200}
+      >
         <Button
           variant={fadeInMode ? "contained" : "outlined"}
           color="primary"
@@ -67,7 +75,11 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
         </Button>
       </Tooltip>
 
-      <Tooltip title="Apply crop to current audio" enterDelay={500} leaveDelay={200}>
+      <Tooltip
+        title="Apply crop to current audio"
+        enterDelay={500}
+        leaveDelay={200}
+      >
         <Button
           variant="contained"
           color="success"
@@ -79,7 +91,11 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
         </Button>
       </Tooltip>
 
-      <Tooltip title="Apply fade regions to current audio" enterDelay={500} leaveDelay={200}>
+      <Tooltip
+        title="Apply fade regions to current audio"
+        enterDelay={500}
+        leaveDelay={200}
+      >
         <Button
           variant="contained"
           color="success"

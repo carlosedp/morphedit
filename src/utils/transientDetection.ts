@@ -11,7 +11,7 @@ export const detectTransients = (
   audioBuffer: AudioBuffer,
   sensitivity: number,
   frameSizeMs: number = 20,
-  overlapPercent: number = 75
+  overlapPercent: number = 75,
 ): number[] => {
   if (!audioBuffer || audioBuffer.length === 0) {
     return [];
@@ -71,7 +71,7 @@ export const detectTransients = (
  */
 const calculateThreshold = (
   energyDeltas: number[],
-  sensitivity: number
+  sensitivity: number,
 ): number => {
   if (energyDeltas.length === 0) return 0;
 
@@ -102,7 +102,7 @@ export const applyTransientDetection = (
   overlapPercent: number,
   setSpliceMarkersStore: (markers: number[]) => void,
   setSelectedSpliceMarker: (marker: Region | null) => void,
-  updateSpliceMarkerColors: (marker: Region | null) => void
+  updateSpliceMarkerColors: (marker: Region | null) => void,
 ): number => {
   if (!_ws || !regions || !audioBuffer) {
     console.log("Cannot apply transient detection: missing dependencies");
@@ -114,7 +114,7 @@ export const applyTransientDetection = (
   // Clear existing splice markers
   const allRegions = regions.getRegions();
   const existingSpliceRegions = allRegions.filter((r: Region) =>
-    r.id.startsWith("splice-marker-")
+    r.id.startsWith("splice-marker-"),
   );
   existingSpliceRegions.forEach((region: Region) => region.remove());
 
@@ -123,7 +123,7 @@ export const applyTransientDetection = (
     audioBuffer,
     sensitivity,
     frameSizeMs,
-    overlapPercent
+    overlapPercent,
   );
   console.log(`Detected ${transients.length} transients:`, transients);
 
@@ -147,7 +147,7 @@ export const applyTransientDetection = (
   updateSpliceMarkerColors(null);
 
   console.log(
-    `Transient detection complete. Created ${transients.length} splice markers`
+    `Transient detection complete. Created ${transients.length} splice markers`,
   );
   return transients.length;
 };
@@ -159,7 +159,7 @@ export const applyTransientDetection = (
 export const findNearestZeroCrossing = (
   audioBuffer: AudioBuffer,
   targetTime: number,
-  searchWindow: number = 0.001 // 1ms search window
+  searchWindow: number = 0.001, // 1ms search window
 ): number => {
   const sampleRate = audioBuffer.sampleRate;
   const channelData = audioBuffer.getChannelData(0);
@@ -169,7 +169,7 @@ export const findNearestZeroCrossing = (
   const startSample = Math.max(0, targetSample - windowSamples);
   const endSample = Math.min(
     channelData.length - 1,
-    targetSample + windowSamples
+    targetSample + windowSamples,
   );
 
   let bestZeroCrossing = targetSample;
@@ -202,7 +202,7 @@ export const snapToZeroCrossings = (
   spliceMarkers: number[],
   setSpliceMarkersStore: (markers: number[]) => void,
   setSelectedSpliceMarker: (marker: Region | null) => void,
-  updateSpliceMarkerColors: (marker: Region | null) => void
+  updateSpliceMarkerColors: (marker: Region | null) => void,
 ): void => {
   if (!audioBuffer || spliceMarkers.length === 0) {
     return;
@@ -213,18 +213,18 @@ export const snapToZeroCrossings = (
   // Clear existing visual markers
   const allRegions = regions.getRegions();
   const existingSpliceRegions = allRegions.filter((r: Region) =>
-    r.id.startsWith("splice-marker-")
+    r.id.startsWith("splice-marker-"),
   );
   existingSpliceRegions.forEach((region: Region) => region.remove());
 
   // Find zero crossings for each marker
   const snappedMarkers = spliceMarkers.map((markerTime) =>
-    findNearestZeroCrossing(audioBuffer, markerTime)
+    findNearestZeroCrossing(audioBuffer, markerTime),
   );
 
   // Remove duplicates and sort
   const uniqueSnappedMarkers = [...new Set(snappedMarkers)].sort(
-    (a, b) => a - b
+    (a, b) => a - b,
   );
 
   // Create new visual markers
@@ -245,6 +245,6 @@ export const snapToZeroCrossings = (
   updateSpliceMarkerColors(null);
 
   console.log(
-    `Snapped ${spliceMarkers.length} markers to ${uniqueSnappedMarkers.length} zero crossings`
+    `Snapped ${spliceMarkers.length} markers to ${uniqueSnappedMarkers.length} zero crossings`,
   );
 };

@@ -37,7 +37,7 @@ export const isFileTooLong = (duration: number): boolean => {
  */
 export const truncateAudioBuffer = (
   buffer: AudioBuffer,
-  maxDuration: number
+  maxDuration: number,
 ): AudioBuffer => {
   const sampleRate = buffer.sampleRate;
   const maxSamples = Math.floor(maxDuration * sampleRate);
@@ -54,7 +54,7 @@ export const truncateAudioBuffer = (
   const truncatedBuffer = audioContext.createBuffer(
     buffer.numberOfChannels,
     maxSamples,
-    sampleRate
+    sampleRate,
   );
 
   for (let channel = 0; channel < buffer.numberOfChannels; channel++) {

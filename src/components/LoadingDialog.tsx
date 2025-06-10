@@ -1,11 +1,11 @@
-import React from 'react';
+import React from "react";
 import {
   Dialog,
   DialogContent,
   CircularProgress,
   Typography,
   Box,
-} from '@mui/material';
+} from "@mui/material";
 
 interface LoadingDialogProps {
   open: boolean;
@@ -24,8 +24,8 @@ export const LoadingDialog: React.FC<LoadingDialogProps> = ({
       disableEscapeKeyDown
       PaperProps={{
         sx: {
-          minHeight: '150px',
-        }
+          minHeight: "150px",
+        },
       }}
     >
       <DialogContent>
@@ -40,7 +40,12 @@ export const LoadingDialog: React.FC<LoadingDialogProps> = ({
           <Typography variant="h6" color="text.primary" textAlign="center">
             {message}
           </Typography>
-          <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mt: 1 }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            textAlign="center"
+            sx={{ mt: 1 }}
+          >
             Please wait...
           </Typography>
         </Box>

@@ -58,7 +58,7 @@ export interface WaveformActions {
 }
 
 export const useWaveformState = (
-  initialAudioUrl: string
+  initialAudioUrl: string,
 ): [WaveformState, WaveformActions] => {
   // Playback state
   const [isPlaying, setIsPlaying] = useState(false);
@@ -88,12 +88,12 @@ export const useWaveformState = (
 
   // Audio URL state
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>(
-    initialAudioUrl
+    initialAudioUrl,
   );
 
   // Export state
   const [exportAnchorEl, setExportAnchorEl] = useState<HTMLElement | null>(
-    null
+    null,
   );
 
   const state: WaveformState = {
@@ -154,7 +154,7 @@ export const useWaveformState = (
       setSkipIncrement,
       setCurrentAudioUrl,
       setExportAnchorEl,
-    ]
+    ],
   );
 
   return [state, actions];

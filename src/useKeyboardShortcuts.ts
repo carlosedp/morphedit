@@ -25,7 +25,12 @@ export const useKeyboardShortcuts = ({
       // Don't trigger if modifier keys are pressed (except for specific shortcuts)
       if (event.ctrlKey || event.metaKey || event.altKey) {
         // Allow Ctrl+Z or Cmd+Z for undo
-        if ((event.ctrlKey || event.metaKey) && event.key === "z" && !event.shiftKey && !event.altKey) {
+        if (
+          (event.ctrlKey || event.metaKey) &&
+          event.key === "z" &&
+          !event.shiftKey &&
+          !event.altKey
+        ) {
           event.preventDefault();
           onAction("undo");
           return;
