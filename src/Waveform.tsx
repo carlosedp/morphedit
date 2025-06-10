@@ -6,6 +6,8 @@ import {
   forwardRef,
   useImperativeHandle,
   useCallback,
+  useState,
+  useMemo,
 } from "react";
 import { useTheme } from "@mui/material/styles";
 
@@ -36,7 +38,8 @@ import {
   createFadeInRegion,
   createFadeOutRegion,
   applyCrop,
-  applyFades
+  applyFades,
+  getRegionInfo
 } from "./utils/regionUtils";
 import {
   playPause,
@@ -87,6 +90,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
   // Use custom hooks for state and refs management
   const [state, actions] = useWaveformState(audioUrl);
   const { wavesurferRef, regionsRef, isLoopingRef, cropRegionRef } = useWaveformRefs();
+
+  // State to trigger region info updates when regions change
+  const [regionUpdateTrigger, setRegionUpdateTrigger] = useState(0);
 
   // Extract stable action functions
   const { setCurrentTime } = actions;
@@ -335,6 +341,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
       setMarkers(
         regionList.filter((r) => r.end === r.start).map((r) => r.start),
       );
+      // Trigger region info update for WaveformControls
+      setRegionUpdateTrigger(prev => prev + 1);
     };
 
     // @ts-expect-error: event types are not complete in wavesurfer.js
@@ -343,6 +351,11 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
     ws.on("region-created", updateRegionsAndMarkers);
     // @ts-expect-error: event types are not complete in wavesurfer.js
     ws.on("region-removed", updateRegionsAndMarkers);
+
+    // Listen to region plugin events for real-time updates during dragging/resizing
+    regions.on("region-updated", updateRegionsAndMarkers);
+    regions.on("region-created", updateRegionsAndMarkers);
+    regions.on("region-removed", updateRegionsAndMarkers);
 
     // Handle splice marker selection
     regions.on("region-clicked", (region: Region) => {
@@ -508,6 +521,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
         setCropMode: actions.setCropMode,
         setCropRegion: actions.setCropRegion,
         setCurrentAudioUrl: actions.setCurrentAudioUrl,
+        setFadeInMode: actions.setFadeInMode,
+        setFadeOutMode: actions.setFadeOutMode,
         setZoom: actions.setZoom,
       }
     );
@@ -529,6 +544,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
         setFadeInMode: actions.setFadeInMode,
         setFadeOutMode: actions.setFadeOutMode,
         setCurrentAudioUrl: actions.setCurrentAudioUrl,
+        setCropMode: actions.setCropMode,
+        setCropRegion: actions.setCropRegion,
         setZoom: actions.setZoom,
       }
     );
@@ -600,6 +617,12 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
     actions.setExportAnchorEl(null);
   }, [spliceMarkersStore, actions]);
 
+  // Memoized region info that updates when regions change
+  const regionInfo = useMemo(() => {
+    return getRegionInfo(regionsRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [regionUpdateTrigger]); // Re-calculate when regions are updated
+
   // Expose methods to parent component via ref
   useImperativeHandle(
     ref,
@@ -660,6 +683,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
         zoom={state.zoom}
         skipIncrement={state.skipIncrement}
         spliceMarkersCount={spliceMarkersStore.length}
+        regionInfo={regionInfo}
         onPlayPause={handlePlayPause}
         onLoop={handleLoop}
         onRewind={handleRewind}
@@ -668,26 +692,32 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
       />
 
       {/* Export and Region controls */}
-      <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 2 }}>
-        <ExportControls
-          exportAnchorEl={state.exportAnchorEl}
-          onExportWav={handleExportWav}
-          onExportWavFormat={handleExportWavFormat}
-          onSetExportAnchorEl={actions.setExportAnchorEl}
-        />
+      <Stack direction="row" alignItems="center" sx={{ mt: 2, width: '100%' }}>
+        {/* Left column - Export controls */}
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ flex: 1 }}>
+          <ExportControls
+            exportAnchorEl={state.exportAnchorEl}
+            onExportWav={handleExportWav}
+            onExportWavFormat={handleExportWavFormat}
+            onSetExportAnchorEl={actions.setExportAnchorEl}
+          />
+        </Stack>
 
-        <RegionControls
-          cropMode={state.cropMode}
-          fadeInMode={state.fadeInMode}
-          fadeOutMode={state.fadeOutMode}
-          canUndo={canUndo}
-          onCropRegion={handleCropRegion}
-          onFadeInRegion={handleFadeInRegion}
-          onFadeOutRegion={handleFadeOutRegion}
-          onApplyCrop={handleApplyCrop}
-          onApplyFades={handleApplyFades}
-          onUndo={handleUndo}
-        />
+        {/* Right column - Region controls */}
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ flex: 1, justifyContent: 'flex-end' }}>
+          <RegionControls
+            cropMode={state.cropMode}
+            fadeInMode={state.fadeInMode}
+            fadeOutMode={state.fadeOutMode}
+            canUndo={canUndo}
+            onCropRegion={handleCropRegion}
+            onFadeInRegion={handleFadeInRegion}
+            onFadeOutRegion={handleFadeOutRegion}
+            onApplyCrop={handleApplyCrop}
+            onApplyFades={handleApplyFades}
+            onUndo={handleUndo}
+          />
+        </Stack>
       </Stack>
 
       {/* Splice marker controls */}

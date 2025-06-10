@@ -2,7 +2,7 @@
 
 - [x] Export audio to WAV with multiple formats
 - [x] Refactor code into multiple files
-- [ ] Show Fade In/Out and Crop region times in info panel
+- [x] Show Fade In/Out and Crop region times in info panel
 - [ ] Detect if file is longer than 174 seconds and show warning if user wants to truncate it or not
 - [ ] Drop file to open (left 2/3s of the waveform view)
 - [x] Add/remove splice points to audio using regions

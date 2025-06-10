@@ -49,7 +49,9 @@ export interface WaveformActions {
   setExportAnchorEl: (element: HTMLElement | null) => void;
 }
 
-export const useWaveformState = (initialAudioUrl: string): [WaveformState, WaveformActions] => {
+export const useWaveformState = (
+  initialAudioUrl: string
+): [WaveformState, WaveformActions] => {
   // Playback state
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLooping, setIsLooping] = useState(false);
@@ -63,7 +65,8 @@ export const useWaveformState = (initialAudioUrl: string): [WaveformState, Wavef
   const [fadeOutMode, setFadeOutMode] = useState(false);
 
   // Splice marker state
-  const [selectedSpliceMarker, setSelectedSpliceMarker] = useState<Region | null>(null);
+  const [selectedSpliceMarker, setSelectedSpliceMarker] =
+    useState<Region | null>(null);
   const [numberOfSlices, setNumberOfSlices] = useState(8);
 
   // Navigation state
@@ -71,10 +74,14 @@ export const useWaveformState = (initialAudioUrl: string): [WaveformState, Wavef
   const [skipIncrement, setSkipIncrement] = useState(1.0);
 
   // Audio URL state
-  const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>(initialAudioUrl);
+  const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>(
+    initialAudioUrl
+  );
 
   // Export state
-  const [exportAnchorEl, setExportAnchorEl] = useState<HTMLElement | null>(null);
+  const [exportAnchorEl, setExportAnchorEl] = useState<HTMLElement | null>(
+    null
+  );
 
   const state: WaveformState = {
     isPlaying,
@@ -93,37 +100,40 @@ export const useWaveformState = (initialAudioUrl: string): [WaveformState, Wavef
     exportAnchorEl,
   };
 
-  const actions: WaveformActions = useMemo(() => ({
-    setIsPlaying,
-    setIsLooping,
-    setCurrentTime,
-    setDuration,
-    setCropMode,
-    setCropRegion,
-    setFadeInMode,
-    setFadeOutMode,
-    setSelectedSpliceMarker,
-    setNumberOfSlices,
-    setZoom,
-    setSkipIncrement,
-    setCurrentAudioUrl,
-    setExportAnchorEl,
-  }), [
-    setIsPlaying,
-    setIsLooping,
-    setCurrentTime,
-    setDuration,
-    setCropMode,
-    setCropRegion,
-    setFadeInMode,
-    setFadeOutMode,
-    setSelectedSpliceMarker,
-    setNumberOfSlices,
-    setZoom,
-    setSkipIncrement,
-    setCurrentAudioUrl,
-    setExportAnchorEl,
-  ]);
+  const actions: WaveformActions = useMemo(
+    () => ({
+      setIsPlaying,
+      setIsLooping,
+      setCurrentTime,
+      setDuration,
+      setCropMode,
+      setCropRegion,
+      setFadeInMode,
+      setFadeOutMode,
+      setSelectedSpliceMarker,
+      setNumberOfSlices,
+      setZoom,
+      setSkipIncrement,
+      setCurrentAudioUrl,
+      setExportAnchorEl,
+    }),
+    [
+      setIsPlaying,
+      setIsLooping,
+      setCurrentTime,
+      setDuration,
+      setCropMode,
+      setCropRegion,
+      setFadeInMode,
+      setFadeOutMode,
+      setSelectedSpliceMarker,
+      setNumberOfSlices,
+      setZoom,
+      setSkipIncrement,
+      setCurrentAudioUrl,
+      setExportAnchorEl,
+    ]
+  );
 
   return [state, actions];
 };
