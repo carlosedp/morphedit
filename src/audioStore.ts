@@ -21,7 +21,10 @@ export interface AudioState {
 export const useAudioStore = create<AudioState>(
   (set: (partial: Partial<AudioState>) => void) => ({
     audioBuffer: null,
-    setAudioBuffer: (buffer) => set({ audioBuffer: buffer }),
+    setAudioBuffer: (buffer) => {
+      console.log("AudioStore - setAudioBuffer called with:", !!buffer, buffer ? `duration: ${buffer.length / buffer.sampleRate}s` : 'null');
+      set({ audioBuffer: buffer });
+    },
     markers: [],
     setMarkers: (markers) => set({ markers }),
     regions: [],

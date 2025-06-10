@@ -120,9 +120,18 @@ export const applyCrop = async (
     setCropMode: (mode: boolean) => void;
     setCropRegion: (region: Region | null) => void;
     setCurrentAudioUrl: (url: string | null) => void;
+    setZoom?: (zoom: number) => void;
   }
 ): Promise<void> => {
-  if (!ws || !regions || !cropRegion) return;
+  if (!ws || !regions || !cropRegion) {
+    console.log("Cannot apply crop: missing wavesurfer, regions, or crop region");
+    return;
+  }
+
+  if (!ws.getDuration() || ws.getDuration() === 0) {
+    console.log("Cannot apply crop: no audio loaded or duration is 0");
+    return;
+  }
 
   console.log("Applying crop...");
 
@@ -136,12 +145,16 @@ export const applyCrop = async (
 
   // Get the audio buffer from the audio store instead of wavesurfer backend
   const audioBuffer = useAudioStore.getState().audioBuffer;
+  console.log("applyCrop - checking audio buffer in store:", !!audioBuffer);
   if (!audioBuffer) {
-    console.log("No audio buffer found in store");
+    console.log("No audio buffer found in store for crop operation");
+    console.log("Current store state:", useAudioStore.getState());
     return;
   }
 
   console.log("Audio buffer found:", audioBuffer.length, "samples");
+  console.log("Audio buffer duration:", audioBuffer.length / audioBuffer.sampleRate, "seconds");
+  console.log("Current audio duration from wavesurfer:", ws.getDuration(), "seconds");
 
   const sampleRate = audioBuffer.sampleRate;
   const numberOfChannels = audioBuffer.numberOfChannels;
@@ -171,7 +184,8 @@ export const applyCrop = async (
   const blob = new Blob([wav], { type: 'audio/wav' });
   const newUrl = URL.createObjectURL(blob);
 
-  console.log("Loading new URL:", newUrl);
+  console.log("Loading new cropped URL:", newUrl);
+  console.log("Saving for undo - currentAudioUrl:", currentAudioUrl);
 
   // Save current audio URL for undo before loading new one
   callbacks.setPreviousAudioUrl(currentAudioUrl);
@@ -185,10 +199,31 @@ export const applyCrop = async (
     callbacks.setCurrentAudioUrl(newUrl);
     // Update the audio buffer in the store with the new cropped buffer
     callbacks.setAudioBuffer(newBuffer);
+    console.log("Updated audio buffer in store with cropped version - duration:", newBuffer.length / newBuffer.sampleRate, "seconds");
     // Clear crop region after applying
     callbacks.setCropMode(false);
     callbacks.setCropRegion(null);
     cropRegionData.remove();
+
+    // Recalculate zoom to fit the new cropped audio
+    if (callbacks.setZoom) {
+      const container = document.getElementById("waveform-container");
+      let containerWidth = 800;
+
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        containerWidth = rect.width > 0 ? rect.width : container.clientWidth || 800;
+      }
+
+      const newDuration = ws.getDuration();
+      if (newDuration > 0) {
+        const minPxPerSec = Math.max(20, containerWidth / newDuration);
+        const resetZoom = Math.min(1000, Math.max(50, minPxPerSec));
+        console.log("Recalculating zoom after crop:", { newDuration, containerWidth, resetZoom });
+        callbacks.setZoom(resetZoom);
+        ws.zoom(resetZoom);
+      }
+    }
   } catch (error) {
     console.error("Error loading cropped audio:", error);
   }
@@ -208,23 +243,38 @@ export const applyFades = async (
     setFadeInMode: (mode: boolean) => void;
     setFadeOutMode: (mode: boolean) => void;
     setCurrentAudioUrl: (url: string | null) => void;
+    setZoom?: (zoom: number) => void;
   }
 ): Promise<void> => {
-  if (!ws || !regions || (!fadeInMode && !fadeOutMode)) return;
+  if (!ws || !regions || (!fadeInMode && !fadeOutMode)) {
+    console.log("Cannot apply fades: missing wavesurfer, regions, or no fade modes active");
+    return;
+  }
+
+  if (!ws.getDuration() || ws.getDuration() === 0) {
+    console.log("Cannot apply fades: no audio loaded or duration is 0");
+    return;
+  }
 
   console.log("Applying fades...");
+  console.log("Current audio URL passed to applyFades:", currentAudioUrl);
 
   const fadeInRegionData = regions.getRegions().find((r: Region) => r.id === "fade-in");
   const fadeOutRegionData = regions.getRegions().find((r: Region) => r.id === "fade-out");
 
   // Get the audio buffer from the audio store instead of wavesurfer backend
   const audioBuffer = useAudioStore.getState().audioBuffer;
+  console.log("applyFades - checking audio buffer in store:", !!audioBuffer);
   if (!audioBuffer) {
-    console.log("No audio buffer found in store");
+    console.log("No audio buffer found in store for fade operation");
+    console.log("Current store state:", useAudioStore.getState());
     return;
   }
 
   console.log("Audio buffer found:", audioBuffer.length, "samples");
+  console.log("Audio buffer duration:", audioBuffer.length / audioBuffer.sampleRate, "seconds");
+  console.log("Current WaveSurfer duration:", ws.getDuration(), "seconds");
+  console.log("Audio buffer sample rate:", audioBuffer.sampleRate);
   console.log("Fade-in region:", fadeInRegionData ? `0 to ${fadeInRegionData.end}` : "none");
   console.log("Fade-out region:", fadeOutRegionData ? `${fadeOutRegionData.start} to end` : "none");
 
@@ -273,7 +323,8 @@ export const applyFades = async (
   const blob = new Blob([wav], { type: 'audio/wav' });
   const newUrl = URL.createObjectURL(blob);
 
-  console.log("Loading new URL:", newUrl);
+  console.log("Loading new faded URL:", newUrl);
+  console.log("Saving for undo - currentAudioUrl:", currentAudioUrl);
 
   // Save current audio URL for undo before loading new one
   callbacks.setPreviousAudioUrl(currentAudioUrl);
@@ -283,10 +334,12 @@ export const applyFades = async (
   try {
     await ws.load(newUrl);
     console.log("Fades applied successfully");
+    console.log("New audio duration after fades:", ws.getDuration(), "seconds");
     // Update the current audio URL to the new faded version
     callbacks.setCurrentAudioUrl(newUrl);
     // Update the audio buffer in the store with the new faded buffer
     callbacks.setAudioBuffer(newBuffer);
+    console.log("Updated audio buffer in store with faded version - duration:", newBuffer.length / newBuffer.sampleRate, "seconds");
     // Clear fade regions after applying
     if (fadeInRegionData) {
       callbacks.setFadeInMode(false);
@@ -295,6 +348,26 @@ export const applyFades = async (
     if (fadeOutRegionData) {
       callbacks.setFadeOutMode(false);
       fadeOutRegionData.remove();
+    }
+
+    // Recalculate zoom to fit the faded audio properly
+    if (callbacks.setZoom) {
+      const container = document.getElementById("waveform-container");
+      let containerWidth = 800;
+
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        containerWidth = rect.width > 0 ? rect.width : container.clientWidth || 800;
+      }
+
+      const duration = ws.getDuration();
+      if (duration > 0) {
+        const minPxPerSec = Math.max(20, containerWidth / duration);
+        const resetZoom = Math.min(1000, Math.max(50, minPxPerSec));
+        console.log("Recalculating zoom after fades:", { duration, containerWidth, resetZoom });
+        callbacks.setZoom(resetZoom);
+        ws.zoom(resetZoom);
+      }
     }
   } catch (error) {
     console.error("Error loading faded audio:", error);

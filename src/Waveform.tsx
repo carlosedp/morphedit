@@ -206,16 +206,30 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
     ws.on("ready", async () => {
       actions.setDuration(ws.getDuration());
 
-      // Initialize zoom to fill container if no zoom is set
+      // Apply zoom - either current zoom or calculate initial zoom to fill container
+      let zoomToApply = state.zoom;
       if (state.zoom === 0) {
+        // Get container width with multiple fallbacks
+        const container = document.getElementById("waveform-container");
+        let containerWidth = 800; // Default fallback
+
+        if (container) {
+          const rect = container.getBoundingClientRect();
+          containerWidth = rect.width > 0 ? rect.width : container.clientWidth || 800;
+        }
+
         // Calculate appropriate zoom to fill the container
-        const containerWidth = document.getElementById("waveform-container")?.clientWidth || 800;
         const duration = ws.getDuration();
         const minPxPerSec = Math.max(20, containerWidth / duration);
-        const initialZoom = Math.min(1000, Math.max(50, minPxPerSec));
-        actions.setZoom(initialZoom);
-        ws.zoom(initialZoom);
+        zoomToApply = Math.min(1000, Math.max(50, minPxPerSec));
+        actions.setZoom(zoomToApply);
+
+        console.log("Initial zoom calculated:", { duration, containerWidth, zoomToApply });
+      } else {
+        console.log("Applying existing zoom:", zoomToApply);
       }
+      // Always apply the zoom to ensure waveform displays correctly
+      ws.zoom(zoomToApply);
 
       // Parse WAV file for existing cue points and load them as splice markers
       const urlToLoad = state.currentAudioUrl || audioUrl;
@@ -226,27 +240,48 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
         console.error("Error loading cue points:", error);
       }
 
-      // Update audio buffer in store
+      // Update audio buffer in store - but only if not already correctly set
+      const currentStoredBuffer = useAudioStore.getState().audioBuffer;
+      const wsDuration = ws.getDuration();
+
+      // Check if we already have a buffer with the correct duration (within 0.01s tolerance)
+      const bufferAlreadyCorrect = currentStoredBuffer &&
+        Math.abs((currentStoredBuffer.length / currentStoredBuffer.sampleRate) - wsDuration) < 0.01;
+
+      if (bufferAlreadyCorrect) {
+        console.log("Ready event - audio buffer already correctly set in store, skipping update");
+        return;
+      }
+
       const backend = (ws as unknown as { backend?: { buffer?: AudioBuffer } }).backend;
+
+      console.log("Ready event - checking for backend buffer:", !!(backend && backend.buffer));
+      console.log("Ready event - audio duration:", wsDuration);
+
       if (backend && backend.buffer) {
-        console.log("Using backend buffer for current audio");
+        console.log("Setting audio buffer from backend - duration:", backend.buffer.length / backend.buffer.sampleRate, "seconds");
         setAudioBuffer(backend.buffer);
       } else {
+        console.log("No backend buffer available, attempting manual decode");
         // Fallback: load and decode the current audio file manually
-        console.log("Backend buffer not available, loading current audio manually");
-        fetch(urlToLoad)
-          .then(response => response.arrayBuffer())
-          .then(arrayBuffer => {
-            const audioContext = new (window.AudioContext || (window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)();
-            return audioContext.decodeAudioData(arrayBuffer);
-          })
-          .then(decodedBuffer => {
-            console.log("Audio buffer decoded successfully:", decodedBuffer.length, "samples");
-            setAudioBuffer(decodedBuffer);
-          })
-          .catch(error => {
-            console.error("Error decoding audio:", error);
-          });
+        const urlToLoad = state.currentAudioUrl || audioUrl;
+        if (urlToLoad) {
+          fetch(urlToLoad)
+            .then(response => response.arrayBuffer())
+            .then(arrayBuffer => {
+              const audioContext = new (window.AudioContext || (window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)();
+              return audioContext.decodeAudioData(arrayBuffer);
+            })
+            .then(decodedBuffer => {
+              console.log("Audio buffer decoded successfully - duration:", decodedBuffer.length / decodedBuffer.sampleRate, "seconds");
+              setAudioBuffer(decodedBuffer);
+            })
+            .catch(error => {
+              console.error("Error decoding audio:", error);
+            });
+        } else {
+          console.log("No URL available for manual decode");
+        }
       }
     });
 
@@ -368,15 +403,27 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
   const handleZoomReset = useCallback(() => {
     if (!wavesurferRef.current) return;
 
-    // Calculate appropriate zoom to fill the container
-    const containerWidth = document.getElementById("waveform-container")?.clientWidth || 800;
     const duration = wavesurferRef.current.getDuration();
-    if (duration > 0) {
-      const minPxPerSec = Math.max(20, containerWidth / duration);
-      const resetZoom = Math.min(1000, Math.max(50, minPxPerSec));
-      actions.setZoom(resetZoom);
-      zoom(wavesurferRef.current, resetZoom);
+    if (duration <= 0) return;
+
+    // Get container width with multiple fallbacks
+    const container = document.getElementById("waveform-container");
+    let containerWidth = 800; // Default fallback
+
+    if (container) {
+      const rect = container.getBoundingClientRect();
+      containerWidth = rect.width > 0 ? rect.width : container.clientWidth || 800;
     }
+
+    // Calculate appropriate zoom to fill the container
+    const minPxPerSec = Math.max(20, containerWidth / duration);
+    const resetZoom = Math.min(1000, Math.max(50, minPxPerSec));
+
+    console.log("Zoom reset:", { duration, containerWidth, resetZoom });
+
+    // Update state and apply zoom
+    actions.setZoom(resetZoom);
+    wavesurferRef.current.zoom(resetZoom);
   }, [actions, wavesurferRef]);
 
   const handleCropRegion = useCallback(() => {
@@ -461,6 +508,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
         setCropMode: actions.setCropMode,
         setCropRegion: actions.setCropRegion,
         setCurrentAudioUrl: actions.setCurrentAudioUrl,
+        setZoom: actions.setZoom,
       }
     );
     cropRegionRef.current = null;
@@ -481,6 +529,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl }, ref) => {
         setFadeInMode: actions.setFadeInMode,
         setFadeOutMode: actions.setFadeOutMode,
         setCurrentAudioUrl: actions.setCurrentAudioUrl,
+        setZoom: actions.setZoom,
       }
     );
   }, [state.fadeInMode, state.fadeOutMode, state.currentAudioUrl, spliceMarkersStore, setPreviousAudioUrl, setCanUndo, setAudioBuffer, actions, wavesurferRef, regionsRef]);

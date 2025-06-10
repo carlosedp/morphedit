@@ -80,7 +80,7 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
             value={zoom}
             onChange={(_, value) => onZoom(value as number)}
             min={10}
-            max={1000}
+            max={3000}
             step={10}
             sx={{ width: 100 }}
             size="small"
