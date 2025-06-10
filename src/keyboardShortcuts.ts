@@ -92,6 +92,11 @@ export const keyboardShortcuts: Record<string, KeyboardShortcut> = {
     description: "Remove every other splice marker",
     action: "halfMarkers",
   },
+  x: {
+    key: "X",
+    description: "Clear all splice markers",
+    action: "clearAllMarkers",
+  },
 };
 
 export type ShortcutAction =
@@ -111,4 +116,5 @@ export type ShortcutAction =
   | "addSpliceMarker"
   | "removeSpliceMarker"
   | "autoSlice"
-  | "halfMarkers";
+  | "halfMarkers"
+  | "clearAllMarkers";

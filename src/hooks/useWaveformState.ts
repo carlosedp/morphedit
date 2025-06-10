@@ -21,6 +21,11 @@ export interface WaveformState {
   selectedSpliceMarker: Region | null;
   numberOfSlices: number;
 
+  // Transient detection state
+  transientSensitivity: number;
+  transientFrameSize: number; // Frame size in milliseconds (5-50ms)
+  transientOverlap: number; // Overlap percentage (50-90%)
+
   // Navigation state
   zoom: number;
   skipIncrement: number;
@@ -43,6 +48,9 @@ export interface WaveformActions {
   setFadeOutMode: (mode: boolean) => void;
   setSelectedSpliceMarker: (marker: Region | null) => void;
   setNumberOfSlices: (slices: number) => void;
+  setTransientSensitivity: (sensitivity: number) => void;
+  setTransientFrameSize: (frameSize: number) => void;
+  setTransientOverlap: (overlap: number) => void;
   setZoom: (zoom: number) => void;
   setSkipIncrement: (increment: number) => void;
   setCurrentAudioUrl: (url: string | null) => void;
@@ -69,6 +77,11 @@ export const useWaveformState = (
     useState<Region | null>(null);
   const [numberOfSlices, setNumberOfSlices] = useState(8);
 
+  // Transient detection state
+  const [transientSensitivity, setTransientSensitivity] = useState(50);
+  const [transientFrameSize, setTransientFrameSize] = useState(20); // 20ms default
+  const [transientOverlap, setTransientOverlap] = useState(75); // 75% overlap default
+
   // Navigation state
   const [zoom, setZoom] = useState(0);
   const [skipIncrement, setSkipIncrement] = useState(1.0);
@@ -94,6 +107,9 @@ export const useWaveformState = (
     fadeOutMode,
     selectedSpliceMarker,
     numberOfSlices,
+    transientSensitivity,
+    transientFrameSize,
+    transientOverlap,
     zoom,
     skipIncrement,
     currentAudioUrl,
@@ -112,6 +128,9 @@ export const useWaveformState = (
       setFadeOutMode,
       setSelectedSpliceMarker,
       setNumberOfSlices,
+      setTransientSensitivity,
+      setTransientFrameSize,
+      setTransientOverlap,
       setZoom,
       setSkipIncrement,
       setCurrentAudioUrl,
@@ -128,6 +147,9 @@ export const useWaveformState = (
       setFadeOutMode,
       setSelectedSpliceMarker,
       setNumberOfSlices,
+      setTransientSensitivity,
+      setTransientFrameSize,
+      setTransientOverlap,
       setZoom,
       setSkipIncrement,
       setCurrentAudioUrl,

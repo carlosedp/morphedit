@@ -17,9 +17,9 @@ export const LoadingDialog: React.FC<LoadingDialogProps> = ({
   message,
 }) => {
   return (
-    <Dialog 
-      open={open} 
-      maxWidth="sm" 
+    <Dialog
+      open={open}
+      maxWidth="sm"
       fullWidth
       disableEscapeKeyDown
       PaperProps={{
@@ -29,10 +29,10 @@ export const LoadingDialog: React.FC<LoadingDialogProps> = ({
       }}
     >
       <DialogContent>
-        <Box 
-          display="flex" 
-          flexDirection="column" 
-          alignItems="center" 
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
           justifyContent="center"
           sx={{ py: 3 }}
         >

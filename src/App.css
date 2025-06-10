@@ -97,6 +97,14 @@
   gap: 4px;
 }
 
+#waveform-container ::part(region-content) {
+  position: relative;
+  width: 0px;
+  height: 0px;
+  left: -13px;
+  top: -11px;
+}
+
 /* #waveform-container ::part(wrapper) {
   --box-size: 10px;
   background-image:

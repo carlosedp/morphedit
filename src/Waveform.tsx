@@ -31,9 +31,14 @@ import {
   removeSpliceMarker,
   autoSlice,
   halfMarkers,
+  clearAllMarkers,
   updateSpliceMarkerColors,
   loadExistingCuePoints
 } from "./utils/spliceMarkerUtils";
+import {
+  applyTransientDetection,
+  snapToZeroCrossings
+} from "./utils/transientDetection";
 import {
   createCropRegion,
   createFadeInRegion,
@@ -87,6 +92,9 @@ export interface WaveformRef {
   handleRemoveSpliceMarker: () => void;
   handleAutoSlice: () => void;
   handleHalfMarkers: () => void;
+  handleClearAllMarkers: () => void;
+  handleTransientDetection: () => void;
+  handleSnapToZeroCrossings: () => void;
 }
 
 const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl, shouldTruncate = false, onLoadingComplete, onProcessingStart, onProcessingComplete }, ref) => {
@@ -332,53 +340,53 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl, shouldTrunc
     // Load audio - preprocess for truncation if needed
     const loadAudio = async () => {
       let urlToLoad = audioUrl;
-      
+
       console.log("=== loadAudio called ===");
       console.log("shouldTruncate:", shouldTruncate);
       console.log("Original audioUrl:", audioUrl);
       console.log("state.currentAudioUrl:", state.currentAudioUrl);
-      
+
       // Check if we already have a truncated URL for this audio file to prevent loops
       const currentUrl = state.currentAudioUrl;
       const isAlreadyTruncated = currentUrl && currentUrl.startsWith('blob:') && currentUrl !== audioUrl;
-      
+
       if (shouldTruncate && !isAlreadyTruncated) {
         console.log("🔄 Preprocessing audio for truncation before loading...");
         try {
           // Fetch and decode the original audio to check if truncation is needed
           const response = await fetch(audioUrl);
           const arrayBuffer = await response.arrayBuffer();
-          
-          const audioContext = new (window.AudioContext || 
+
+          const audioContext = new (window.AudioContext ||
             (window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)();
-          
+
           const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
           const originalDuration = audioBuffer.length / audioBuffer.sampleRate;
-          
+
           console.log("Original audio duration:", originalDuration, "seconds");
-          
+
           if (originalDuration > MORPHAGENE_MAX_DURATION) {
             console.log("✂️ Audio exceeds max duration, creating truncated version");
-            
+
             // Truncate the buffer
             const truncatedBuffer = truncateAudioBuffer(audioBuffer, MORPHAGENE_MAX_DURATION);
             const truncatedDuration = truncatedBuffer.length / truncatedBuffer.sampleRate;
             console.log("Truncated duration:", truncatedDuration, "seconds");
-            
+
             // Convert to WAV blob
             const { audioBufferToWavFormat } = await import('./utils/exportUtils');
             const { exportFormats } = await import('./utils/exportUtils');
             const defaultFormat = exportFormats[0];
-            
+
             const wavArrayBuffer = audioBufferToWavFormat(truncatedBuffer, defaultFormat, []);
             const wavBlob = new Blob([wavArrayBuffer], { type: "audio/wav" });
             urlToLoad = URL.createObjectURL(wavBlob);
-            
+
             console.log("Created truncated URL for loading:", urlToLoad);
-            
+
             // Store the truncated buffer in the store immediately
             setAudioBuffer(truncatedBuffer);
-            
+
             // Update current audio URL
             actions.setCurrentAudioUrl(urlToLoad);
           } else {
@@ -392,11 +400,11 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl, shouldTrunc
         console.log("🔄 Using already truncated URL:", currentUrl);
         urlToLoad = currentUrl;
       }
-      
+
       console.log("Loading URL into WaveSurfer:", urlToLoad);
       ws.load(urlToLoad);
     };
-    
+
     loadAudio();
 
     // Set up region event listeners
@@ -587,11 +595,61 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl, shouldTrunc
     );
   }, [setSpliceMarkersStore, actions, memoizedUpdateSpliceMarkerColors, regionsRef]);
 
+  const handleClearAllMarkers = useCallback(() => {
+    clearAllMarkers(
+      regionsRef.current!,
+      setSpliceMarkersStore,
+      actions.setSelectedSpliceMarker,
+      memoizedUpdateSpliceMarkerColors
+    );
+  }, [setSpliceMarkersStore, actions, memoizedUpdateSpliceMarkerColors, regionsRef]);
+
+  const handleTransientDetection = useCallback(() => {
+    const audioBuffer = useAudioStore.getState().audioBuffer;
+    if (!audioBuffer) {
+      console.log("No audio buffer available for transient detection");
+      return;
+    }
+
+    console.log("Starting transient detection with sensitivity:", state.transientSensitivity);
+    const detectedCount = applyTransientDetection(
+      wavesurferRef.current!,
+      regionsRef.current!,
+      audioBuffer,
+      state.transientSensitivity,
+      state.transientFrameSize,
+      state.transientOverlap,
+      setSpliceMarkersStore,
+      actions.setSelectedSpliceMarker,
+      memoizedUpdateSpliceMarkerColors
+    );
+    console.log(`Transient detection completed. Detected ${detectedCount} transients.`);
+  }, [state.transientSensitivity, state.transientFrameSize, state.transientOverlap, setSpliceMarkersStore, actions, memoizedUpdateSpliceMarkerColors, wavesurferRef, regionsRef]);
+
+  const handleSnapToZeroCrossings = useCallback(() => {
+    const audioBuffer = useAudioStore.getState().audioBuffer;
+    if (!audioBuffer || spliceMarkersStore.length === 0) {
+      console.log("No audio buffer or splice markers available for zero crossing snap");
+      return;
+    }
+
+    console.log("Snapping splice markers to zero crossings");
+    snapToZeroCrossings(
+      wavesurferRef.current!,
+      regionsRef.current!,
+      audioBuffer,
+      spliceMarkersStore,
+      setSpliceMarkersStore,
+      actions.setSelectedSpliceMarker,
+      memoizedUpdateSpliceMarkerColors
+    );
+  }, [spliceMarkersStore, setSpliceMarkersStore, actions, memoizedUpdateSpliceMarkerColors, wavesurferRef, regionsRef]);
+
   const handleApplyCrop = useCallback(async () => {
     if (onProcessingStart) {
       onProcessingStart("Applying crop to audio...");
     }
-    
+
     await applyCrop(
       wavesurferRef.current!,
       regionsRef.current!,
@@ -611,7 +669,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl, shouldTrunc
       }
     );
     cropRegionRef.current = null;
-    
+
     if (onProcessingComplete) {
       onProcessingComplete();
     }
@@ -621,7 +679,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl, shouldTrunc
     if (onProcessingStart) {
       onProcessingStart("Applying fades to audio...");
     }
-    
+
     await applyFades(
       wavesurferRef.current!,
       regionsRef.current!,
@@ -641,7 +699,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl, shouldTrunc
         setZoom: actions.setZoom,
       }
     );
-    
+
     if (onProcessingComplete) {
       onProcessingComplete();
     }
@@ -745,6 +803,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl, shouldTrunc
       handleRemoveSpliceMarker,
       handleAutoSlice,
       handleHalfMarkers,
+      handleClearAllMarkers,
+      handleTransientDetection,
+      handleSnapToZeroCrossings,
     }),
     [
       handlePlayPause,
@@ -766,6 +827,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl, shouldTrunc
       handleRemoveSpliceMarker,
       handleAutoSlice,
       handleHalfMarkers,
+      handleClearAllMarkers,
+      handleTransientDetection,
+      handleSnapToZeroCrossings,
       state.zoom,
     ],
   );
@@ -824,11 +888,20 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(({ audioUrl, shouldTrunc
         numberOfSlices={state.numberOfSlices}
         spliceMarkersCount={spliceMarkersStore.length}
         duration={state.duration}
+        transientSensitivity={state.transientSensitivity}
+        transientFrameSize={state.transientFrameSize}
+        transientOverlap={state.transientOverlap}
         onAddSpliceMarker={handleAddSpliceMarker}
         onRemoveSpliceMarker={handleRemoveSpliceMarker}
         onAutoSlice={handleAutoSlice}
         onHalfMarkers={handleHalfMarkers}
+        onClearAllMarkers={handleClearAllMarkers}
         onSetNumberOfSlices={actions.setNumberOfSlices}
+        onSetTransientSensitivity={actions.setTransientSensitivity}
+        onSetTransientFrameSize={actions.setTransientFrameSize}
+        onSetTransientOverlap={actions.setTransientOverlap}
+        onTransientDetection={handleTransientDetection}
+        onSnapToZeroCrossings={handleSnapToZeroCrossings}
       />
     </Container>
   );

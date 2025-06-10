@@ -2,13 +2,46 @@
 import type { Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type WaveSurfer from "wavesurfer.js";
+import { useAudioStore } from "../audioStore";
+import { findNearestZeroCrossing } from "./transientDetection";
+import "../App.css";
 
 export interface SpliceMarkerUtils {
-  addSpliceMarker: (ws: WaveSurfer, regions: RegionsPlugin, currentTime: number, spliceMarkersStore: number[], setSpliceMarkersStore: (markers: number[]) => void) => void;
-  removeSpliceMarker: (ws: WaveSurfer, regions: RegionsPlugin, selectedSpliceMarker: Region | null, spliceMarkersStore: number[], setSpliceMarkersStore: (markers: number[]) => void, setSelectedSpliceMarker: (marker: Region | null) => void, updateSpliceMarkerColors: (marker: Region | null) => void) => void;
-  autoSlice: (ws: WaveSurfer, regions: RegionsPlugin, numberOfSlices: number, setSpliceMarkersStore: (markers: number[]) => void, setSelectedSpliceMarker: (marker: Region | null) => void, updateSpliceMarkerColors: (marker: Region | null) => void) => void;
-  halfMarkers: (regions: RegionsPlugin, setSpliceMarkersStore: (markers: number[]) => void, setSelectedSpliceMarker: (marker: Region | null) => void, updateSpliceMarkerColors: (marker: Region | null) => void) => void;
-  updateSpliceMarkerColors: (regions: RegionsPlugin, selectedMarker: Region | null, theme: { palette: { primary: { main: string } } }) => void;
+  addSpliceMarker: (
+    ws: WaveSurfer,
+    regions: RegionsPlugin,
+    currentTime: number,
+    spliceMarkersStore: number[],
+    setSpliceMarkersStore: (markers: number[]) => void
+  ) => void;
+  removeSpliceMarker: (
+    ws: WaveSurfer,
+    regions: RegionsPlugin,
+    selectedSpliceMarker: Region | null,
+    spliceMarkersStore: number[],
+    setSpliceMarkersStore: (markers: number[]) => void,
+    setSelectedSpliceMarker: (marker: Region | null) => void,
+    updateSpliceMarkerColors: (marker: Region | null) => void
+  ) => void;
+  autoSlice: (
+    ws: WaveSurfer,
+    regions: RegionsPlugin,
+    numberOfSlices: number,
+    setSpliceMarkersStore: (markers: number[]) => void,
+    setSelectedSpliceMarker: (marker: Region | null) => void,
+    updateSpliceMarkerColors: (marker: Region | null) => void
+  ) => void;
+  halfMarkers: (
+    regions: RegionsPlugin,
+    setSpliceMarkersStore: (markers: number[]) => void,
+    setSelectedSpliceMarker: (marker: Region | null) => void,
+    updateSpliceMarkerColors: (marker: Region | null) => void
+  ) => void;
+  updateSpliceMarkerColors: (
+    regions: RegionsPlugin,
+    selectedMarker: Region | null,
+    theme: { palette: { primary: { main: string } } }
+  ) => void;
 }
 
 export const addSpliceMarker = (
@@ -20,21 +53,37 @@ export const addSpliceMarker = (
 ) => {
   if (!ws || !regions) return;
 
-  console.log("Adding splice marker at time:", currentTime);
+  // Get audio buffer for zero-crossing detection
+  const audioBuffer = useAudioStore.getState().audioBuffer;
+  let adjustedTime = currentTime;
+  
+  if (audioBuffer) {
+    // Snap to nearest zero crossing to avoid audio artifacts
+    adjustedTime = findNearestZeroCrossing(audioBuffer, currentTime);
+    console.log(
+      "Splice marker snapped to zero crossing:",
+      `${currentTime} -> ${adjustedTime}`
+    );
+  } else {
+    console.log("No audio buffer available, using original time");
+  }
 
-  // Create a zero-width region (start === end) for the splice marker
+  console.log("Adding splice marker at time:", adjustedTime);
+
+  // Create a zero-width region for the splice marker
   regions.addRegion({
-    start: currentTime,
-    end: currentTime,
+    start: adjustedTime,
     color: "rgba(0, 255, 255, 0.8)",
     drag: true,
     resize: false,
     id: `splice-marker-${Date.now()}`,
-    content: "⚡",
+    content: "🔻",
   });
 
   // Update store with splice marker times
-  const allSpliceMarkers = [...spliceMarkersStore, currentTime].sort((a, b) => a - b);
+  const allSpliceMarkers = [...spliceMarkersStore, adjustedTime].sort(
+    (a, b) => a - b
+  );
   setSpliceMarkersStore(allSpliceMarkers);
 
   console.log("Splice marker added. Total markers:", allSpliceMarkers.length);
@@ -62,15 +111,22 @@ export const removeSpliceMarker = (
     updateSpliceMarkerColors(null);
 
     // Update store
-    const updatedMarkers = spliceMarkersStore.filter(time => Math.abs(time - markerTime) > 0.001);
+    const updatedMarkers = spliceMarkersStore.filter(
+      (time) => Math.abs(time - markerTime) > 0.001
+    );
     setSpliceMarkersStore(updatedMarkers);
 
-    console.log("Splice marker removed. Remaining markers:", updatedMarkers.length);
+    console.log(
+      "Splice marker removed. Remaining markers:",
+      updatedMarkers.length
+    );
   } else {
     // If no marker is selected, try to remove the closest one to cursor
     const currentTime = ws.getCurrentTime();
     const allRegions = regions.getRegions();
-    const spliceRegions = allRegions.filter((r: Region) => r.id.startsWith("splice-marker-"));
+    const spliceRegions = allRegions.filter((r: Region) =>
+      r.id.startsWith("splice-marker-")
+    );
 
     if (spliceRegions.length === 0) {
       console.log("No splice markers to remove");
@@ -100,10 +156,15 @@ export const removeSpliceMarker = (
     updateSpliceMarkerColors(null);
 
     // Update store
-    const updatedMarkers = spliceMarkersStore.filter(time => Math.abs(time - markerTime) > 0.001);
+    const updatedMarkers = spliceMarkersStore.filter(
+      (time) => Math.abs(time - markerTime) > 0.001
+    );
     setSpliceMarkersStore(updatedMarkers);
 
-    console.log("Closest splice marker removed. Remaining markers:", updatedMarkers.length);
+    console.log(
+      "Closest splice marker removed. Remaining markers:",
+      updatedMarkers.length
+    );
   }
 };
 
@@ -123,43 +184,57 @@ export const autoSlice = (
     return;
   }
 
+  // Get audio buffer for zero-crossing detection
+  const audioBuffer = useAudioStore.getState().audioBuffer;
+
   console.log(`Creating ${numberOfSlices} equally distributed splice markers`);
 
   // Clear existing splice markers first
   const allRegions = regions.getRegions();
-  const existingSpliceRegions = allRegions.filter((r: Region) => r.id.startsWith("splice-marker-"));
-  existingSpliceRegions.forEach(region => region.remove());
+  const existingSpliceRegions = allRegions.filter((r: Region) =>
+    r.id.startsWith("splice-marker-")
+  );
+  existingSpliceRegions.forEach((region) => region.remove());
 
   // Create new equally distributed splice markers
   const newSpliceMarkers: number[] = [];
   const sliceInterval = duration / numberOfSlices;
 
-  // Add splice marker at time 0 (start)
+  // Add splice marker at time 0 (start) - no need to adjust start
   newSpliceMarkers.push(0);
   regions.addRegion({
     start: 0,
-    end: 0,
     color: "rgba(0, 255, 255, 0.8)",
     drag: true,
     resize: false,
     id: `splice-marker-auto-0-${Date.now()}`,
-    content: "⚡",
+    content: "🔻",
   });
 
   // Create splice markers at the boundaries between slices (excluding end)
   for (let i = 1; i < numberOfSlices; i++) {
     const markerTime = i * sliceInterval;
-    newSpliceMarkers.push(markerTime);
+    let adjustedMarkerTime = markerTime;
+    
+    if (audioBuffer) {
+      // Snap to nearest zero crossing to avoid audio artifacts
+      adjustedMarkerTime = findNearestZeroCrossing(audioBuffer, markerTime);
+      console.log(
+        `Auto-slice marker ${i} snapped to zero crossing:`,
+        `${markerTime} -> ${adjustedMarkerTime}`
+      );
+    }
+    
+    newSpliceMarkers.push(adjustedMarkerTime);
 
     // Create visual splice marker region
     regions.addRegion({
-      start: markerTime,
-      end: markerTime,
+      start: adjustedMarkerTime,
       color: "rgba(0, 255, 255, 0.8)",
       drag: true,
       resize: false,
       id: `splice-marker-auto-${i}-${Date.now()}`,
-      content: "⚡",
+      content: "🔻",
     });
   }
 
@@ -170,7 +245,9 @@ export const autoSlice = (
   setSelectedSpliceMarker(null);
   updateSpliceMarkerColors(null);
 
-  console.log(`Auto-slice complete. Created ${newSpliceMarkers.length} splice markers`);
+  console.log(
+    `Auto-slice complete. Created ${newSpliceMarkers.length} splice markers${audioBuffer ? ' with zero-crossing adjustment' : ''}`
+  );
 };
 
 export const halfMarkers = (
@@ -182,7 +259,9 @@ export const halfMarkers = (
   if (!regions) return;
 
   const allRegions = regions.getRegions();
-  const spliceRegions = allRegions.filter((r: Region) => r.id.startsWith("splice-marker-"));
+  const spliceRegions = allRegions.filter((r: Region) =>
+    r.id.startsWith("splice-marker-")
+  );
 
   if (spliceRegions.length === 0) {
     console.log("No splice markers to process");
@@ -220,7 +299,7 @@ export const halfMarkers = (
   });
 
   // Remove the selected markers from the visual display
-  markersToRemove.forEach(region => region.remove());
+  markersToRemove.forEach((region) => region.remove());
 
   // Update store with remaining splice marker times
   setSpliceMarkersStore(remainingMarkerTimes.sort((a, b) => a - b));
@@ -229,7 +308,42 @@ export const halfMarkers = (
   setSelectedSpliceMarker(null);
   updateSpliceMarkerColors(null);
 
-  console.log(`Half markers complete. Removed ${markersToRemove.length} markers, ${remainingMarkerTimes.length} remaining`);
+  console.log(
+    `Half markers complete. Removed ${markersToRemove.length} markers, ${remainingMarkerTimes.length} remaining`
+  );
+};
+
+export const clearAllMarkers = (
+  regions: RegionsPlugin,
+  setSpliceMarkersStore: (markers: number[]) => void,
+  setSelectedSpliceMarker: (marker: Region | null) => void,
+  updateSpliceMarkerColors: (marker: Region | null) => void
+) => {
+  if (!regions) return;
+
+  const allRegions = regions.getRegions();
+  const spliceRegions = allRegions.filter((r: Region) =>
+    r.id.startsWith("splice-marker-")
+  );
+
+  if (spliceRegions.length === 0) {
+    console.log("No splice markers to clear");
+    return;
+  }
+
+  console.log(`Clearing all ${spliceRegions.length} splice markers`);
+
+  // Remove all splice marker regions
+  spliceRegions.forEach((region: Region) => region.remove());
+
+  // Update store to empty array
+  setSpliceMarkersStore([]);
+
+  // Clear selection
+  setSelectedSpliceMarker(null);
+  updateSpliceMarkerColors(null);
+
+  console.log("All splice markers cleared");
 };
 
 export const updateSpliceMarkerColors = (
@@ -239,12 +353,20 @@ export const updateSpliceMarkerColors = (
 ) => {
   if (!regions) return;
 
-  console.log("Updating splice marker colors, selected marker:", selectedMarker?.id);
+  console.log(
+    "Updating splice marker colors, selected marker:",
+    selectedMarker?.id
+  );
 
   const allRegions = regions.getRegions();
-  const spliceRegions = allRegions.filter((r: Region) => r.id.startsWith("splice-marker-"));
+  const spliceRegions = allRegions.filter((r: Region) =>
+    r.id.startsWith("splice-marker-")
+  );
 
-  console.log("Found splice regions:", spliceRegions.map(r => r.id));
+  console.log(
+    "Found splice regions:",
+    spliceRegions.map((r) => r.id)
+  );
 
   spliceRegions.forEach((region: Region) => {
     if (selectedMarker && region.id === selectedMarker.id) {
@@ -263,20 +385,41 @@ export const loadExistingCuePoints = (
   setSpliceMarkersStore: (markers: number[]) => void
 ) => {
   if (existingCuePoints.length > 0) {
-    console.log("Loading existing cue points as splice markers:", existingCuePoints);
-    setSpliceMarkersStore(existingCuePoints);
+    console.log(
+      "Loading existing cue points as splice markers:",
+      existingCuePoints
+    );
+
+    // Get audio buffer for zero-crossing detection
+    const audioBuffer = useAudioStore.getState().audioBuffer;
+    const adjustedCuePoints: number[] = [];
 
     // Create visual splice marker regions for each cue point
     existingCuePoints.forEach((cueTime, index) => {
+      let adjustedCueTime = cueTime;
+      
+      if (audioBuffer) {
+        // Snap to nearest zero crossing to avoid audio artifacts
+        adjustedCueTime = findNearestZeroCrossing(audioBuffer, cueTime);
+        console.log(
+          `Cue point ${index} snapped to zero crossing:`,
+          `${cueTime} -> ${adjustedCueTime}`
+        );
+      }
+      
+      adjustedCuePoints.push(adjustedCueTime);
+      
       regions.addRegion({
-        start: cueTime,
-        end: cueTime,
+        start: adjustedCueTime,
         color: "rgba(0, 255, 255, 0.8)",
         drag: true,
         resize: false,
         id: `splice-marker-cue-${index}-${Date.now()}`,
-        content: "⚡",
+        content: "🔻",
       });
     });
+
+    // Update store with adjusted cue points
+    setSpliceMarkersStore(adjustedCuePoints.sort((a, b) => a - b));
   }
 };

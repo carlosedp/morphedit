@@ -12,8 +12,8 @@
 - [x] Add equal-spaced splice points to audio
 - [ ] Play each splice point in the audio with keyboard shortcuts
 - [x] Export audio with splice points
-- [ ] Transient detection with sensitivity setting
-- [ ] Detect zero-crossing on splice points, crop regions, and fade in/out regions
+- [x] Transient detection with sensitivity setting and advanced controls (frame size & overlap)
+- [x] Detect zero-crossing on splice points, crop regions, and fade in/out regions
 - [ ] Redo layout so controls are more intuitive
 - [ ] Replace truncation with a truncate button that truncates the audio to 174 seconds
 - [ ] Settings menu for:

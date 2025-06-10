@@ -4,6 +4,7 @@ import type RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type WaveSurfer from "wavesurfer.js";
 import { useAudioStore } from "../audioStore";
 import { audioBufferToWavWithCues } from "./audioProcessing";
+import { findNearestZeroCrossing } from "./transientDetection";
 
 // Type for region info display
 export interface RegionInfo {
@@ -219,9 +220,20 @@ export const applyCrop = async (
 
   const sampleRate = audioBuffer.sampleRate;
   const numberOfChannels = audioBuffer.numberOfChannels;
-  const startSample = Math.floor(cropRegionData.start * sampleRate);
-  const endSample = Math.floor(cropRegionData.end * sampleRate);
+  
+  // Snap crop boundaries to nearest zero crossings to avoid audio artifacts
+  const adjustedStartTime = findNearestZeroCrossing(audioBuffer, cropRegionData.start);
+  const adjustedEndTime = findNearestZeroCrossing(audioBuffer, cropRegionData.end);
+  
+  const startSample = Math.floor(adjustedStartTime * sampleRate);
+  const endSample = Math.floor(adjustedEndTime * sampleRate);
   const newLength = endSample - startSample;
+  
+  console.log(
+    "Zero-crossing adjusted crop region:",
+    `${cropRegionData.start} -> ${adjustedStartTime}`,
+    `to ${cropRegionData.end} -> ${adjustedEndTime}`
+  );
 
   console.log(
     "Cropping from sample",
@@ -429,8 +441,13 @@ export const applyFades = async (
 
     // Apply fade-in if exists
     if (fadeInRegionData) {
-      const fadeInEndSample = Math.floor(fadeInRegionData.end * sampleRate);
-      console.log("Applying fade-in to sample", fadeInEndSample);
+      // Snap fade-in end to nearest zero crossing to avoid audio artifacts
+      const adjustedFadeInEnd = findNearestZeroCrossing(audioBuffer, fadeInRegionData.end);
+      const fadeInEndSample = Math.floor(adjustedFadeInEnd * sampleRate);
+      console.log(
+        "Zero-crossing adjusted fade-in end:",
+        `${fadeInRegionData.end} -> ${adjustedFadeInEnd} (sample ${fadeInEndSample})`
+      );
       for (let i = 0; i < fadeInEndSample; i++) {
         const gain = i / fadeInEndSample; // Linear fade from 0 to 1
         newChannelData[i] *= gain;
@@ -439,10 +456,13 @@ export const applyFades = async (
 
     // Apply fade-out if exists
     if (fadeOutRegionData) {
-      const fadeOutStartSample = Math.floor(
-        fadeOutRegionData.start * sampleRate
+      // Snap fade-out start to nearest zero crossing to avoid audio artifacts
+      const adjustedFadeOutStart = findNearestZeroCrossing(audioBuffer, fadeOutRegionData.start);
+      const fadeOutStartSample = Math.floor(adjustedFadeOutStart * sampleRate);
+      console.log(
+        "Zero-crossing adjusted fade-out start:",
+        `${fadeOutRegionData.start} -> ${adjustedFadeOutStart} (sample ${fadeOutStartSample})`
       );
-      console.log("Applying fade-out from sample", fadeOutStartSample);
       for (let i = fadeOutStartSample; i < bufferLength; i++) {
         const gain = (bufferLength - i) / (bufferLength - fadeOutStartSample); // Linear fade from 1 to 0
         newChannelData[i] *= gain;

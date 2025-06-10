@@ -51,6 +51,9 @@ function App() {
     handleRemoveSpliceMarker: () => void;
     handleAutoSlice: () => void;
     handleHalfMarkers: () => void;
+    handleClearAllMarkers: () => void;
+    handleTransientDetection: () => void;
+    handleSnapToZeroCrossings: () => void;
     handleTruncateAudio: () => void;
   } | null>(null);
 
@@ -65,7 +68,7 @@ function App() {
     if (file.type.startsWith('audio/')) {
       setIsLoading(true);
       setLoadingMessage("Analyzing audio file...");
-      
+
       try {
         // First, check the file duration
         const duration = await getAudioFileDuration(file);
@@ -104,7 +107,7 @@ function App() {
       // Show loading dialog for truncation
       setIsLoading(true);
       setLoadingMessage("Processing audio for truncation...");
-      
+
       // Load the file with truncation enabled
       setShouldTruncateAudio(true);
       setAudioUrl(URL.createObjectURL(pendingFile));
@@ -119,7 +122,7 @@ function App() {
       // Show loading dialog for full file import
       setIsLoading(true);
       setLoadingMessage("Loading full audio file...");
-      
+
       // Load the full file without truncation
       setShouldTruncateAudio(false);
       setAudioUrl(URL.createObjectURL(pendingFile));
@@ -263,6 +266,9 @@ function App() {
         break;
       case "halfMarkers":
         waveformRef.current?.handleHalfMarkers();
+        break;
+      case "clearAllMarkers":
+        waveformRef.current?.handleClearAllMarkers();
         break;
     }
   };
