@@ -229,7 +229,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       // Create regions plugin instance
       const regions = RegionsPlugin.create();
       regionsRef.current = regions;
-      
+
       // Expose regions plugin to global window for debug function
       (window as DebugWindow).morpheditRegions = regions;
 
@@ -301,8 +301,12 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         // Parse WAV file for existing cue points and load them as splice markers
         // Skip this for cropped/faded URLs (processed audio) since markers are handled manually
         const urlToLoad = state.currentAudioUrl || audioUrl;
-        const isProcessedAudio = urlToLoad.includes("#morphedit-cropped") || urlToLoad.includes("#morphedit-faded");
-        const isConcatenatedAudio = urlToLoad.includes("#morphedit-concatenated");
+        const isProcessedAudio =
+          urlToLoad.includes("#morphedit-cropped") ||
+          urlToLoad.includes("#morphedit-faded");
+        const isConcatenatedAudio = urlToLoad.includes(
+          "#morphedit-concatenated",
+        );
 
         // Get current store state directly (not from React hook closure)
         const currentStoreState = useAudioStore.getState();
@@ -311,13 +315,19 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
         // For concatenated audio, always prioritize the store markers over file cue points
         // BUT skip this for processed audio since crop/fade operations handle markers manually
-        if (isConcatenatedAudio && !isProcessedAudio && currentSpliceMarkers.length > 0) {
-          console.log("Loading splice markers from store for concatenated audio");
+        if (
+          isConcatenatedAudio &&
+          !isProcessedAudio &&
+          currentSpliceMarkers.length > 0
+        ) {
+          console.log(
+            "Loading splice markers from store for concatenated audio",
+          );
 
           // Clear existing visual markers
           const allRegions = regions.getRegions();
           const existingSpliceMarkers = allRegions.filter((r: Region) =>
-            r.id.startsWith("splice-marker-")
+            r.id.startsWith("splice-marker-"),
           );
           existingSpliceMarkers.forEach((marker: Region) => marker.remove());
 
@@ -334,7 +344,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             });
           });
 
-          console.log(`Created ${currentSpliceMarkers.length} visual markers from store for concatenated audio`);
+          console.log(
+            `Created ${currentSpliceMarkers.length} visual markers from store for concatenated audio`,
+          );
         }
         // For processed audio (cropped/faded), create visual markers directly from store to ensure correct positioning
         else if (isProcessedAudio && currentSpliceMarkers.length > 0) {
@@ -343,7 +355,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           // Clear existing visual markers
           const allRegions = regions.getRegions();
           const existingSpliceMarkers = allRegions.filter((r: Region) =>
-            r.id.startsWith("splice-marker-")
+            r.id.startsWith("splice-marker-"),
           );
           existingSpliceMarkers.forEach((marker: Region) => marker.remove());
 
@@ -360,15 +372,20 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             });
           });
 
-          console.log(`Created ${currentSpliceMarkers.length} visual markers from store for processed audio`);
+          console.log(
+            `Created ${currentSpliceMarkers.length} visual markers from store for processed audio`,
+          );
         }
-        // Load cue points from WAV files (for regular unprocessed audio)  
+        // Load cue points from WAV files (for regular unprocessed audio)
         else {
           console.log("Loading cue points from audio file...");
           try {
             const existingCuePoints = await parseWavCuePoints(urlToLoad);
             if (existingCuePoints.length > 0) {
-              console.log("Found cue points, loading as splice markers:", existingCuePoints);
+              console.log(
+                "Found cue points, loading as splice markers:",
+                existingCuePoints,
+              );
               loadExistingCuePoints(
                 regions,
                 existingCuePoints,
@@ -384,13 +401,14 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
         // Update audio buffer in store - but only if not already correctly set
         const currentStoredBuffer = useAudioStore.getState().audioBuffer;
-        const isCurrentlyProcessing = useAudioStore.getState().isProcessingAudio;
+        const isCurrentlyProcessing =
+          useAudioStore.getState().isProcessingAudio;
         const wsDuration = ws.getDuration();
 
         // If we're currently processing audio, don't override the buffer
         if (isCurrentlyProcessing) {
           console.log(
-            "Ready event - audio processing in progress, skipping buffer update"
+            "Ready event - audio processing in progress, skipping buffer update",
           );
           return;
         }
@@ -399,16 +417,19 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         // since it was specifically set by the processing operations
         if (isProcessedAudio && currentStoredBuffer) {
           console.log(
-            "Ready event - processed audio detected, keeping existing buffer in store"
+            "Ready event - processed audio detected, keeping existing buffer in store",
           );
           console.log(
-            `Store buffer duration: ${currentStoredBuffer.length / currentStoredBuffer.sampleRate}s, WS duration: ${wsDuration}s`
+            `Store buffer duration: ${currentStoredBuffer.length / currentStoredBuffer.sampleRate}s, WS duration: ${wsDuration}s`,
           );
 
           // Double-check that our store buffer makes sense for processed audio
           const urlContainsCropped = urlToLoad.includes("#morphedit-cropped");
           const urlContainsFaded = urlToLoad.includes("#morphedit-faded");
-          console.log("Ready event - URL flags:", { urlContainsCropped, urlContainsFaded });
+          console.log("Ready event - URL flags:", {
+            urlContainsCropped,
+            urlContainsFaded,
+          });
           return;
         }
 
@@ -417,7 +438,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           currentStoredBuffer &&
           Math.abs(
             currentStoredBuffer.length / currentStoredBuffer.sampleRate -
-            wsDuration,
+              wsDuration,
           ) < 0.01;
 
         if (bufferAlreadyCorrect) {
@@ -455,9 +476,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
                 const audioContext = new (window.AudioContext ||
                   (
                     window as Window &
-                    typeof globalThis & {
-                      webkitAudioContext?: typeof AudioContext;
-                    }
+                      typeof globalThis & {
+                        webkitAudioContext?: typeof AudioContext;
+                      }
                   ).webkitAudioContext)();
                 return audioContext.decodeAudioData(arrayBuffer);
               })
@@ -534,11 +555,19 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             // Parse cue points from original file BEFORE truncation
             let originalCuePoints: number[] = [];
             try {
-              console.log("🔍 Parsing cue points from original file before truncation...");
+              console.log(
+                "🔍 Parsing cue points from original file before truncation...",
+              );
               originalCuePoints = await parseWavCuePoints(audioUrl);
-              console.log("🔍 Found cue points in original file:", originalCuePoints);
+              console.log(
+                "🔍 Found cue points in original file:",
+                originalCuePoints,
+              );
             } catch (error) {
-              console.warn("Could not parse cue points from original file:", error);
+              console.warn(
+                "Could not parse cue points from original file:",
+                error,
+              );
             }
 
             // Fetch and decode the original audio to check if truncation is needed
@@ -548,9 +577,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             const audioContext = new (window.AudioContext ||
               (
                 window as Window &
-                typeof globalThis & {
-                  webkitAudioContext?: typeof AudioContext;
-                }
+                  typeof globalThis & {
+                    webkitAudioContext?: typeof AudioContext;
+                  }
               ).webkitAudioContext)();
 
             const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -570,9 +599,12 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
               // Filter cue points to only include those within the truncated range
               const filteredCuePoints = originalCuePoints.filter(
-                (cueTime) => cueTime <= MORPHAGENE_MAX_DURATION
+                (cueTime) => cueTime <= MORPHAGENE_MAX_DURATION,
               );
-              console.log("🔍 Filtered cue points for truncated audio:", filteredCuePoints);
+              console.log(
+                "🔍 Filtered cue points for truncated audio:",
+                filteredCuePoints,
+              );
 
               // Truncate the buffer
               const truncatedBuffer = truncateAudioBuffer(
@@ -1016,6 +1048,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       cropRegionRef,
       onProcessingStart,
       onProcessingComplete,
+      setSpliceMarkersStore,
     ]);
 
     const handleApplyFades = useCallback(async () => {
@@ -1060,6 +1093,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       regionsRef,
       onProcessingStart,
       onProcessingComplete,
+      setSpliceMarkersStore,
     ]);
 
     const handleUndo = useCallback(async () => {
@@ -1121,11 +1155,11 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         `Duration: ${audioBuffer.length / audioBuffer.sampleRate}s`,
         `Length: ${audioBuffer.length} samples`,
         `Sample rate: ${audioBuffer.sampleRate}Hz`,
-        `Channels: ${audioBuffer.numberOfChannels}`
+        `Channels: ${audioBuffer.numberOfChannels}`,
       );
       console.log(
         "Export - Current WaveSurfer duration:",
-        wavesurferRef.current?.getDuration() || "N/A"
+        wavesurferRef.current?.getDuration() || "N/A",
       );
       console.log("=====================================================");
 
@@ -1158,7 +1192,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           `Duration: ${audioBuffer.length / audioBuffer.sampleRate}s`,
           `Length: ${audioBuffer.length} samples`,
           `Sample rate: ${audioBuffer.sampleRate}Hz`,
-          `Channels: ${audioBuffer.numberOfChannels}`
+          `Channels: ${audioBuffer.numberOfChannels}`,
         );
 
         const wav = audioBufferToWavFormat(
@@ -1305,7 +1339,10 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           selectedSpliceMarker={!!state.selectedSpliceMarker}
           selectedSpliceMarkerLocked={
             state.selectedSpliceMarker
-              ? isMarkerLocked(state.selectedSpliceMarker.start, lockedSpliceMarkersStore)
+              ? isMarkerLocked(
+                  state.selectedSpliceMarker.start,
+                  lockedSpliceMarkersStore,
+                )
               : false
           }
           numberOfSlices={state.numberOfSlices}
@@ -1348,7 +1385,9 @@ interface DebugWindow extends Window {
 (window as DebugWindow).debugListRegions = () => {
   const regions = (window as DebugWindow).morpheditRegions;
   if (!regions) {
-    console.log("🚫 No regions plugin found. Make sure an audio file is loaded.");
+    console.log(
+      "🚫 No regions plugin found. Make sure an audio file is loaded.",
+    );
     return;
   }
 
@@ -1357,8 +1396,12 @@ interface DebugWindow extends Window {
   console.log("=====================================");
 
   // Separate splice markers from other regions
-  const spliceMarkers = allRegions.filter((r: Region) => r.id.startsWith("splice-marker-"));
-  const otherRegions = allRegions.filter((r: Region) => !r.id.startsWith("splice-marker-"));
+  const spliceMarkers = allRegions.filter((r: Region) =>
+    r.id.startsWith("splice-marker-"),
+  );
+  const otherRegions = allRegions.filter(
+    (r: Region) => !r.id.startsWith("splice-marker-"),
+  );
 
   // Display splice markers
   if (spliceMarkers.length > 0) {
@@ -1371,7 +1414,9 @@ interface DebugWindow extends Window {
         const isLocked = contentText === "🔒";
         console.log(`  ${index + 1}. ID: ${region.id}`);
         console.log(`     Time: ${region.start.toFixed(3)}s`);
-        console.log(`     Content: ${contentText} ${isLocked ? "(LOCKED)" : "(UNLOCKED)"}`);
+        console.log(
+          `     Content: ${contentText} ${isLocked ? "(LOCKED)" : "(UNLOCKED)"}`,
+        );
         console.log(`     Draggable: ${region.drag}`);
         console.log("");
       });
@@ -1397,9 +1442,13 @@ interface DebugWindow extends Window {
   const store = useAudioStore.getState();
   console.log("📦 STORE INFORMATION:");
   console.log(`     Splice markers in store: ${store.spliceMarkers.length}`);
-  console.log(`     Store marker times: [${store.spliceMarkers.map(m => m.toFixed(3)).join(", ")}]`);
+  console.log(
+    `     Store marker times: [${store.spliceMarkers.map((m) => m.toFixed(3)).join(", ")}]`,
+  );
   console.log(`     Locked markers: ${store.lockedSpliceMarkers.length}`);
-  console.log(`     Locked marker times: [${store.lockedSpliceMarkers.map(m => m.toFixed(3)).join(", ")}]`);
+  console.log(
+    `     Locked marker times: [${store.lockedSpliceMarkers.map((m) => m.toFixed(3)).join(", ")}]`,
+  );
   console.log("=====================================");
 };
 

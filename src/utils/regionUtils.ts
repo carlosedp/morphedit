@@ -57,7 +57,7 @@ export const createCropRegion = (
   ws: WaveSurfer,
   regions: RegionsPlugin,
   setCropRegion: (region: Region | null) => void,
-  setCropMode: (mode: boolean) => void
+  setCropMode: (mode: boolean) => void,
 ) => {
   if (!ws || !regions) return null;
 
@@ -92,7 +92,7 @@ export const createCropRegion = (
 export const createFadeInRegion = (
   ws: WaveSurfer,
   regions: RegionsPlugin,
-  setFadeInMode: (mode: boolean) => void
+  setFadeInMode: (mode: boolean) => void,
 ) => {
   if (!ws || !regions) return null;
 
@@ -125,7 +125,7 @@ export const createFadeInRegion = (
 export const createFadeOutRegion = (
   ws: WaveSurfer,
   regions: RegionsPlugin,
-  setFadeOutMode: (mode: boolean) => void
+  setFadeOutMode: (mode: boolean) => void,
 ) => {
   if (!ws || !regions) return null;
 
@@ -172,11 +172,11 @@ export const applyCrop = async (
     setFadeOutMode: (mode: boolean) => void;
     setSpliceMarkersStore: (markers: number[]) => void;
     setZoom?: (zoom: number) => void;
-  }
+  },
 ): Promise<void> => {
   if (!ws || !regions || !cropRegion) {
     console.log(
-      "Cannot apply crop: missing wavesurfer, regions, or crop region"
+      "Cannot apply crop: missing wavesurfer, regions, or crop region",
     );
     return;
   }
@@ -211,12 +211,12 @@ export const applyCrop = async (
   console.log(
     "Audio buffer duration:",
     audioBuffer.length / audioBuffer.sampleRate,
-    "seconds"
+    "seconds",
   );
   console.log(
     "Current audio duration from wavesurfer:",
     ws.getDuration(),
-    "seconds"
+    "seconds",
   );
 
   const sampleRate = audioBuffer.sampleRate;
@@ -225,11 +225,11 @@ export const applyCrop = async (
   // Snap crop boundaries to nearest zero crossings to avoid audio artifacts
   const adjustedStartTime = findNearestZeroCrossing(
     audioBuffer,
-    cropRegionData.start
+    cropRegionData.start,
   );
   const adjustedEndTime = findNearestZeroCrossing(
     audioBuffer,
-    cropRegionData.end
+    cropRegionData.end,
   );
 
   const startSample = Math.floor(adjustedStartTime * sampleRate);
@@ -239,7 +239,7 @@ export const applyCrop = async (
   console.log(
     "Zero-crossing adjusted crop region:",
     `${cropRegionData.start} -> ${adjustedStartTime}`,
-    `to ${cropRegionData.end} -> ${adjustedEndTime}`
+    `to ${cropRegionData.end} -> ${adjustedEndTime}`,
   );
 
   console.log(
@@ -248,7 +248,7 @@ export const applyCrop = async (
     "to",
     endSample,
     "new length:",
-    newLength
+    newLength,
   );
 
   // Create new audio buffer with cropped data
@@ -260,7 +260,7 @@ export const applyCrop = async (
   const newBuffer = audioContext.createBuffer(
     numberOfChannels,
     newLength,
-    sampleRate
+    sampleRate,
   );
 
   for (let channel = 0; channel < numberOfChannels; channel++) {
@@ -280,29 +280,29 @@ export const applyCrop = async (
   // Also check visual markers for comparison
   const allRegions = regions.getRegions();
   const visualSpliceMarkers = allRegions.filter((r: Region) =>
-    r.id.startsWith("splice-marker-")
+    r.id.startsWith("splice-marker-"),
   );
   console.log("Visual splice markers count:", visualSpliceMarkers.length);
 
   // Filter and adjust splice markers to only include those within the cropped region
   const filteredSpliceMarkers = spliceMarkersStore.filter(
     (markerTime) =>
-      markerTime >= adjustedStartTime && markerTime <= adjustedEndTime
+      markerTime >= adjustedStartTime && markerTime <= adjustedEndTime,
   );
 
   // Adjust marker times relative to the new start time (subtract crop start)
   const adjustedSpliceMarkers = filteredSpliceMarkers.map(
-    (markerTime) => markerTime - adjustedStartTime
+    (markerTime) => markerTime - adjustedStartTime,
   );
 
   console.log(
-    `Crop markers: ${spliceMarkersStore.length} -> ${filteredSpliceMarkers.length} (filtered) -> ${adjustedSpliceMarkers.length} (adjusted)`
+    `Crop markers: ${spliceMarkersStore.length} -> ${filteredSpliceMarkers.length} (filtered) -> ${adjustedSpliceMarkers.length} (adjusted)`,
   );
 
   // Convert to WAV blob and create new URL
   const wav = audioBufferToWavWithCues(newBuffer, adjustedSpliceMarkers);
   const blob = new Blob([wav], { type: "audio/wav" });
-  
+
   // Preserve existing URL flags and add cropped flag
   let newUrl = URL.createObjectURL(blob);
   if (currentAudioUrl?.includes("#morphedit-concatenated")) {
@@ -322,7 +322,7 @@ export const applyCrop = async (
   console.log("Updating store with adjusted markers before loading");
   callbacks.setSpliceMarkersStore(adjustedSpliceMarkers);
   console.log(
-    `Updated splice markers store: ${adjustedSpliceMarkers.length} markers for cropped audio`
+    `Updated splice markers store: ${adjustedSpliceMarkers.length} markers for cropped audio`,
   );
 
   // Save current audio URL for undo before loading new one
@@ -341,11 +341,11 @@ export const applyCrop = async (
       "CROP DEBUG - New buffer details:",
       `Duration: ${newBuffer.length / newBuffer.sampleRate}s`,
       `Length: ${newBuffer.length} samples`,
-      `Sample rate: ${newBuffer.sampleRate}Hz`
+      `Sample rate: ${newBuffer.sampleRate}Hz`,
     );
     console.log(
       "CROP DEBUG - WaveSurfer duration after load:",
-      ws.getDuration()
+      ws.getDuration(),
     );
 
     // Update the current audio URL to the new cropped version
@@ -362,11 +362,11 @@ export const applyCrop = async (
       console.log(
         "CROP DEBUG - Verification - Buffer in store:",
         `Duration: ${storeBuffer.length / storeBuffer.sampleRate}s`,
-        `Length: ${storeBuffer.length} samples`
+        `Length: ${storeBuffer.length} samples`,
       );
     } else {
       console.error(
-        "CROP DEBUG - ERROR: No buffer found in store after setting!"
+        "CROP DEBUG - ERROR: No buffer found in store after setting!",
       );
     }
 
@@ -378,7 +378,7 @@ export const applyCrop = async (
     // Visual markers will be automatically created by the ready event from the WAV cue points
     // No need to manually create them here since we embedded them in the WAV file
     console.log(
-      `🔍 MARKER DEBUGGING - Skipping manual marker creation, ready event will load from WAV cue points`
+      `🔍 MARKER DEBUGGING - Skipping manual marker creation, ready event will load from WAV cue points`,
     );
 
     // Also remove any existing fade regions since crop was applied
@@ -457,11 +457,11 @@ export const applyFades = async (
     setCropRegion: (region: Region | null) => void;
     setSpliceMarkersStore: (markers: number[]) => void;
     setZoom?: (zoom: number) => void;
-  }
+  },
 ): Promise<void> => {
   if (!ws || !regions || (!fadeInMode && !fadeOutMode)) {
     console.log(
-      "Cannot apply fades: missing wavesurfer, regions, or no fade modes active"
+      "Cannot apply fades: missing wavesurfer, regions, or no fade modes active",
     );
     return;
   }
@@ -494,17 +494,17 @@ export const applyFades = async (
   console.log(
     "Audio buffer duration:",
     audioBuffer.length / audioBuffer.sampleRate,
-    "seconds"
+    "seconds",
   );
   console.log("Current WaveSurfer duration:", ws.getDuration(), "seconds");
   console.log("Audio buffer sample rate:", audioBuffer.sampleRate);
   console.log(
     "Fade-in region:",
-    fadeInRegionData ? `0 to ${fadeInRegionData.end}` : "none"
+    fadeInRegionData ? `0 to ${fadeInRegionData.end}` : "none",
   );
   console.log(
     "Fade-out region:",
-    fadeOutRegionData ? `${fadeOutRegionData.start} to end` : "none"
+    fadeOutRegionData ? `${fadeOutRegionData.start} to end` : "none",
   );
 
   const sampleRate = audioBuffer.sampleRate;
@@ -520,7 +520,7 @@ export const applyFades = async (
   const newBuffer = audioContext.createBuffer(
     numberOfChannels,
     bufferLength,
-    sampleRate
+    sampleRate,
   );
 
   for (let channel = 0; channel < numberOfChannels; channel++) {
@@ -537,12 +537,12 @@ export const applyFades = async (
       // Snap fade-in end to nearest zero crossing to avoid audio artifacts
       const adjustedFadeInEnd = findNearestZeroCrossing(
         audioBuffer,
-        fadeInRegionData.end
+        fadeInRegionData.end,
       );
       const fadeInEndSample = Math.floor(adjustedFadeInEnd * sampleRate);
       console.log(
         "Zero-crossing adjusted fade-in end:",
-        `${fadeInRegionData.end} -> ${adjustedFadeInEnd} (sample ${fadeInEndSample})`
+        `${fadeInRegionData.end} -> ${adjustedFadeInEnd} (sample ${fadeInEndSample})`,
       );
       for (let i = 0; i < fadeInEndSample; i++) {
         const gain = i / fadeInEndSample; // Linear fade from 0 to 1
@@ -555,12 +555,12 @@ export const applyFades = async (
       // Snap fade-out start to nearest zero crossing to avoid audio artifacts
       const adjustedFadeOutStart = findNearestZeroCrossing(
         audioBuffer,
-        fadeOutRegionData.start
+        fadeOutRegionData.start,
       );
       const fadeOutStartSample = Math.floor(adjustedFadeOutStart * sampleRate);
       console.log(
         "Zero-crossing adjusted fade-out start:",
-        `${fadeOutRegionData.start} -> ${adjustedFadeOutStart} (sample ${fadeOutStartSample})`
+        `${fadeOutRegionData.start} -> ${adjustedFadeOutStart} (sample ${fadeOutStartSample})`,
       );
       for (let i = fadeOutStartSample; i < bufferLength; i++) {
         const gain = (bufferLength - i) / (bufferLength - fadeOutStartSample); // Linear fade from 1 to 0
@@ -595,7 +595,7 @@ export const applyFades = async (
     console.log(
       "Updated audio buffer in store with faded version - duration:",
       newBuffer.length / newBuffer.sampleRate,
-      "seconds"
+      "seconds",
     );
     // Clear fade regions after applying
     if (fadeInRegionData) {

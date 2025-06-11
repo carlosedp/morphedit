@@ -22,7 +22,7 @@ import {
   getMultipleAudioFilesDuration,
   filterAudioFiles,
   sortAudioFilesByName,
-  audioBufferToWavBlob
+  audioBufferToWavBlob,
 } from "./utils/audioConcatenation";
 import type { ShortcutAction } from "./keyboardShortcuts";
 import "./App.css";
@@ -35,7 +35,8 @@ function App() {
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [multipleFilesDialogOpen, setMultipleFilesDialogOpen] = useState(false);
-  const [pendingMultipleFilesDuration, setPendingMultipleFilesDuration] = useState(0);
+  const [pendingMultipleFilesDuration, setPendingMultipleFilesDuration] =
+    useState(0);
   const [lengthWarningOpen, setLengthWarningOpen] = useState(false);
   const [pendingDuration, setPendingDuration] = useState(0);
   const [shouldTruncateAudio, setShouldTruncateAudio] = useState(false);
@@ -118,11 +119,14 @@ function App() {
       const result = await concatenateAudioFiles(
         pendingFiles,
         shouldTruncate,
-        shouldTruncate ? 174 : undefined // MORPHAGENE_MAX_DURATION
+        shouldTruncate ? 174 : undefined, // MORPHAGENE_MAX_DURATION
       );
 
       // Convert AudioBuffer to WAV blob with cue points
-      const wavBlob = await audioBufferToWavBlob(result.concatenatedBuffer, result.spliceMarkerPositions);
+      const wavBlob = await audioBufferToWavBlob(
+        result.concatenatedBuffer,
+        result.spliceMarkerPositions,
+      );
       const url = URL.createObjectURL(wavBlob) + "#morphedit-concatenated";
 
       setShouldTruncateAudio(false);
@@ -132,7 +136,9 @@ function App() {
       const { setSpliceMarkers } = useAudioStore.getState();
       setSpliceMarkers(result.spliceMarkerPositions);
 
-      console.log(`Concatenated ${pendingFiles.length} files with ${result.spliceMarkerPositions.length} splice markers`);
+      console.log(
+        `Concatenated ${pendingFiles.length} files with ${result.spliceMarkerPositions.length} splice markers`,
+      );
 
       setPendingFiles([]);
       setPendingMultipleFilesDuration(0);
@@ -410,7 +416,6 @@ function App() {
             </Typography>
           </Box>
         )}
-
         <Box
           display="flex"
           justifyContent="space-between"
@@ -443,7 +448,6 @@ function App() {
             </Tooltip>
           </Stack>
         </Box>
-
         {/* Waveform container - always visible */}
         <Box
           id="waveform-container"
@@ -464,9 +468,9 @@ function App() {
             cursor: !audioUrl ? "pointer" : "default",
             "&:hover": !audioUrl
               ? {
-                backgroundColor: "action.hover",
-                borderColor: "primary.light",
-              }
+                  backgroundColor: "action.hover",
+                  borderColor: "primary.light",
+                }
               : {},
             transition: "background-color 0.2s, border-color 0.2s",
           }}
@@ -474,7 +478,6 @@ function App() {
           {!audioUrl &&
             "Click here, use the button above, or drag and drop audio file(s) to load/concatenate them"}
         </Box>
-
         {audioUrl && (
           <Waveform
             audioUrl={audioUrl}
@@ -489,22 +492,22 @@ function App() {
           <Typography variant="body2" color="text.secondary">
             Beat detection features coming soon.
           </Typography>
-        </Box>        <Box mt={4}>
+        </Box>{" "}
+        <Box mt={4}>
           <Typography
             variant="caption"
             color="text.secondary"
             sx={{
-              textAlign: 'center',
+              textAlign: "center",
               opacity: 0.7,
-              '& a': {
-                color: 'text.secondary',
-                textDecoration: 'underline',
-              }
+              "& a": {
+                color: "text.secondary",
+                textDecoration: "underline",
+              },
             }}
           >
             Version {version} - Built with React and MUI
-            <br />
-            © 2025 - Carlos Eduardo de Paula -{" "}
+            <br />© 2025 - Carlos Eduardo de Paula -{" "}
             <a
               href="https://github.com/carlosedp/morphedit"
               target="_blank"
@@ -514,7 +517,7 @@ function App() {
             </a>
           </Typography>
         </Box>
-      </Container >
+      </Container>
 
       <FileLengthWarningDialog
         open={lengthWarningOpen}
@@ -534,7 +537,7 @@ function App() {
       />
 
       <LoadingDialog open={isLoading} message={loadingMessage} />
-    </ThemeProvider >
+    </ThemeProvider>
   );
 }
 

@@ -104,7 +104,11 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
           </Tooltip>
 
           <Tooltip
-            title={selectedSpliceMarkerLocked ? "Unlock selected splice marker" : "Lock selected splice marker"}
+            title={
+              selectedSpliceMarkerLocked
+                ? "Unlock selected splice marker"
+                : "Lock selected splice marker"
+            }
             enterDelay={500}
             leaveDelay={200}
           >

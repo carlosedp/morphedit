@@ -45,14 +45,24 @@ export const MultipleFilesDialog: React.FC<MultipleFilesDialogProps> = ({
       </DialogTitle>
       <DialogContent>
         <Alert severity="info" sx={{ mb: 2 }}>
-          You've selected {files.length} audio files. They will be concatenated in alphabetical order with splice markers added between each file.
+          You've selected {files.length} audio files. They will be concatenated
+          in alphabetical order with splice markers added between each file.
         </Alert>
 
         <Box sx={{ mb: 2 }}>
           <Typography variant="body1" gutterBottom>
             <strong>Files to concatenate:</strong>
           </Typography>
-          <List dense sx={{ maxHeight: 200, overflow: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+          <List
+            dense
+            sx={{
+              maxHeight: 200,
+              overflow: "auto",
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 1,
+            }}
+          >
             {files.map((file, index) => (
               <ListItem key={index}>
                 <ListItemText
@@ -69,25 +79,29 @@ export const MultipleFilesDialog: React.FC<MultipleFilesDialogProps> = ({
             <strong>Total duration:</strong> {formatDuration(totalDuration)}
           </Typography>
           <Typography variant="body1" gutterBottom>
-            <strong>Splice markers:</strong> {files.length - 1} (between each file)
+            <strong>Splice markers:</strong> {files.length - 1} (between each
+            file)
           </Typography>
           {exceedsMaxLength && (
             <Typography variant="body1" gutterBottom color="warning.main">
-              <strong>⚠️ Exceeds Morphagene maximum:</strong> {formatDuration(MORPHAGENE_MAX_DURATION)}
+              <strong>⚠️ Exceeds Morphagene maximum:</strong>{" "}
+              {formatDuration(MORPHAGENE_MAX_DURATION)}
             </Typography>
           )}
         </Box>
 
         {exceedsMaxLength && (
           <Alert severity="warning" sx={{ mb: 2 }}>
-            The total duration exceeds the Morphagene maximum of {formatDuration(MORPHAGENE_MAX_DURATION)}.
-            You can truncate the concatenated audio to fit the maximum length.
+            The total duration exceeds the Morphagene maximum of{" "}
+            {formatDuration(MORPHAGENE_MAX_DURATION)}. You can truncate the
+            concatenated audio to fit the maximum length.
           </Alert>
         )}
 
         <Typography variant="body2" color="text.secondary">
           Files will be concatenated in the order shown above (alphabetical).
-          Splice markers will be automatically placed at the boundaries between files.
+          Splice markers will be automatically placed at the boundaries between
+          files.
         </Typography>
       </DialogContent>
       <DialogActions>
@@ -103,11 +117,7 @@ export const MultipleFilesDialog: React.FC<MultipleFilesDialogProps> = ({
             Truncate & Concatenate
           </Button>
         )}
-        <Button
-          onClick={onConcatenate}
-          color="primary"
-          variant="contained"
-        >
+        <Button onClick={onConcatenate} color="primary" variant="contained">
           {exceedsMaxLength ? "Concatenate Full Length" : "Concatenate Files"}
         </Button>
       </DialogActions>

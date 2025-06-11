@@ -31,7 +31,7 @@ export const useAudioStore = create<AudioState>(
       console.log(
         "AudioStore - setAudioBuffer called with:",
         !!buffer,
-        buffer ? `duration: ${buffer.length / buffer.sampleRate}s` : "null"
+        buffer ? `duration: ${buffer.length / buffer.sampleRate}s` : "null",
       );
       set({ audioBuffer: buffer });
     },
@@ -65,5 +65,5 @@ export const useAudioStore = create<AudioState>(
         canUndo: false,
         isProcessingAudio: false,
       }),
-  })
+  }),
 );
