@@ -884,29 +884,32 @@ function App() {
               Fork me on GitHub
             </a>
           </Typography>
-          <Box mt={4}>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{
-                textAlign: "center",
-                opacity: 0.7,
-                "& a": {
-                  color: "text.secondary",
-                  textDecoration: "underline",
-                },
-              }}
+        </Box>        <Box mt={4}>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{
+              textAlign: 'center',
+              opacity: 0.7,
+              '& a': {
+                color: 'text.secondary',
+                textDecoration: 'underline',
+              }
+            }}
+          >
+            Version {version} - Built with React and MUI
+            <br />
+            © 2025 - Carlos Eduardo de Paula -{" "}
+            <a
+              href="https://github.com/carlosedp/morphedit"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              Report bugs at <a
-                href="https://github.com/carlosedp/morphedit/issues"
-                target="_blank"
-                rel="noopener noreferrer"
-              >GitHub Issues
-              </a>
-            </Typography>
-          </Box>
+              Fork me on GitHub
+            </a>
+          </Typography>
         </Box>
-      </Container>
+      </Container >
 
       <FileLengthWarningDialog
         open={lengthWarningOpen}
