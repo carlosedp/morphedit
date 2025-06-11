@@ -16,9 +16,12 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import ClearIcon from "@mui/icons-material/Clear";
 import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
 import CenterFocusStrongIcon from "@mui/icons-material/CenterFocusStrong";
+import LockIcon from "@mui/icons-material/Lock";
+import LockOpenIcon from "@mui/icons-material/LockOpen";
 
 interface SpliceMarkerControlsProps {
   selectedSpliceMarker: boolean;
+  selectedSpliceMarkerLocked: boolean;
   numberOfSlices: number;
   spliceMarkersCount: number;
   duration: number;
@@ -27,6 +30,7 @@ interface SpliceMarkerControlsProps {
   transientOverlap: number;
   onAddSpliceMarker: () => void;
   onRemoveSpliceMarker: () => void;
+  onToggleMarkerLock: () => void;
   onAutoSlice: () => void;
   onHalfMarkers: () => void;
   onClearAllMarkers: () => void;
@@ -40,6 +44,7 @@ interface SpliceMarkerControlsProps {
 
 export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
   selectedSpliceMarker,
+  selectedSpliceMarkerLocked,
   numberOfSlices,
   spliceMarkersCount,
   duration,
@@ -48,6 +53,7 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
   transientOverlap,
   onAddSpliceMarker,
   onRemoveSpliceMarker,
+  onToggleMarkerLock,
   onAutoSlice,
   onHalfMarkers,
   onClearAllMarkers,
@@ -94,6 +100,25 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
               disabled={!selectedSpliceMarker}
             >
               <DeleteIcon />
+            </Button>
+          </Tooltip>
+
+          <Tooltip
+            title={
+              selectedSpliceMarkerLocked
+                ? "Unlock selected splice marker"
+                : "Lock selected splice marker"
+            }
+            enterDelay={500}
+            leaveDelay={200}
+          >
+            <Button
+              variant="outlined"
+              color={selectedSpliceMarkerLocked ? "warning" : "primary"}
+              onClick={onToggleMarkerLock}
+              disabled={!selectedSpliceMarker}
+            >
+              {selectedSpliceMarkerLocked ? <LockIcon /> : <LockOpenIcon />}
             </Button>
           </Tooltip>
 
@@ -219,7 +244,7 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
               value={transientFrameSize}
               onChange={(_, value) => onSetTransientFrameSize(value as number)}
               min={5}
-              max={50}
+              max={200}
               step={1}
               valueLabelDisplay="auto"
               valueLabelFormat={(value) => `${value}ms`}
@@ -236,7 +261,7 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             <Slider
               value={transientOverlap}
               onChange={(_, value) => onSetTransientOverlap(value as number)}
-              min={50}
+              min={20}
               max={90}
               step={5}
               valueLabelDisplay="auto"

@@ -16,7 +16,7 @@ function createTestWavWithCuePoints() {
 
   // Generate sine wave
   for (let i = 0; i < length; i++) {
-    channelData[i] = Math.sin(2 * Math.PI * frequency * i / sampleRate) * 0.3;
+    channelData[i] = Math.sin((2 * Math.PI * frequency * i) / sampleRate) * 0.3;
   }
 
   // Convert to WAV with cue points
@@ -24,18 +24,18 @@ function createTestWavWithCuePoints() {
   const wavData = audioBufferToWavWithCues(buffer, cuePoints);
 
   // Create blob and download
-  const blob = new Blob([wavData], { type: 'audio/wav' });
+  const blob = new Blob([wavData], { type: "audio/wav" });
   const url = URL.createObjectURL(blob);
 
   // Create download link
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
-  a.download = 'test-with-cue-points.wav';
+  a.download = "test-with-cue-points.wav";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
 
-  console.log('Test WAV file with cue points created and downloaded');
+  console.log("Test WAV file with cue points created and downloaded");
   return url;
 }
 
@@ -118,4 +118,6 @@ function audioBufferToWavWithCues(buffer, cuePoints) {
   return arrayBuffer;
 }
 
-console.log('Test function loaded. Run createTestWavWithCuePoints() to create a test file.');
+console.log(
+  "Test function loaded. Run createTestWavWithCuePoints() to create a test file.",
+);

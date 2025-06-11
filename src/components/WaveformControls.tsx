@@ -68,24 +68,24 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
         </Tooltip>
 
         {/* Zoom controls */}
-        <Tooltip title="Zoom" enterDelay={500} leaveDelay={200}>
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ ml: 2 }}>
-            <ZoomOutIcon color="action" />
-            <Slider
-              value={zoom}
-              onChange={(_, value) => onZoom(value as number)}
-              min={1}
-              max={3000}
-              step={1}
-              sx={{ width: 100 }}
-              size="small"
-            />
-            <ZoomInIcon color="action" />
-            <IconButton onClick={onZoomReset} size="small">
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ ml: 2 }}>
+          <ZoomOutIcon color="action" />
+          <Slider
+            value={zoom}
+            onChange={(_, value) => onZoom(value as number)}
+            min={1}
+            max={3000}
+            step={1}
+            sx={{ width: 100 }}
+            size="small"
+          />
+          <ZoomInIcon color="action" />
+          <IconButton onClick={onZoomReset} size="small">
+            <Tooltip title="Zoom all" enterDelay={500} leaveDelay={200}>
               <ZoomResetIcon />
-            </IconButton>
-          </Stack>
-        </Tooltip>
+            </Tooltip>
+          </IconButton>
+        </Stack>
       </Stack>
 
       {/* Right column - Times and info */}
@@ -112,35 +112,35 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
         {(regionInfo.cropRegion ||
           regionInfo.fadeInRegion ||
           regionInfo.fadeOutRegion) && (
-          <Stack
-            direction="row"
-            spacing={2}
-            alignItems="center"
-            sx={{ mt: 0.5 }}
-          >
-            {regionInfo.cropRegion && (
-              <Typography variant="caption" color="warning.main">
-                Crop: {formatTime(regionInfo.cropRegion.start)} -{" "}
-                {formatTime(regionInfo.cropRegion.end)} (Δ
-                {formatTime(regionInfo.cropRegion.duration)})
-              </Typography>
-            )}
-            {regionInfo.fadeInRegion && (
-              <Typography variant="caption" color="success.main">
-                Fade In: {formatTime(regionInfo.fadeInRegion.start)} -{" "}
-                {formatTime(regionInfo.fadeInRegion.end)} (Δ
-                {formatTime(regionInfo.fadeInRegion.duration)})
-              </Typography>
-            )}
-            {regionInfo.fadeOutRegion && (
-              <Typography variant="caption" color="error.main">
-                Fade Out: {formatTime(regionInfo.fadeOutRegion.start)} -{" "}
-                {formatTime(regionInfo.fadeOutRegion.end)} (Δ
-                {formatTime(regionInfo.fadeOutRegion.duration)})
-              </Typography>
-            )}
-          </Stack>
-        )}
+            <Stack
+              direction="row"
+              spacing={2}
+              alignItems="center"
+              sx={{ mt: 0.5 }}
+            >
+              {regionInfo.cropRegion && (
+                <Typography variant="caption" color="warning.main">
+                  Crop: {formatTime(regionInfo.cropRegion.start)} -{" "}
+                  {formatTime(regionInfo.cropRegion.end)} (Δ
+                  {formatTime(regionInfo.cropRegion.duration)})
+                </Typography>
+              )}
+              {regionInfo.fadeInRegion && (
+                <Typography variant="caption" color="success.main">
+                  Fade In: {formatTime(regionInfo.fadeInRegion.start)} -{" "}
+                  {formatTime(regionInfo.fadeInRegion.end)} (Δ
+                  {formatTime(regionInfo.fadeInRegion.duration)})
+                </Typography>
+              )}
+              {regionInfo.fadeOutRegion && (
+                <Typography variant="caption" color="error.main">
+                  Fade Out: {formatTime(regionInfo.fadeOutRegion.start)} -{" "}
+                  {formatTime(regionInfo.fadeOutRegion.end)} (Δ
+                  {formatTime(regionInfo.fadeOutRegion.duration)})
+                </Typography>
+              )}
+            </Stack>
+          )}
       </Stack>
     </Stack>
   );

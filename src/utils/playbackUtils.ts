@@ -3,11 +3,106 @@ import type { Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type WaveSurfer from "wavesurfer.js";
 
+// Store the current splice stop listener to clean it up when needed
+let currentSpliceStopListener: ((time: number) => void) | null = null;
+
+/**
+ * Play a specific splice marker by its index (1-20)
+ * Jumps to the splice marker position and starts playback
+ * Automatically stops at the next splice marker
+ */
+export const playSpliceMarker = (
+  ws: WaveSurfer,
+  spliceMarkers: number[],
+  index: number
+) => {
+  if (!ws || !spliceMarkers || spliceMarkers.length === 0) {
+    console.log(
+      "Cannot play splice marker: no wavesurfer or splice markers available"
+    );
+    return;
+  }
+
+  // Convert 1-based index to 0-based
+  const markerIndex = index - 1;
+
+  if (markerIndex < 0 || markerIndex >= spliceMarkers.length) {
+    console.log(
+      `Splice marker ${index} does not exist (only ${spliceMarkers.length} markers available)`
+    );
+    return;
+  }
+
+  // Clean up any existing splice stop listener
+  if (currentSpliceStopListener) {
+    ws.un("timeupdate", currentSpliceStopListener);
+    currentSpliceStopListener = null;
+  }
+
+  // Sort markers to ensure we get them in chronological order
+  const sortedMarkers = [...spliceMarkers].sort((a, b) => a - b);
+  const markerTime = sortedMarkers[markerIndex];
+
+  // Find the next splice marker (if any)
+  const nextMarkerTime = sortedMarkers[markerIndex + 1];
+
+  console.log(
+    `Playing splice marker ${index} at ${markerTime.toFixed(3)}s${
+      nextMarkerTime
+        ? ` (will stop at ${nextMarkerTime.toFixed(3)}s)`
+        : " (no next marker, will play to end)"
+    }`
+  );
+
+  // Seek to the marker position (normalized to 0-1)
+  const duration = ws.getDuration();
+  if (duration > 0) {
+    ws.seekTo(markerTime / duration);
+
+    // Set up listener to stop at next splice marker
+    if (nextMarkerTime) {
+      currentSpliceStopListener = (time: number) => {
+        if (time >= nextMarkerTime) {
+          console.log(
+            `Reached next splice marker at ${nextMarkerTime.toFixed(
+              3
+            )}s, stopping playback`
+          );
+          ws.pause();
+
+          // Clean up the listener
+          if (currentSpliceStopListener) {
+            ws.un("timeupdate", currentSpliceStopListener);
+            currentSpliceStopListener = null;
+          }
+        }
+      };
+
+      ws.on("timeupdate", currentSpliceStopListener);
+
+      // Also clean up listener when playback stops for other reasons
+      const cleanupOnPause = () => {
+        if (currentSpliceStopListener) {
+          ws.un("timeupdate", currentSpliceStopListener);
+          currentSpliceStopListener = null;
+        }
+        ws.un("pause", cleanupOnPause);
+      };
+      ws.on("pause", cleanupOnPause);
+    }
+
+    // Start playback if not already playing
+    if (!ws.isPlaying()) {
+      ws.play();
+    }
+  }
+};
+
 export const playPause = (
   ws: WaveSurfer,
   regions: RegionsPlugin,
   isPlaying: boolean,
-  cropRegion: Region | null,
+  cropRegion: Region | null
 ) => {
   if (!ws) return;
 
@@ -32,7 +127,7 @@ export const playPause = (
 export const rewind = (
   ws: WaveSurfer,
   regions: RegionsPlugin,
-  cropRegion: Region | null,
+  cropRegion: Region | null
 ) => {
   if (!ws) return;
 
@@ -99,11 +194,11 @@ export const undo = async (
     setCropRegion: (region: Region | null) => void;
     setFadeInMode: (mode: boolean) => void;
     setFadeOutMode: (mode: boolean) => void;
-  },
+  }
 ): Promise<void> => {
   if (!ws || !canUndo || !previousAudioUrl) {
     console.log(
-      "Cannot undo: no wavesurfer, undo not available, or no previous URL",
+      "Cannot undo: no wavesurfer, undo not available, or no previous URL"
     );
     return;
   }
