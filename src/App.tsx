@@ -15,7 +15,15 @@ import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
 import { KeyboardShortcutsHelp } from "./KeyboardShortcutsHelp";
 import { FileLengthWarningDialog } from "./components/FileLengthWarningDialog";
 import { LoadingDialog } from "./components/LoadingDialog";
+import { MultipleFilesDialog } from "./components/MultipleFilesDialog";
 import { getAudioFileDuration, isFileTooLong } from "./utils/fileLengthUtils";
+import { 
+  concatenateAudioFiles, 
+  getMultipleAudioFilesDuration, 
+  filterAudioFiles, 
+  sortAudioFilesByName,
+  audioBufferToWavBlob
+} from "./utils/audioConcatenation";
 import type { ShortcutAction } from "./keyboardShortcuts";
 import "./App.css";
 import { version } from "./Version.ts";
@@ -25,6 +33,9 @@ function App() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [multipleFilesDialogOpen, setMultipleFilesDialogOpen] = useState(false);
+  const [pendingMultipleFilesDuration, setPendingMultipleFilesDuration] = useState(0);
   const [lengthWarningOpen, setLengthWarningOpen] = useState(false);
   const [pendingDuration, setPendingDuration] = useState(0);
   const [shouldTruncateAudio, setShouldTruncateAudio] = useState(false);
@@ -59,10 +70,82 @@ function App() {
   } | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      loadAudioFile(file);
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const audioFiles = filterAudioFiles(files);
+      if (audioFiles.length > 1) {
+        handleMultipleFiles(audioFiles);
+      } else if (audioFiles.length === 1) {
+        loadAudioFile(audioFiles[0]);
+      }
     }
+  };
+
+  const handleMultipleFiles = async (files: File[]) => {
+    setIsLoading(true);
+    setLoadingMessage("Analyzing multiple audio files...");
+
+    try {
+      // Sort files alphabetically for consistent order
+      const sortedFiles = sortAudioFilesByName(files);
+      
+      // Calculate total duration
+      const totalDuration = await getMultipleAudioFilesDuration(sortedFiles);
+      
+      setIsLoading(false);
+      setPendingFiles(sortedFiles);
+      setPendingMultipleFilesDuration(totalDuration);
+      setMultipleFilesDialogOpen(true);
+    } catch (error) {
+      console.error("Error analyzing multiple audio files:", error);
+      setIsLoading(false);
+      // Fallback: just load the first file
+      loadAudioFile(files[0]);
+    }
+  };
+
+  const handleConcatenateFiles = async (shouldTruncate: boolean = false) => {
+    setMultipleFilesDialogOpen(false);
+    
+    if (pendingFiles.length === 0) return;
+
+    setIsLoading(true);
+    setLoadingMessage("Concatenating audio files...");
+
+    try {
+      const result = await concatenateAudioFiles(
+        pendingFiles, 
+        shouldTruncate, 
+        shouldTruncate ? 174 : undefined // MORPHAGENE_MAX_DURATION
+      );
+
+      // Convert AudioBuffer to WAV blob with cue points
+      const wavBlob = await audioBufferToWavBlob(result.concatenatedBuffer, result.spliceMarkerPositions);
+      const url = URL.createObjectURL(wavBlob) + "#morphedit-concatenated";
+      
+      setShouldTruncateAudio(false);
+      setAudioUrl(url);
+      
+      // Store splice marker positions in the audio store
+      const { setSpliceMarkers } = useAudioStore.getState();
+      setSpliceMarkers(result.spliceMarkerPositions);
+      
+      console.log(`Concatenated ${pendingFiles.length} files with ${result.spliceMarkerPositions.length} splice markers`);
+      
+      setPendingFiles([]);
+      setPendingMultipleFilesDuration(0);
+      // Loading dialog will be closed when Waveform is ready
+    } catch (error) {
+      console.error("Error concatenating audio files:", error);
+      setIsLoading(false);
+      setLoadingMessage("");
+    }
+  };
+
+  const handleCancelMultipleFiles = () => {
+    setMultipleFilesDialogOpen(false);
+    setPendingFiles([]);
+    setPendingMultipleFilesDuration(0);
   };
 
   const loadAudioFile = async (file: File) => {
@@ -182,9 +265,11 @@ function App() {
 
     if (!audioUrl) {
       const files = Array.from(e.dataTransfer.files);
-      const audioFile = files.find((file) => file.type.startsWith("audio/"));
-      if (audioFile) {
-        loadAudioFile(audioFile);
+      const audioFiles = filterAudioFiles(files);
+      if (audioFiles.length > 1) {
+        handleMultipleFiles(audioFiles);
+      } else if (audioFiles.length === 1) {
+        loadAudioFile(audioFiles[0]);
       }
     }
   };
@@ -313,10 +398,10 @@ function App() {
             }}
           >
             <Typography variant="h4" sx={{ mb: 2, fontWeight: "bold" }}>
-              Drop Audio File Here
+              Drop Audio File(s) Here
             </Typography>
             <Typography variant="body1" color="grey.300">
-              Release to load the audio file
+              Drop single or multiple files to load/concatenate
             </Typography>
           </Box>
         )}
@@ -333,10 +418,11 @@ function App() {
         <Box mb={2}>
           <Stack direction="row" spacing={2}>
             <Button variant="contained" component="label">
-              Open Audio File
+              Open Audio File(s)
               <input
                 type="file"
                 accept="audio/*"
+                multiple
                 hidden
                 onChange={handleFileChange}
               />
@@ -381,7 +467,7 @@ function App() {
           }}
         >
           {!audioUrl &&
-            "Click here, use the button above, or drag and drop an audio file to load it"}
+            "Click here, use the button above, or drag and drop audio file(s) to load/concatenate them"}
         </Box>
 
         {audioUrl && (
@@ -431,6 +517,15 @@ function App() {
         onTruncate={handleTruncateFile}
         onImportFull={handleImportFullFile}
         onCancel={handleCancelImport}
+      />
+
+      <MultipleFilesDialog
+        open={multipleFilesDialogOpen}
+        files={pendingFiles}
+        totalDuration={pendingMultipleFilesDuration}
+        onConcatenate={() => handleConcatenateFiles(false)}
+        onTruncateAndConcatenate={() => handleConcatenateFiles(true)}
+        onCancel={handleCancelMultipleFiles}
       />
 
       <LoadingDialog open={isLoading} message={loadingMessage} />

@@ -290,13 +290,40 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         // Skip this for cropped/faded URLs (processed audio) since markers are handled manually
         const urlToLoad = state.currentAudioUrl || audioUrl;
         const isProcessedAudio = urlToLoad.includes("#morphedit-cropped") || urlToLoad.includes("#morphedit-faded");
+        const isConcatenatedAudio = urlToLoad.includes("#morphedit-concatenated");
 
         console.log("DEBUG: Ready event - Checking for cue points in:", urlToLoad);
         console.log("DEBUG: Ready event - Is processed audio:", isProcessedAudio);
+        console.log("DEBUG: Ready event - Is concatenated audio:", isConcatenatedAudio);
         console.log("DEBUG: Ready event - Current store markers:", spliceMarkersStore.length);
 
+        // For concatenated audio, always prioritize the store markers over file cue points
+        if (isConcatenatedAudio && spliceMarkersStore.length > 0) {
+          console.log("DEBUG: Ready event - Loading splice markers from store for concatenated audio");
+          
+          // Clear existing visual markers
+          const allRegions = regions.getRegions();
+          const existingSpliceMarkers = allRegions.filter((r: Region) =>
+            r.id.startsWith("splice-marker-")
+          );
+          existingSpliceMarkers.forEach((marker: Region) => marker.remove());
+          
+          // Create visual markers from store
+          spliceMarkersStore.forEach((markerTime, index) => {
+            regions.addRegion({
+              start: markerTime,
+              color: "rgba(0, 255, 255, 0.8)",
+              drag: true,
+              resize: false,
+              id: `splice-marker-concat-${index}-${Date.now()}`,
+              content: "🔻",
+            });
+          });
+          
+          console.log(`Created ${spliceMarkersStore.length} visual markers from store for concatenated audio`);
+        }
         // Load cue points from all URLs except processed (cropped/faded) audio
-        if (!isProcessedAudio) {
+        else if (!isProcessedAudio) {
           console.log("DEBUG: Ready event - Loading cue points from audio file...");
           try {
             const existingCuePoints = await parseWavCuePoints(urlToLoad);
