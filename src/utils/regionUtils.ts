@@ -5,7 +5,6 @@ import type WaveSurfer from "wavesurfer.js";
 import { useAudioStore } from "../audioStore";
 import { audioBufferToWavWithCues } from "./audioProcessing";
 import { findNearestZeroCrossing } from "./transientDetection";
-import { isMarkerLocked } from "./spliceMarkerUtils";
 
 // Type for region info display
 export interface RegionInfo {
@@ -275,23 +274,15 @@ export const applyCrop = async (
 
   console.log("New buffer created, converting to WAV...");
 
-  // Get current splice markers from store for debugging
-  console.log("DEBUG: Current splice markers from store:", spliceMarkersStore);
-  console.log("DEBUG: Store markers count:", spliceMarkersStore.length);
+  // Get current splice markers from store
+  console.log("Current splice markers from store:", spliceMarkersStore);
 
   // Also check visual markers for comparison
   const allRegions = regions.getRegions();
   const visualSpliceMarkers = allRegions.filter((r: Region) =>
     r.id.startsWith("splice-marker-")
   );
-  console.log(
-    "DEBUG: Visual splice markers count:",
-    visualSpliceMarkers.length
-  );
-  console.log(
-    "DEBUG: Visual marker times:",
-    visualSpliceMarkers.map((m) => m.start.toFixed(3))
-  );
+  console.log("Visual splice markers count:", visualSpliceMarkers.length);
 
   // Filter and adjust splice markers to only include those within the cropped region
   const filteredSpliceMarkers = spliceMarkersStore.filter(
@@ -311,13 +302,28 @@ export const applyCrop = async (
   // Convert to WAV blob and create new URL
   const wav = audioBufferToWavWithCues(newBuffer, adjustedSpliceMarkers);
   const blob = new Blob([wav], { type: "audio/wav" });
-  const newUrl = URL.createObjectURL(blob) + "#morphedit-cropped";
+  
+  // Preserve existing URL flags and add cropped flag
+  let newUrl = URL.createObjectURL(blob);
+  if (currentAudioUrl?.includes("#morphedit-concatenated")) {
+    newUrl += "#morphedit-concatenated#morphedit-cropped";
+  } else {
+    newUrl += "#morphedit-cropped";
+  }
 
   console.log("Loading cropped audio...");
 
   // Set processing flag to prevent buffer overrides
   const store = useAudioStore.getState();
   store.setIsProcessingAudio(true);
+
+  // Update splice markers store with filtered and adjusted markers BEFORE loading
+  // This ensures the ready event sees the correct markers
+  console.log("Updating store with adjusted markers before loading");
+  callbacks.setSpliceMarkersStore(adjustedSpliceMarkers);
+  console.log(
+    `Updated splice markers store: ${adjustedSpliceMarkers.length} markers for cropped audio`
+  );
 
   // Save current audio URL for undo before loading new one
   callbacks.setPreviousAudioUrl(currentAudioUrl);
@@ -328,7 +334,7 @@ export const applyCrop = async (
     // Set the audio buffer BEFORE loading to ensure it's in the store
     console.log("CROP DEBUG - Setting cropped buffer in store BEFORE WS load");
     callbacks.setAudioBuffer(newBuffer);
-    
+
     await ws.load(newUrl);
     console.log("Crop applied successfully");
     console.log(
@@ -341,15 +347,15 @@ export const applyCrop = async (
       "CROP DEBUG - WaveSurfer duration after load:",
       ws.getDuration()
     );
-    
+
     // Update the current audio URL to the new cropped version
     callbacks.setCurrentAudioUrl(newUrl);
-    
+
     // Set the audio buffer AGAIN after loading to ensure it's correct
     console.log("CROP DEBUG - Setting cropped buffer in store AFTER WS load");
     callbacks.setAudioBuffer(newBuffer);
     console.log("Updated audio buffer with cropped version");
-    
+
     // Verify the buffer in store is correct
     const storeBuffer = useAudioStore.getState().audioBuffer;
     if (storeBuffer) {
@@ -359,7 +365,9 @@ export const applyCrop = async (
         `Length: ${storeBuffer.length} samples`
       );
     } else {
-      console.error("CROP DEBUG - ERROR: No buffer found in store after setting!");
+      console.error(
+        "CROP DEBUG - ERROR: No buffer found in store after setting!"
+      );
     }
 
     // Clear crop region after applying
@@ -367,56 +375,10 @@ export const applyCrop = async (
     callbacks.setCropRegion(null);
     cropRegionData.remove();
 
-    // Update splice markers store with filtered and adjusted markers
+    // Visual markers will be automatically created by the ready event from the WAV cue points
+    // No need to manually create them here since we embedded them in the WAV file
     console.log(
-      "DEBUG: About to update store with adjusted markers:",
-      adjustedSpliceMarkers
-    );
-    callbacks.setSpliceMarkersStore(adjustedSpliceMarkers);
-    console.log(
-      `Updated splice markers store: ${adjustedSpliceMarkers.length} markers for cropped audio`
-    );
-
-    // Remove existing visual splice markers and create new ones for the cropped audio
-    const allRegions = regions.getRegions();
-    const existingSpliceMarkers = allRegions.filter((r: Region) =>
-      r.id.startsWith("splice-marker-")
-    );
-    console.log(
-      `🔍 MARKER DEBUGGING - Found ${existingSpliceMarkers.length} existing visual markers to remove`
-    );
-    console.log(
-      `  Existing marker IDs: [${existingSpliceMarkers
-        .map((m) => m.id)
-        .join(", ")}]`
-    );
-    existingSpliceMarkers.forEach((marker: Region) => marker.remove());
-
-    // Create new visual splice markers for the filtered and adjusted markers
-    console.log(
-      `🔍 MARKER DEBUGGING - Creating ${adjustedSpliceMarkers.length} new visual markers`
-    );
-    const lockedMarkers = useAudioStore.getState().lockedSpliceMarkers;
-    adjustedSpliceMarkers.forEach((markerTime, index) => {
-      const markerId = `splice-marker-crop-${index}-${Date.now()}`;
-      const isLocked = isMarkerLocked(markerTime, lockedMarkers);
-      console.log(
-        `  Creating visual marker ${index}: time=${markerTime.toFixed(
-          3
-        )}s, id=${markerId}, locked=${isLocked}`
-      );
-      regions.addRegion({
-        start: markerTime,
-        color: "rgba(0, 255, 255, 0.8)",
-        drag: !isLocked, // Prevent dragging if marker is locked
-        resize: false,
-        id: markerId,
-        content: isLocked ? "🔒" : "♦️", // Use lock icon for locked markers
-      });
-    });
-
-    console.log(
-      `🔍 MARKER DEBUGGING - Created ${adjustedSpliceMarkers.length} visual splice markers for cropped audio`
+      `🔍 MARKER DEBUGGING - Skipping manual marker creation, ready event will load from WAV cue points`
     );
 
     // Also remove any existing fade regions since crop was applied
@@ -464,7 +426,7 @@ export const applyCrop = async (
         ws.zoom(resetZoom);
       }
     }
-    
+
     // Clear processing flag
     console.log("CROP DEBUG - Clearing processing flag (success)");
     store.setIsProcessingAudio(false);

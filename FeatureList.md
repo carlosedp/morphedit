@@ -33,4 +33,5 @@
 - [x] Fix bug where splice points are not correctly placed after the audio is cropped
 - [x] Fix bug where audio files with existing splice markers (cue points) are not being imported/loaded
 - [x] Concatenated audio when cropped, exports as full file and not cropped audio length
-- [ ] Contatenated audio when cropped, have splice points duplicated
+- [x] Contatenated audio when cropped, have splice points duplicated
+- [x] Fix bug where splice markers appear at wrong visual positions after crop operations (while maintaining correct times in export and debug)

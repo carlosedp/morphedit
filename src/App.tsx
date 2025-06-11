@@ -73,6 +73,7 @@ function App() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
+      handleReset(); // Reset any existing audio before loading new files
       const audioFiles = filterAudioFiles(files);
       if (audioFiles.length > 1) {
         handleMultipleFiles(audioFiles);

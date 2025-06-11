@@ -229,6 +229,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       // Create regions plugin instance
       const regions = RegionsPlugin.create();
       regionsRef.current = regions;
+      
+      // Expose regions plugin to global window for debug function
+      (window as DebugWindow).morpheditRegions = regions;
 
       // Create wavesurfer instance
       const ws = WaveSurfer.create({
@@ -301,14 +304,15 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         const isProcessedAudio = urlToLoad.includes("#morphedit-cropped") || urlToLoad.includes("#morphedit-faded");
         const isConcatenatedAudio = urlToLoad.includes("#morphedit-concatenated");
 
-        console.log("DEBUG: Ready event - Checking for cue points in:", urlToLoad);
-        console.log("DEBUG: Ready event - Is processed audio:", isProcessedAudio);
-        console.log("DEBUG: Ready event - Is concatenated audio:", isConcatenatedAudio);
-        console.log("DEBUG: Ready event - Current store markers:", spliceMarkersStore.length);
+        // Get current store state directly (not from React hook closure)
+        const currentStoreState = useAudioStore.getState();
+        const currentSpliceMarkers = currentStoreState.spliceMarkers;
+        const currentLockedMarkers = currentStoreState.lockedSpliceMarkers;
 
         // For concatenated audio, always prioritize the store markers over file cue points
-        if (isConcatenatedAudio && spliceMarkersStore.length > 0) {
-          console.log("DEBUG: Ready event - Loading splice markers from store for concatenated audio");
+        // BUT skip this for processed audio since crop/fade operations handle markers manually
+        if (isConcatenatedAudio && !isProcessedAudio && currentSpliceMarkers.length > 0) {
+          console.log("Loading splice markers from store for concatenated audio");
 
           // Clear existing visual markers
           const allRegions = regions.getRegions();
@@ -318,8 +322,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           existingSpliceMarkers.forEach((marker: Region) => marker.remove());
 
           // Create visual markers from store
-          spliceMarkersStore.forEach((markerTime, index) => {
-            const isLocked = isMarkerLocked(markerTime, lockedSpliceMarkersStore);
+          currentSpliceMarkers.forEach((markerTime, index) => {
+            const isLocked = isMarkerLocked(markerTime, currentLockedMarkers);
             regions.addRegion({
               start: markerTime,
               color: "rgba(0, 255, 255, 0.8)",
@@ -330,28 +334,52 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             });
           });
 
-          console.log(`Created ${spliceMarkersStore.length} visual markers from store for concatenated audio`);
+          console.log(`Created ${currentSpliceMarkers.length} visual markers from store for concatenated audio`);
         }
-        // Load cue points from all URLs except processed (cropped/faded) audio
-        else if (!isProcessedAudio) {
-          console.log("DEBUG: Ready event - Loading cue points from audio file...");
+        // For processed audio (cropped/faded), create visual markers directly from store to ensure correct positioning
+        else if (isProcessedAudio && currentSpliceMarkers.length > 0) {
+          console.log("Creating visual markers from store for processed audio");
+
+          // Clear existing visual markers
+          const allRegions = regions.getRegions();
+          const existingSpliceMarkers = allRegions.filter((r: Region) =>
+            r.id.startsWith("splice-marker-")
+          );
+          existingSpliceMarkers.forEach((marker: Region) => marker.remove());
+
+          // Create visual markers from store (which has the correct adjusted times)
+          currentSpliceMarkers.forEach((markerTime, index) => {
+            const isLocked = isMarkerLocked(markerTime, currentLockedMarkers);
+            regions.addRegion({
+              start: markerTime,
+              color: "rgba(0, 255, 255, 0.8)",
+              drag: !isLocked, // Prevent dragging if marker is locked
+              resize: false,
+              id: `splice-marker-processed-${index}-${Date.now()}`,
+              content: isLocked ? "🔒" : "♦️", // Use lock icon for locked markers
+            });
+          });
+
+          console.log(`Created ${currentSpliceMarkers.length} visual markers from store for processed audio`);
+        }
+        // Load cue points from WAV files (for regular unprocessed audio)  
+        else {
+          console.log("Loading cue points from audio file...");
           try {
             const existingCuePoints = await parseWavCuePoints(urlToLoad);
             if (existingCuePoints.length > 0) {
-              console.log("DEBUG: Ready event - Found cue points, loading as splice markers:", existingCuePoints);
+              console.log("Found cue points, loading as splice markers:", existingCuePoints);
               loadExistingCuePoints(
                 regions,
                 existingCuePoints,
                 setSpliceMarkersStore,
               );
             } else {
-              console.log("DEBUG: Ready event - No cue points found in audio file");
+              console.log("No cue points found in audio file");
             }
           } catch (error) {
-            console.error("DEBUG: Ready event - Error loading cue points:", error);
+            console.error("Error loading cue points:", error);
           }
-        } else {
-          console.log("DEBUG: Ready event - Skipping cue point loading for processed audio (markers managed manually)");
         }
 
         // Update audio buffer in store - but only if not already correctly set
@@ -376,7 +404,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           console.log(
             `Store buffer duration: ${currentStoredBuffer.length / currentStoredBuffer.sampleRate}s, WS duration: ${wsDuration}s`
           );
-          
+
           // Double-check that our store buffer makes sense for processed audio
           const urlContainsCropped = urlToLoad.includes("#morphedit-cropped");
           const urlContainsFaded = urlToLoad.includes("#morphedit-faded");
@@ -1075,7 +1103,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     const handleExportWav = useCallback(() => {
       const audioBuffer = useAudioStore.getState().audioBuffer;
       const isProcessing = useAudioStore.getState().isProcessingAudio;
-      
+
       if (!audioBuffer) {
         console.log("No audio buffer found");
         return;
@@ -1307,3 +1335,72 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 Waveform.displayName = "Waveform";
 
 export default Waveform;
+
+// Debug function to inspect regions from browser console
+// Using proper types and accessing the global window object
+interface DebugWindow extends Window {
+  debugListRegions?: () => void;
+  morpheditRegions?: {
+    getRegions: () => Region[];
+  };
+}
+
+(window as DebugWindow).debugListRegions = () => {
+  const regions = (window as DebugWindow).morpheditRegions;
+  if (!regions) {
+    console.log("🚫 No regions plugin found. Make sure an audio file is loaded.");
+    return;
+  }
+
+  const allRegions: Region[] = regions.getRegions();
+  console.log(`📊 Found ${allRegions.length} total regions:`);
+  console.log("=====================================");
+
+  // Separate splice markers from other regions
+  const spliceMarkers = allRegions.filter((r: Region) => r.id.startsWith("splice-marker-"));
+  const otherRegions = allRegions.filter((r: Region) => !r.id.startsWith("splice-marker-"));
+
+  // Display splice markers
+  if (spliceMarkers.length > 0) {
+    console.log(`🔷 SPLICE MARKERS (${spliceMarkers.length}):`);
+    spliceMarkers
+      .sort((a: Region, b: Region) => a.start - b.start)
+      .forEach((region: Region, index: number) => {
+        // Check if region content indicates it's locked (based on how markers are created)
+        const contentText = region.content?.textContent || "";
+        const isLocked = contentText === "🔒";
+        console.log(`  ${index + 1}. ID: ${region.id}`);
+        console.log(`     Time: ${region.start.toFixed(3)}s`);
+        console.log(`     Content: ${contentText} ${isLocked ? "(LOCKED)" : "(UNLOCKED)"}`);
+        console.log(`     Draggable: ${region.drag}`);
+        console.log("");
+      });
+  } else {
+    console.log("🔷 SPLICE MARKERS: None");
+  }
+
+  // Display other regions
+  if (otherRegions.length > 0) {
+    console.log(`🔶 OTHER REGIONS (${otherRegions.length}):`);
+    otherRegions.forEach((region: Region, index: number) => {
+      console.log(`  ${index + 1}. ID: ${region.id}`);
+      console.log(`     Start: ${region.start.toFixed(3)}s`);
+      console.log(`     End: ${region.end.toFixed(3)}s`);
+      console.log(`     Duration: ${(region.end - region.start).toFixed(3)}s`);
+      console.log("");
+    });
+  } else {
+    console.log("🔶 OTHER REGIONS: None");
+  }
+
+  // Display store information
+  const store = useAudioStore.getState();
+  console.log("📦 STORE INFORMATION:");
+  console.log(`     Splice markers in store: ${store.spliceMarkers.length}`);
+  console.log(`     Store marker times: [${store.spliceMarkers.map(m => m.toFixed(3)).join(", ")}]`);
+  console.log(`     Locked markers: ${store.lockedSpliceMarkers.length}`);
+  console.log(`     Locked marker times: [${store.lockedSpliceMarkers.map(m => m.toFixed(3)).join(", ")}]`);
+  console.log("=====================================");
+};
+
+console.log("🛠️  Debug function available: debugListRegions()");

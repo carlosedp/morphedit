@@ -52,7 +52,8 @@ export const useAudioStore = create<AudioState>(
     setCanUndo: (canUndo) => set({ canUndo }),
     // Processing state
     isProcessingAudio: false,
-    setIsProcessingAudio: (processing) => set({ isProcessingAudio: processing }),
+    setIsProcessingAudio: (processing) =>
+      set({ isProcessingAudio: processing }),
     reset: () =>
       set({
         audioBuffer: null,
