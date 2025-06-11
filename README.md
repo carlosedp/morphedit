@@ -1,10 +1,10 @@
 # Morphedit Audio Editor
 
-![Logo](./public/MorphEdit-Logo.png)
+![Logo](./public/MorphEdit-Logo-Small.png)
 
 Morphedit is a browser-based audio editor built with React, TypeScript, Vite, and wavesurfer.js. It supports waveform visualization, zoom, markers, and regions. State management is handled by Zustand, and the UI uses Material-UI (MUI).
 
-There is a full manual available [here](./public/USER_MANUAL.md), which includes detailed instructions on how to use the editor.
+There is a [full manual](./public/USER_MANUAL.md) available, which includes detailed instructions on how to use the editor.
 
 ## Features
 

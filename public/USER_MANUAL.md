@@ -2,7 +2,7 @@
 
 ## User Manual
 
-![Logo](./MorphEdit-Logo.png)
+![Logo](./MorphEdit-Logo-Small.png)
 
 ## Table of Contents
 
@@ -208,6 +208,7 @@ MorphEdit provides direct keyboard shortcuts to play individual splice markers f
 4. **Visual Feedback**: Console displays which marker is being played and where it will stop
 
 **Keyboard Layout for Splice Playback:**
+
 - **1-0**: Play splice markers 1-10
 - **Q-P**: Play splice markers 11-20
 
