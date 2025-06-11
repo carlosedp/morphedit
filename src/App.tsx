@@ -18,6 +18,7 @@ import { LoadingDialog } from "./components/LoadingDialog";
 import { getAudioFileDuration, isFileTooLong } from "./utils/fileLengthUtils";
 import type { ShortcutAction } from "./keyboardShortcuts";
 import "./App.css";
+import { version } from "./Version.ts";
 import { theme } from "./theme";
 
 function App() {
@@ -372,9 +373,9 @@ function App() {
             cursor: !audioUrl ? "pointer" : "default",
             "&:hover": !audioUrl
               ? {
-                  backgroundColor: "action.hover",
-                  borderColor: "primary.light",
-                }
+                backgroundColor: "action.hover",
+                borderColor: "primary.light",
+              }
               : {},
             transition: "background-color 0.2s, border-color 0.2s",
           }}
@@ -397,8 +398,32 @@ function App() {
           <Typography variant="body2" color="text.secondary">
             Beat detection features coming soon.
           </Typography>
+        </Box>        <Box mt={4}>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{
+              textAlign: 'center',
+              opacity: 0.7,
+              '& a': {
+                color: 'text.secondary',
+                textDecoration: 'underline',
+              }
+            }}
+          >
+            Version {version} - Built with React and MUI
+            <br />
+            © 2025 - Carlos Eduardo de Paula -{" "}
+            <a
+              href="https://github.com/carlosedp/morphedit"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Fork me on GitHub
+            </a>
+          </Typography>
         </Box>
-      </Container>
+      </Container >
 
       <FileLengthWarningDialog
         open={lengthWarningOpen}
@@ -409,7 +434,7 @@ function App() {
       />
 
       <LoadingDialog open={isLoading} message={loadingMessage} />
-    </ThemeProvider>
+    </ThemeProvider >
   );
 }
 
