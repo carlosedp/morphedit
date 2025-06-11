@@ -244,7 +244,7 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
               value={transientFrameSize}
               onChange={(_, value) => onSetTransientFrameSize(value as number)}
               min={5}
-              max={50}
+              max={200}
               step={1}
               valueLabelDisplay="auto"
               valueLabelFormat={(value) => `${value}ms`}
@@ -261,7 +261,7 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             <Slider
               value={transientOverlap}
               onChange={(_, value) => onSetTransientOverlap(value as number)}
-              min={50}
+              min={20}
               max={90}
               step={5}
               valueLabelDisplay="auto"

@@ -23,6 +23,7 @@
   - [ ]  Fade in/out curve type (linear, exponential, etc.)
   - [ ]  Truncate lenght
 - [ ] Improve splice detection with maybe a different algorithm or more advanced settings
+- [ ] Add detection preset slots to save sensitivity, frame size, and overlap settings
 
 ## To Test
 
