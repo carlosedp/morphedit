@@ -159,6 +159,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
     // Sync currentAudioUrl with audioUrl prop
     useEffect(() => {
+      console.log("audioUrl changed, updating currentAudioUrl");
       actions.setCurrentAudioUrl(audioUrl);
     }, [audioUrl, actions]);
 
@@ -201,6 +202,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
     // Main wavesurfer initialization effect
     useEffect(() => {
+      console.log("WaveSurfer useEffect starting");
+
       if (!audioUrl) {
         // If no audioUrl, clean up the wavesurfer instance
         if (wavesurferRef.current) {
@@ -264,243 +267,265 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
       // Set up event listeners
       ws.on("ready", async () => {
-        console.log("WaveSurfer ready");
-        actions.setDuration(ws.getDuration());
+        try {
+          console.log("WaveSurfer ready - starting setup");
 
-        // Apply zoom - either current zoom or calculate initial zoom to fill container
-        let zoomToApply = state.zoom;
-        if (state.zoom === 0) {
-          // Get container width with multiple fallbacks
-          const container = document.getElementById("waveform-container");
-          let containerWidth = 800; // Default fallback
+          actions.setDuration(ws.getDuration());
 
-          if (container) {
-            const rect = container.getBoundingClientRect();
-            containerWidth =
-              rect.width > 0 ? rect.width : container.clientWidth || 800;
-          }
+          // Apply zoom - either current zoom or calculate initial zoom to fill container
+          let zoomToApply = state.zoom;
+          if (state.zoom === 0) {
+            // Get container width with multiple fallbacks
+            const container = document.getElementById("waveform-container");
+            let containerWidth = 800; // Default fallback
 
-          // Calculate appropriate zoom to fill the container
-          const duration = ws.getDuration();
-          const minPxPerSec = containerWidth / duration;
-          // Allow very low zoom values for long audio files, but ensure minimum usability
-          zoomToApply = Math.min(1000, Math.max(1, minPxPerSec));
-          actions.setZoom(zoomToApply);
-
-          console.log("Initial zoom calculated:", {
-            duration,
-            containerWidth,
-            zoomToApply,
-          });
-        } else {
-          console.log("Applying existing zoom:", zoomToApply);
-        }
-        // Always apply the zoom to ensure waveform displays correctly
-        ws.zoom(zoomToApply);
-
-        // Parse WAV file for existing cue points and load them as splice markers
-        // Skip this for cropped/faded URLs (processed audio) since markers are handled manually
-        const urlToLoad = state.currentAudioUrl || audioUrl;
-        const isProcessedAudio =
-          urlToLoad.includes("#morphedit-cropped") ||
-          urlToLoad.includes("#morphedit-faded");
-        const isConcatenatedAudio = urlToLoad.includes(
-          "#morphedit-concatenated",
-        );
-
-        // Get current store state directly (not from React hook closure)
-        const currentStoreState = useAudioStore.getState();
-        const currentSpliceMarkers = currentStoreState.spliceMarkers;
-        const currentLockedMarkers = currentStoreState.lockedSpliceMarkers;
-
-        // For concatenated audio, always prioritize the store markers over file cue points
-        // BUT skip this for processed audio since crop/fade operations handle markers manually
-        if (
-          isConcatenatedAudio &&
-          !isProcessedAudio &&
-          currentSpliceMarkers.length > 0
-        ) {
-          console.log(
-            "Loading splice markers from store for concatenated audio",
-          );
-
-          // Clear existing visual markers
-          const allRegions = regions.getRegions();
-          const existingSpliceMarkers = allRegions.filter((r: Region) =>
-            r.id.startsWith("splice-marker-"),
-          );
-          existingSpliceMarkers.forEach((marker: Region) => marker.remove());
-
-          // Create visual markers from store
-          currentSpliceMarkers.forEach((markerTime, index) => {
-            const isLocked = isMarkerLocked(markerTime, currentLockedMarkers);
-            regions.addRegion({
-              start: markerTime,
-              color: "rgba(0, 255, 255, 0.8)",
-              drag: !isLocked, // Prevent dragging if marker is locked
-              resize: false,
-              id: `splice-marker-concat-${index}-${Date.now()}`,
-              content: isLocked ? "🔒" : "♦️", // Use lock icon for locked markers
-            });
-          });
-
-          console.log(
-            `Created ${currentSpliceMarkers.length} visual markers from store for concatenated audio`,
-          );
-        }
-        // For processed audio (cropped/faded), create visual markers directly from store to ensure correct positioning
-        else if (isProcessedAudio && currentSpliceMarkers.length > 0) {
-          console.log("Creating visual markers from store for processed audio");
-
-          // Clear existing visual markers
-          const allRegions = regions.getRegions();
-          const existingSpliceMarkers = allRegions.filter((r: Region) =>
-            r.id.startsWith("splice-marker-"),
-          );
-          existingSpliceMarkers.forEach((marker: Region) => marker.remove());
-
-          // Create visual markers from store (which has the correct adjusted times)
-          currentSpliceMarkers.forEach((markerTime, index) => {
-            const isLocked = isMarkerLocked(markerTime, currentLockedMarkers);
-            regions.addRegion({
-              start: markerTime,
-              color: "rgba(0, 255, 255, 0.8)",
-              drag: !isLocked, // Prevent dragging if marker is locked
-              resize: false,
-              id: `splice-marker-processed-${index}-${Date.now()}`,
-              content: isLocked ? "🔒" : "♦️", // Use lock icon for locked markers
-            });
-          });
-
-          console.log(
-            `Created ${currentSpliceMarkers.length} visual markers from store for processed audio`,
-          );
-        }
-        // Load cue points from WAV files (for regular unprocessed audio)
-        else {
-          console.log("Loading cue points from audio file...");
-          try {
-            const existingCuePoints = await parseWavCuePoints(urlToLoad);
-            if (existingCuePoints.length > 0) {
-              console.log(
-                "Found cue points, loading as splice markers:",
-                existingCuePoints,
-              );
-              loadExistingCuePoints(
-                regions,
-                existingCuePoints,
-                setSpliceMarkersStore,
-              );
-            } else {
-              console.log("No cue points found in audio file");
+            if (container) {
+              const rect = container.getBoundingClientRect();
+              containerWidth =
+                rect.width > 0 ? rect.width : container.clientWidth || 800;
             }
-          } catch (error) {
-            console.error("Error loading cue points:", error);
+
+            // Calculate appropriate zoom to fill the container
+            const duration = ws.getDuration();
+            const minPxPerSec = containerWidth / duration;
+            // Allow very low zoom values for long audio files, but ensure minimum usability
+            zoomToApply = Math.min(1000, Math.max(1, minPxPerSec));
+            actions.setZoom(zoomToApply);
+
+            console.log("Initial zoom calculated:", {
+              duration,
+              containerWidth,
+              zoomToApply,
+            });
+          } else {
+            console.log("Applying existing zoom:", zoomToApply);
           }
-        }
+          // Always apply the zoom to ensure waveform displays correctly
+          ws.zoom(zoomToApply);
 
-        // Update audio buffer in store - but only if not already correctly set
-        const currentStoredBuffer = useAudioStore.getState().audioBuffer;
-        const isCurrentlyProcessing =
-          useAudioStore.getState().isProcessingAudio;
-        const wsDuration = ws.getDuration();
-
-        // If we're currently processing audio, don't override the buffer
-        if (isCurrentlyProcessing) {
-          console.log(
-            "Ready event - audio processing in progress, skipping buffer update",
+          // Parse WAV file for existing cue points and load them as splice markers
+          // Skip this for cropped/faded URLs (processed audio) since markers are handled manually
+          // Use audioUrl (the new URL) instead of state.currentAudioUrl (the old URL) for appended/concatenated audio
+          const urlToLoad = audioUrl;
+          const isProcessedAudio =
+            urlToLoad.includes("#morphedit-cropped") ||
+            urlToLoad.includes("#morphedit-faded");
+          const isConcatenatedAudio = urlToLoad.includes(
+            "#morphedit-concatenated",
           );
-          return;
-        }
+          const isAppendedAudio = urlToLoad.includes("#morphedit-appended");
 
-        // For processed audio (cropped/faded), trust the buffer that's already in the store
-        // since it was specifically set by the processing operations
-        if (isProcessedAudio && currentStoredBuffer) {
-          console.log(
-            "Ready event - processed audio detected, keeping existing buffer in store",
-          );
-          console.log(
-            `Store buffer duration: ${currentStoredBuffer.length / currentStoredBuffer.sampleRate}s, WS duration: ${wsDuration}s`,
-          );
+          // Get current store state directly (not from React hook closure)
+          const currentStoreState = useAudioStore.getState();
+          const currentSpliceMarkers = currentStoreState.spliceMarkers;
+          const currentLockedMarkers = currentStoreState.lockedSpliceMarkers;
 
-          // Double-check that our store buffer makes sense for processed audio
-          const urlContainsCropped = urlToLoad.includes("#morphedit-cropped");
-          const urlContainsFaded = urlToLoad.includes("#morphedit-faded");
-          console.log("Ready event - URL flags:", {
-            urlContainsCropped,
-            urlContainsFaded,
+          // For concatenated or appended audio, always prioritize the store markers over file cue points
+          // BUT skip this for processed audio since crop/fade operations handle markers manually
+          if (
+            (isConcatenatedAudio || isAppendedAudio) &&
+            !isProcessedAudio &&
+            currentSpliceMarkers.length > 0
+          ) {
+            console.log(
+              "Loading splice markers from store for concatenated/appended audio",
+            );
+
+            // Clear existing visual markers
+            const allRegions = regions.getRegions();
+            const existingSpliceMarkers = allRegions.filter((r: Region) =>
+              r.id.startsWith("splice-marker-"),
+            );
+            existingSpliceMarkers.forEach((marker: Region) => marker.remove());
+
+            // Create visual markers from store
+            currentSpliceMarkers.forEach((markerTime, index) => {
+              const isLocked = isMarkerLocked(markerTime, currentLockedMarkers);
+              regions.addRegion({
+                start: markerTime,
+                color: "rgba(0, 255, 255, 0.8)",
+                drag: !isLocked, // Prevent dragging if marker is locked
+                resize: false,
+                id: `splice-marker-concat-${index}-${Date.now()}`,
+                content: isLocked ? "🔒" : "♦️", // Use lock icon for locked markers
+              });
+            });
+
+            console.log(
+              `Created ${currentSpliceMarkers.length} visual markers from store for concatenated/appended audio`,
+            );
+          }
+          // For processed audio (cropped/faded), create visual markers directly from store to ensure correct positioning
+          else if (isProcessedAudio && currentSpliceMarkers.length > 0) {
+            console.log("Creating visual markers from store for processed audio");
+
+            // Clear existing visual markers
+            const allRegions = regions.getRegions();
+            const existingSpliceMarkers = allRegions.filter((r: Region) =>
+              r.id.startsWith("splice-marker-"),
+            );
+            existingSpliceMarkers.forEach((marker: Region) => marker.remove());
+
+            // Create visual markers from store (which has the correct adjusted times)
+            currentSpliceMarkers.forEach((markerTime, index) => {
+              const isLocked = isMarkerLocked(markerTime, currentLockedMarkers);
+              regions.addRegion({
+                start: markerTime,
+                color: "rgba(0, 255, 255, 0.8)",
+                drag: !isLocked, // Prevent dragging if marker is locked
+                resize: false,
+                id: `splice-marker-processed-${index}-${Date.now()}`,
+                content: isLocked ? "🔒" : "♦️", // Use lock icon for locked markers
+              });
+            });
+
+            console.log(
+              `Created ${currentSpliceMarkers.length} visual markers from store for processed audio`,
+            );
+          }
+          // Load cue points from WAV files (for regular unprocessed audio)
+          else {
+            console.log("Loading cue points from audio file...");
+            try {
+              const existingCuePoints = await parseWavCuePoints(urlToLoad);
+              if (existingCuePoints.length > 0) {
+                console.log(
+                  "Found cue points, loading as splice markers:",
+                  existingCuePoints,
+                );
+                loadExistingCuePoints(
+                  regions,
+                  existingCuePoints,
+                  setSpliceMarkersStore,
+                );
+              } else {
+                console.log("No cue points found in audio file");
+              }
+            } catch (error) {
+              console.error("Error loading cue points:", error);
+            }
+          }
+
+          // Call loading complete callback after everything is set up
+          // Always call the callback for each ready event since each represents a new audio load
+          console.log("About to call onLoadingComplete callback", {
+            hasCallback: !!onLoadingComplete
           });
-          return;
-        }
+          if (onLoadingComplete) {
+            console.log("Waveform ready - calling onLoadingComplete callback");
+            // Add a small delay to ensure everything is truly ready
+            setTimeout(() => {
+              console.log("Calling onLoadingComplete after brief delay");
+              onLoadingComplete();
+            }, 100);
+          } else {
+            console.log("Waveform ready - no onLoadingComplete callback provided");
+          }
 
-        // Check if we already have a buffer with the correct duration (within 0.01s tolerance)
-        const bufferAlreadyCorrect =
-          currentStoredBuffer &&
-          Math.abs(
-            currentStoredBuffer.length / currentStoredBuffer.sampleRate -
+          // Update audio buffer in store - but only if not already correctly set
+          const currentStoredBuffer = useAudioStore.getState().audioBuffer;
+          const isCurrentlyProcessing =
+            useAudioStore.getState().isProcessingAudio;
+          const wsDuration = ws.getDuration();
+
+          // If we're currently processing audio, don't override the buffer
+          if (isCurrentlyProcessing) {
+            console.log(
+              "Ready event - audio processing in progress, skipping buffer update",
+            );
+            return;
+          }
+
+          // For processed audio (cropped/faded), trust the buffer that's already in the store
+          // since it was specifically set by the processing operations
+          if (isProcessedAudio && currentStoredBuffer) {
+            console.log(
+              "Ready event - processed audio detected, keeping existing buffer in store",
+            );
+            console.log(
+              `Store buffer duration: ${currentStoredBuffer.length / currentStoredBuffer.sampleRate}s, WS duration: ${wsDuration}s`,
+            );
+
+            // Double-check that our store buffer makes sense for processed audio
+            const urlContainsCropped = urlToLoad.includes("#morphedit-cropped");
+            const urlContainsFaded = urlToLoad.includes("#morphedit-faded");
+            console.log("Ready event - URL flags:", {
+              urlContainsCropped,
+              urlContainsFaded,
+            });
+            return;
+          }
+
+          // Check if we already have a buffer with the correct duration (within 0.01s tolerance)
+          const bufferAlreadyCorrect =
+            currentStoredBuffer &&
+            Math.abs(
+              currentStoredBuffer.length / currentStoredBuffer.sampleRate -
               wsDuration,
-          ) < 0.01;
+            ) < 0.01;
 
-        if (bufferAlreadyCorrect) {
+          if (bufferAlreadyCorrect) {
+            console.log(
+              "Ready event - audio buffer already correctly set in store, skipping update",
+            );
+            return;
+          }
+
+          const backend = (
+            ws as unknown as { backend?: { buffer?: AudioBuffer } }
+          ).backend;
+
           console.log(
-            "Ready event - audio buffer already correctly set in store, skipping update",
+            "Ready event - checking for backend buffer:",
+            !!(backend && backend.buffer),
           );
-          return;
-        }
+          console.log("Ready event - audio duration:", wsDuration);
 
-        const backend = (
-          ws as unknown as { backend?: { buffer?: AudioBuffer } }
-        ).backend;
-
-        console.log(
-          "Ready event - checking for backend buffer:",
-          !!(backend && backend.buffer),
-        );
-        console.log("Ready event - audio duration:", wsDuration);
-
-        if (backend && backend.buffer) {
-          console.log(
-            "Setting audio buffer from backend - duration:",
-            backend.buffer.length / backend.buffer.sampleRate,
-            "seconds",
-          );
-          setAudioBuffer(backend.buffer);
-        } else {
-          console.log("No backend buffer available, attempting manual decode");
-          // Fallback: load and decode the current audio file manually
-          const urlToLoad = state.currentAudioUrl || audioUrl;
-          if (urlToLoad) {
-            fetch(urlToLoad)
-              .then((response) => response.arrayBuffer())
-              .then((arrayBuffer) => {
-                const audioContext = new (window.AudioContext ||
-                  (
-                    window as Window &
+          if (backend && backend.buffer) {
+            console.log(
+              "Setting audio buffer from backend - duration:",
+              backend.buffer.length / backend.buffer.sampleRate,
+              "seconds",
+            );
+            setAudioBuffer(backend.buffer);
+          } else {
+            console.log("No backend buffer available, attempting manual decode");
+            // Fallback: load and decode the current audio file manually
+            // Use cleaned URL to avoid fragment issues
+            const urlToLoad = (state.currentAudioUrl || audioUrl).split('#')[0];
+            if (urlToLoad) {
+              fetch(urlToLoad)
+                .then((response) => response.arrayBuffer())
+                .then((arrayBuffer) => {
+                  const audioContext = new (window.AudioContext ||
+                    (
+                      window as Window &
                       typeof globalThis & {
                         webkitAudioContext?: typeof AudioContext;
                       }
-                  ).webkitAudioContext)();
-                return audioContext.decodeAudioData(arrayBuffer);
-              })
-              .then((decodedBuffer) => {
-                console.log(
-                  "Audio buffer decoded successfully - duration:",
-                  decodedBuffer.length / decodedBuffer.sampleRate,
-                  "seconds",
-                );
-                setAudioBuffer(decodedBuffer);
-              })
-              .catch((error) => {
-                console.error("Error decoding audio:", error);
-              });
-          } else {
-            console.log("No URL available for manual decode");
+                    ).webkitAudioContext)();
+                  return audioContext.decodeAudioData(arrayBuffer);
+                })
+                .then((decodedBuffer) => {
+                  console.log(
+                    "Audio buffer decoded successfully - duration:",
+                    decodedBuffer.length / decodedBuffer.sampleRate,
+                    "seconds",
+                  );
+                  setAudioBuffer(decodedBuffer);
+                })
+                .catch((error) => {
+                  console.error("Error decoding audio:", error);
+                });
+            } else {
+              console.log("No URL available for manual decode");
+            }
           }
-        }
 
-        // Call loading complete callback after everything is set up
-        if (onLoadingComplete) {
-          onLoadingComplete();
+          console.log("WaveSurfer ready event completed successfully");
+        } catch (error) {
+          console.error("Error in WaveSurfer ready event:", error);
+          // Continue execution - callback was already called at the beginning
         }
       });
 
@@ -533,11 +558,13 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
       // Load audio - preprocess for truncation if needed
       const loadAudio = async () => {
-        let urlToLoad = audioUrl;
+        // Strip URL fragments early to ensure all operations use clean URLs
+        let urlToLoad = audioUrl.split('#')[0];
 
         console.log("=== loadAudio called ===");
         console.log("shouldTruncate:", shouldTruncate);
         console.log("Original audioUrl:", audioUrl);
+        console.log("Cleaned audioUrl:", urlToLoad);
         console.log("state.currentAudioUrl:", state.currentAudioUrl);
 
         // Check if we already have a truncated URL for this audio file to prevent loops
@@ -545,7 +572,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         const isAlreadyTruncated =
           currentUrl &&
           currentUrl.startsWith("blob:") &&
-          currentUrl !== audioUrl;
+          currentUrl !== urlToLoad && // Compare with clean URL
+          !audioUrl.includes("#morphedit-appended") && // Don't reuse URLs for appended audio
+          !audioUrl.includes("#morphedit-concatenated"); // Don't reuse URLs for concatenated audio
 
         if (shouldTruncate && !isAlreadyTruncated) {
           console.log(
@@ -558,7 +587,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               console.log(
                 "🔍 Parsing cue points from original file before truncation...",
               );
-              originalCuePoints = await parseWavCuePoints(audioUrl);
+              originalCuePoints = await parseWavCuePoints(urlToLoad);
               console.log(
                 "🔍 Found cue points in original file:",
                 originalCuePoints,
@@ -571,15 +600,15 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             }
 
             // Fetch and decode the original audio to check if truncation is needed
-            const response = await fetch(audioUrl);
+            const response = await fetch(urlToLoad);
             const arrayBuffer = await response.arrayBuffer();
 
             const audioContext = new (window.AudioContext ||
               (
                 window as Window &
-                  typeof globalThis & {
-                    webkitAudioContext?: typeof AudioContext;
-                  }
+                typeof globalThis & {
+                  webkitAudioContext?: typeof AudioContext;
+                }
               ).webkitAudioContext)();
 
             const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -653,7 +682,14 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         }
 
         console.log("Loading URL into WaveSurfer:", urlToLoad);
-        ws.load(urlToLoad);
+        // Update current audio URL with the clean URL
+        actions.setCurrentAudioUrl(urlToLoad);
+        try {
+          ws.load(urlToLoad);
+        } catch (error) {
+          console.error("Error loading URL into WaveSurfer:", error);
+          // Continue anyway as WaveSurfer might still work
+        }
       };
 
       loadAudio();
@@ -800,7 +836,54 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       // Update state and apply zoom
       actions.setZoom(resetZoom);
       wavesurferRef.current.zoom(resetZoom);
-    }, [actions, wavesurferRef]);
+
+      // Force a complete redraw of regions after zoom to ensure splice markers are visible
+      setTimeout(() => {
+        if (regionsRef.current && wavesurferRef.current) {
+          console.log("Refreshing regions after zoom reset");
+
+          // Get all current regions data before clearing
+          const allRegions = regionsRef.current.getRegions();
+          const spliceMarkers = allRegions.filter((r: Region) =>
+            r.id.startsWith("splice-marker-")
+          );
+
+          if (spliceMarkers.length > 0) {
+            console.log(`Found ${spliceMarkers.length} splice markers to refresh`);
+
+            // Store region data
+            const markerData = spliceMarkers.map(region => ({
+              id: region.id,
+              start: region.start,
+              end: region.end,
+              content: region.content?.textContent || "♦️",
+              color: region.color,
+              drag: region.drag,
+              resize: region.resize
+            }));
+
+            // Remove all splice markers
+            spliceMarkers.forEach(region => region.remove());
+
+            // Re-add them after a brief delay to force complete re-render
+            setTimeout(() => {
+              markerData.forEach(data => {
+                regionsRef.current!.addRegion({
+                  id: data.id,
+                  start: data.start,
+                  end: data.end,
+                  content: data.content,
+                  color: data.color,
+                  drag: data.drag,
+                  resize: data.resize
+                });
+              });
+              console.log("Re-added splice markers after zoom reset");
+            }, 50);
+          }
+        }
+      }, 150);
+    }, [actions, wavesurferRef, regionsRef]);
 
     const handleCropRegion = useCallback(() => {
       const region = createCropRegion(
@@ -1340,9 +1423,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           selectedSpliceMarkerLocked={
             state.selectedSpliceMarker
               ? isMarkerLocked(
-                  state.selectedSpliceMarker.start,
-                  lockedSpliceMarkersStore,
-                )
+                state.selectedSpliceMarker.start,
+                lockedSpliceMarkersStore,
+              )
               : false
           }
           numberOfSlices={state.numberOfSlices}
