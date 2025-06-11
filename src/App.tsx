@@ -17,10 +17,10 @@ import { FileLengthWarningDialog } from "./components/FileLengthWarningDialog";
 import { LoadingDialog } from "./components/LoadingDialog";
 import { MultipleFilesDialog } from "./components/MultipleFilesDialog";
 import { getAudioFileDuration, isFileTooLong } from "./utils/fileLengthUtils";
-import { 
-  concatenateAudioFiles, 
-  getMultipleAudioFilesDuration, 
-  filterAudioFiles, 
+import {
+  concatenateAudioFiles,
+  getMultipleAudioFilesDuration,
+  filterAudioFiles,
   sortAudioFilesByName,
   audioBufferToWavBlob
 } from "./utils/audioConcatenation";
@@ -61,6 +61,7 @@ function App() {
     handleExportWav: () => void;
     handleAddSpliceMarker: () => void;
     handleRemoveSpliceMarker: () => void;
+    handleToggleMarkerLock: () => void;
     handleAutoSlice: () => void;
     handleHalfMarkers: () => void;
     handleClearAllMarkers: () => void;
@@ -88,10 +89,10 @@ function App() {
     try {
       // Sort files alphabetically for consistent order
       const sortedFiles = sortAudioFilesByName(files);
-      
+
       // Calculate total duration
       const totalDuration = await getMultipleAudioFilesDuration(sortedFiles);
-      
+
       setIsLoading(false);
       setPendingFiles(sortedFiles);
       setPendingMultipleFilesDuration(totalDuration);
@@ -106,7 +107,7 @@ function App() {
 
   const handleConcatenateFiles = async (shouldTruncate: boolean = false) => {
     setMultipleFilesDialogOpen(false);
-    
+
     if (pendingFiles.length === 0) return;
 
     setIsLoading(true);
@@ -114,24 +115,24 @@ function App() {
 
     try {
       const result = await concatenateAudioFiles(
-        pendingFiles, 
-        shouldTruncate, 
+        pendingFiles,
+        shouldTruncate,
         shouldTruncate ? 174 : undefined // MORPHAGENE_MAX_DURATION
       );
 
       // Convert AudioBuffer to WAV blob with cue points
       const wavBlob = await audioBufferToWavBlob(result.concatenatedBuffer, result.spliceMarkerPositions);
       const url = URL.createObjectURL(wavBlob) + "#morphedit-concatenated";
-      
+
       setShouldTruncateAudio(false);
       setAudioUrl(url);
-      
+
       // Store splice marker positions in the audio store
       const { setSpliceMarkers } = useAudioStore.getState();
       setSpliceMarkers(result.spliceMarkerPositions);
-      
+
       console.log(`Concatenated ${pendingFiles.length} files with ${result.spliceMarkerPositions.length} splice markers`);
-      
+
       setPendingFiles([]);
       setPendingMultipleFilesDuration(0);
       // Loading dialog will be closed when Waveform is ready
@@ -348,6 +349,9 @@ function App() {
         break;
       case "removeSpliceMarker":
         waveformRef.current?.handleRemoveSpliceMarker();
+        break;
+      case "toggleMarkerLock":
+        waveformRef.current?.handleToggleMarkerLock();
         break;
       case "autoSlice":
         waveformRef.current?.handleAutoSlice();

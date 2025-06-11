@@ -12,6 +12,7 @@
 - [x] Add/remove splice points to audio using regions
 - [x] Add equal-spaced splice points to audio
 - [ ] Play each splice point in the audio with keyboard shortcuts
+- [ ] Add splice point locking to avoid accidental deletion and moving
 - [x] Export audio with splice points
 - [x] Transient detection with sensitivity setting and advanced controls (frame size & overlap)
 - [x] Detect zero-crossing on splice points, crop regions, and fade in/out regions

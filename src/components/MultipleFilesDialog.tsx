@@ -55,7 +55,7 @@ export const MultipleFilesDialog: React.FC<MultipleFilesDialogProps> = ({
           <List dense sx={{ maxHeight: 200, overflow: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
             {files.map((file, index) => (
               <ListItem key={index}>
-                <ListItemText 
+                <ListItemText
                   primary={file.name}
                   secondary={`File ${index + 1}`}
                 />
@@ -80,13 +80,13 @@ export const MultipleFilesDialog: React.FC<MultipleFilesDialogProps> = ({
 
         {exceedsMaxLength && (
           <Alert severity="warning" sx={{ mb: 2 }}>
-            The total duration exceeds the Morphagene maximum of {formatDuration(MORPHAGENE_MAX_DURATION)}. 
+            The total duration exceeds the Morphagene maximum of {formatDuration(MORPHAGENE_MAX_DURATION)}.
             You can truncate the concatenated audio to fit the maximum length.
           </Alert>
         )}
 
         <Typography variant="body2" color="text.secondary">
-          Files will be concatenated in the order shown above (alphabetical). 
+          Files will be concatenated in the order shown above (alphabetical).
           Splice markers will be automatically placed at the boundaries between files.
         </Typography>
       </DialogContent>
@@ -95,17 +95,17 @@ export const MultipleFilesDialog: React.FC<MultipleFilesDialogProps> = ({
           Cancel
         </Button>
         {exceedsMaxLength && (
-          <Button 
-            onClick={onTruncateAndConcatenate} 
-            color="primary" 
+          <Button
+            onClick={onTruncateAndConcatenate}
+            color="primary"
             variant="outlined"
           >
             Truncate & Concatenate
           </Button>
         )}
-        <Button 
-          onClick={onConcatenate} 
-          color="primary" 
+        <Button
+          onClick={onConcatenate}
+          color="primary"
           variant="contained"
         >
           {exceedsMaxLength ? "Concatenate Full Length" : "Concatenate Files"}

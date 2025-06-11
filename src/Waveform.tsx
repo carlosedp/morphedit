@@ -42,6 +42,8 @@ import {
   clearAllMarkers,
   updateSpliceMarkerColors,
   loadExistingCuePoints,
+  toggleMarkerLock,
+  isMarkerLocked,
 } from "./utils/spliceMarkerUtils";
 import {
   applyTransientDetection,
@@ -98,6 +100,7 @@ export interface WaveformRef {
   handleExportWav: () => void;
   handleAddSpliceMarker: () => void;
   handleRemoveSpliceMarker: () => void;
+  handleToggleMarkerLock: () => void;
   handleAutoSlice: () => void;
   handleHalfMarkers: () => void;
   handleClearAllMarkers: () => void;
@@ -138,6 +141,12 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     );
     const spliceMarkersStore = useAudioStore(
       (s: AudioState) => s.spliceMarkers,
+    );
+    const lockedSpliceMarkersStore = useAudioStore(
+      (s: AudioState) => s.lockedSpliceMarkers,
+    );
+    const setLockedSpliceMarkersStore = useAudioStore(
+      (s: AudioState) => s.setLockedSpliceMarkers,
     );
     const setPreviousAudioUrl = useAudioStore(
       (s: AudioState) => s.setPreviousAudioUrl,
@@ -300,26 +309,27 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         // For concatenated audio, always prioritize the store markers over file cue points
         if (isConcatenatedAudio && spliceMarkersStore.length > 0) {
           console.log("DEBUG: Ready event - Loading splice markers from store for concatenated audio");
-          
+
           // Clear existing visual markers
           const allRegions = regions.getRegions();
           const existingSpliceMarkers = allRegions.filter((r: Region) =>
             r.id.startsWith("splice-marker-")
           );
           existingSpliceMarkers.forEach((marker: Region) => marker.remove());
-          
+
           // Create visual markers from store
           spliceMarkersStore.forEach((markerTime, index) => {
+            const isLocked = isMarkerLocked(markerTime, lockedSpliceMarkersStore);
             regions.addRegion({
               start: markerTime,
               color: "rgba(0, 255, 255, 0.8)",
-              drag: true,
+              drag: !isLocked, // Prevent dragging if marker is locked
               resize: false,
               id: `splice-marker-concat-${index}-${Date.now()}`,
-              content: "🔻",
+              content: isLocked ? "🔒" : "♦️", // Use lock icon for locked markers
             });
           });
-          
+
           console.log(`Created ${spliceMarkersStore.length} visual markers from store for concatenated audio`);
         }
         // Load cue points from all URLs except processed (cropped/faded) audio
@@ -776,6 +786,30 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       regionsRef,
     ]);
 
+    const handleToggleMarkerLock = useCallback(() => {
+      if (!state.selectedSpliceMarker) {
+        console.log("No splice marker selected for locking/unlocking");
+        return;
+      }
+
+      const markerTime = state.selectedSpliceMarker.start;
+      toggleMarkerLock(
+        markerTime,
+        lockedSpliceMarkersStore,
+        setLockedSpliceMarkersStore,
+        regionsRef.current!, // Pass regions to update drag properties
+      );
+
+      // Update visual appearance of all markers
+      memoizedUpdateSpliceMarkerColors(state.selectedSpliceMarker);
+    }, [
+      state.selectedSpliceMarker,
+      lockedSpliceMarkersStore,
+      setLockedSpliceMarkersStore,
+      memoizedUpdateSpliceMarkerColors,
+      regionsRef,
+    ]);
+
     const handleAutoSlice = useCallback(() => {
       autoSlice(
         wavesurferRef.current!,
@@ -1091,6 +1125,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleExportWav,
         handleAddSpliceMarker,
         handleRemoveSpliceMarker,
+        handleToggleMarkerLock,
         handleAutoSlice,
         handleHalfMarkers,
         handleClearAllMarkers,
@@ -1115,6 +1150,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleExportWav,
         handleAddSpliceMarker,
         handleRemoveSpliceMarker,
+        handleToggleMarkerLock,
         handleAutoSlice,
         handleHalfMarkers,
         handleClearAllMarkers,
@@ -1189,6 +1225,11 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         {/* Splice marker controls */}
         <SpliceMarkerControls
           selectedSpliceMarker={!!state.selectedSpliceMarker}
+          selectedSpliceMarkerLocked={
+            state.selectedSpliceMarker
+              ? isMarkerLocked(state.selectedSpliceMarker.start, lockedSpliceMarkersStore)
+              : false
+          }
           numberOfSlices={state.numberOfSlices}
           spliceMarkersCount={spliceMarkersStore.length}
           duration={state.duration}
@@ -1197,6 +1238,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           transientOverlap={state.transientOverlap}
           onAddSpliceMarker={handleAddSpliceMarker}
           onRemoveSpliceMarker={handleRemoveSpliceMarker}
+          onToggleMarkerLock={handleToggleMarkerLock}
           onAutoSlice={handleAutoSlice}
           onHalfMarkers={handleHalfMarkers}
           onClearAllMarkers={handleClearAllMarkers}

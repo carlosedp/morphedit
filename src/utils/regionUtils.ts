@@ -5,6 +5,7 @@ import type WaveSurfer from "wavesurfer.js";
 import { useAudioStore } from "../audioStore";
 import { audioBufferToWavWithCues } from "./audioProcessing";
 import { findNearestZeroCrossing } from "./transientDetection";
+import { isMarkerLocked } from "./spliceMarkerUtils";
 
 // Type for region info display
 export interface RegionInfo {
@@ -362,20 +363,22 @@ export const applyCrop = async (
     console.log(
       `🔍 MARKER DEBUGGING - Creating ${adjustedSpliceMarkers.length} new visual markers`
     );
+    const lockedMarkers = useAudioStore.getState().lockedSpliceMarkers;
     adjustedSpliceMarkers.forEach((markerTime, index) => {
       const markerId = `splice-marker-crop-${index}-${Date.now()}`;
+      const isLocked = isMarkerLocked(markerTime, lockedMarkers);
       console.log(
         `  Creating visual marker ${index}: time=${markerTime.toFixed(
           3
-        )}s, id=${markerId}`
+        )}s, id=${markerId}, locked=${isLocked}`
       );
       regions.addRegion({
         start: markerTime,
         color: "rgba(0, 255, 255, 0.8)",
-        drag: true,
+        drag: !isLocked, // Prevent dragging if marker is locked
         resize: false,
         id: markerId,
-        content: "🔻",
+        content: isLocked ? "🔒" : "♦️", // Use lock icon for locked markers
       });
     });
 

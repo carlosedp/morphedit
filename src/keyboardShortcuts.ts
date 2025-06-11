@@ -82,6 +82,11 @@ export const keyboardShortcuts: Record<string, KeyboardShortcut> = {
     description: "Remove selected splice marker",
     action: "removeSpliceMarker",
   },
+  m: {
+    key: "M",
+    description: "Lock/unlock selected splice marker",
+    action: "toggleMarkerLock",
+  },
   s: {
     key: "S",
     description: "Create auto-slice markers",
@@ -115,6 +120,7 @@ export type ShortcutAction =
   | "undo"
   | "addSpliceMarker"
   | "removeSpliceMarker"
+  | "toggleMarkerLock"
   | "autoSlice"
   | "halfMarkers"
   | "clearAllMarkers";
