@@ -1,4 +1,8 @@
-# MorphEdit Audio Editor - User Manual
+# MorphEdit Audio Editor
+
+## User Manual
+
+![Logo](./MorphEdit-Logo.png)
 
 ## Table of Contents
 
@@ -20,10 +24,16 @@
 
 **MorphEdit** is a browser-based audio editor specifically designed for preparing audio files for the **MakeNoise Morphagene** granular synthesis module. It provides powerful tools for adding splice markers, cropping audio, applying fades, and exporting in the optimal format for the Morphagene.
 
+Although primarily focused on Morphagene users, MorphEdit can also be used for general audio editing tasks such as cropping, fading, and concatenating audio files.
+
+![alt text](img/overview.png)
+
 ### Key Features
 
 - **Splice Marker Management**: Add, remove, lock, and automatically detect splice points
+- **Direct Splice Playback**: Play individual splice markers with keyboard shortcuts (1-0, Q-P)
 - **Audio Processing**: Crop, fade in/out, and concatenate multiple files
+- **File Appending**: Add new audio files to existing compositions with preserved markers
 - **Transient Detection**: Automatically detect audio transients for splice placement
 - **Zero-Crossing Snap**: Align markers to zero crossings to prevent audio artifacts
 - **Multiple Export Formats**: Export to various sample rates and bit depths
@@ -59,6 +69,8 @@ The MorphEdit interface consists of several main sections:
 - **Timeline**: Displays time markers and current position
 - **Hover Information**: Shows precise time information when hovering
 
+![alt text](img/waveform.png)
+
 ### 2. Playback Controls (Top Section)
 
 - **Play/Pause Button**: Start/stop audio playback
@@ -69,6 +81,8 @@ The MorphEdit interface consists of several main sections:
 - **Time Display**: Shows current time, duration, and zoom level
 - **Region Information**: Displays active crop and fade region details
 
+![alt text](img/playback.png)
+
 ### 3. Export and Region Controls (Middle Section)
 
 - **Export Button**: Quick export in default Morphagene format
@@ -77,12 +91,16 @@ The MorphEdit interface consists of several main sections:
 - **Fade Regions**: Create fade-in and fade-out regions
 - **Apply/Undo Buttons**: Process audio and revert changes
 
+![alt text](img/region.png)
+
 ### 4. Splice Marker Controls (Bottom Section)
 
 - **Manual Controls**: Add, remove, and lock splice markers
 - **Auto-Slice**: Create equally distributed markers
 - **Transient Detection**: Automatically detect splice points
 - **Marker Management**: Half markers, clear all, snap to zero crossings
+
+![alt text](img/splice.png)
 
 ---
 
@@ -100,6 +118,34 @@ The MorphEdit interface consists of several main sections:
 2. **Automatic Processing**: Files are automatically concatenated in the order selected
 3. **Splice Marker Placement**: Markers are automatically placed at file boundaries
 4. **Existing Markers**: Any existing splice markers (cue points) in the files are preserved
+
+### Appending Audio to Existing Files
+
+When you already have audio loaded in MorphEdit, you can append additional audio files to extend your composition:
+
+#### Using the Append Button
+
+1. **Load Initial Audio**: First load your base audio file
+2. **Click "Append Audio"**: Use the "Append Audio" button in the top toolbar
+3. **Select Files**: Choose one or more audio files to append
+4. **Automatic Processing**: Files are concatenated to the end of existing audio
+5. **Marker Preservation**: Existing splice markers are preserved and new boundary markers are added
+
+#### Using Drag and Drop
+
+1. **Drag Files Over Loaded Audio**: When audio is already loaded, drag new files onto the waveform
+2. **Choose Action**: A dialog appears with options:
+   - **"Replace current audio"**: Removes existing audio and loads new files
+   - **"Append to existing audio"**: Adds new files to the end of current audio
+3. **Automatic Boundaries**: Splice markers are automatically placed at the junction between files
+
+#### Append Features
+
+- **Splice Marker Management**: Existing markers remain at their original positions
+- **Boundary Markers**: New markers are automatically placed where files join
+- **Cue Point Preservation**: Existing cue points in appended files are maintained
+- **Length Checking**: Combined audio length is checked against Morphagene limits (174s)
+- **Undo Support**: Append operations can be undone with Ctrl+Z
 
 ### File Length Handling
 
@@ -144,11 +190,28 @@ Splice markers are the core feature for preparing audio for the Morphagene. They
 2. **Add Marker**: Press 'J' or click the "Add" button (Create icon)
 3. **Zero-Crossing Snap**: Markers automatically snap to nearest zero crossing to prevent clicks
 
+![alt text](img/addmarker.png)
+
 #### Removing Markers
 
 1. **Select Marker**: Click on a splice marker (turns blue when selected)
 2. **Remove Selected**: Press 'K' or click the "Remove" button (Delete icon)
 3. **Remove Closest**: If no marker selected, removes closest unlocked marker to cursor
+
+#### Playing Splice Markers
+
+MorphEdit provides direct keyboard shortcuts to play individual splice markers for auditioning:
+
+1. **Direct Playback**: Use number keys 1-0 and letter keys Q-P to play the first 20 splice markers
+2. **Automatic Stopping**: Playback automatically stops at the next splice marker
+3. **Chronological Order**: Markers are played in chronological order (sorted by time position)
+4. **Visual Feedback**: Console displays which marker is being played and where it will stop
+
+**Keyboard Layout for Splice Playback:**
+- **1-0**: Play splice markers 1-10
+- **Q-P**: Play splice markers 11-20
+
+This feature allows you to quickly audition different segments of your audio by jumping directly to splice points and hearing exactly what each slice contains.
 
 #### Locking Markers
 
@@ -156,6 +219,8 @@ Splice markers are the core feature for preparing audio for the Morphagene. They
 2. **Toggle Lock**: Press 'M' or click the lock button
 3. **Visual Indication**: Locked markers show a lock icon (🔒) and cannot be moved or deleted
 4. **Protection**: Locked markers are preserved during auto-slice and clear operations
+
+![alt text](img/lockmarker.png)
 
 ### Automatic Marker Generation
 
@@ -165,6 +230,8 @@ Splice markers are the core feature for preparing audio for the Morphagene. They
 2. **Generate**: Press 'S' or click "Auto Slice"
 3. **Locked Preservation**: Existing locked markers are preserved
 4. **Zero-Crossing**: New markers automatically snap to zero crossings
+
+![alt text](img/autoslice.png)
 
 #### Transient Detection
 
@@ -177,6 +244,8 @@ Splice markers are the core feature for preparing audio for the Morphagene. They
    - **Overlap**: Window overlap percentage (50-90%)
 3. **Detect**: Click "Detect" to automatically find transients
 4. **Results**: Markers placed at detected transient positions
+
+![alt text](img/slicedetect.png)
 
 ### Marker Management Tools
 
@@ -219,17 +288,19 @@ Splice markers are the core feature for preparing audio for the Morphagene. They
 4. **Marker Adjustment**: Splice markers within the region are automatically adjusted
 5. **Undo Available**: Previous state is saved for undo operation
 
+![alt text](img/cropregion.png)
+
 ### Fade Regions
 
 #### Fade-In
 
-1. **Create**: Press 'I' or click "Fade In" button
+1. **Create**: Press '[' or click "Fade In" button
 2. **Adjust**: Drag handles to set fade duration (default: 10% of audio length)
 3. **Preview**: Green highlighted area shows fade-in region
 
 #### Fade-Out
 
-1. **Create**: Press 'O' or click "Fade Out" button
+1. **Create**: Press ']' or click "Fade Out" button
 2. **Adjust**: Drag handles to set fade duration (default: last 10% of audio)
 3. **Preview**: Red highlighted area shows fade-out region
 
@@ -239,6 +310,12 @@ Splice markers are the core feature for preparing audio for the Morphagene. They
 2. **Apply**: Click "Apply Fades" button
 3. **Linear Fade**: Uses linear gain reduction/increase
 4. **Zero-Crossing**: Fade boundaries snap to zero crossings
+
+![alt text](img/fades.png)
+
+With fades applied:
+
+![alt text](img/fades-applied.png)
 
 ### Undo Functionality
 
@@ -311,13 +388,40 @@ Splice markers are the core feature for preparing audio for the Morphagene. They
 | **H** | Half Markers  | Remove every other unlocked marker    |
 | **X** | Clear All     | Remove all unlocked markers           |
 
+### Splice Marker Playback
+
+| Key   | Action         | Description                  |
+| ----- | -------------- | ---------------------------- |
+| **1** | Play Splice 1  | Play from 1st splice marker  |
+| **2** | Play Splice 2  | Play from 2nd splice marker  |
+| **3** | Play Splice 3  | Play from 3rd splice marker  |
+| **4** | Play Splice 4  | Play from 4th splice marker  |
+| **5** | Play Splice 5  | Play from 5th splice marker  |
+| **6** | Play Splice 6  | Play from 6th splice marker  |
+| **7** | Play Splice 7  | Play from 7th splice marker  |
+| **8** | Play Splice 8  | Play from 8th splice marker  |
+| **9** | Play Splice 9  | Play from 9th splice marker  |
+| **0** | Play Splice 10 | Play from 10th splice marker |
+| **Q** | Play Splice 11 | Play from 11th splice marker |
+| **W** | Play Splice 12 | Play from 12th splice marker |
+| **E** | Play Splice 13 | Play from 13th splice marker |
+| **R** | Play Splice 14 | Play from 14th splice marker |
+| **T** | Play Splice 15 | Play from 15th splice marker |
+| **Y** | Play Splice 16 | Play from 16th splice marker |
+| **U** | Play Splice 17 | Play from 17th splice marker |
+| **I** | Play Splice 18 | Play from 18th splice marker |
+| **O** | Play Splice 19 | Play from 19th splice marker |
+| **P** | Play Splice 20 | Play from 20th splice marker |
+
+*Note: Playback automatically stops at the next splice marker. Markers are accessed in chronological order.*
+
 ### Regions
 
 | Key   | Action      | Description                 |
 | ----- | ----------- | --------------------------- |
 | **C** | Crop Region | Toggle crop region creation |
-| **I** | Fade-In     | Toggle fade-in region       |
-| **O** | Fade-Out    | Toggle fade-out region      |
+| **[** | Fade-In     | Toggle fade-in region       |
+| **]** | Fade-Out    | Toggle fade-out region      |
 
 ### System
 
@@ -329,6 +433,49 @@ Splice markers are the core feature for preparing audio for the Morphagene. They
 ---
 
 ## Advanced Features
+
+### File Operations and Dialogs
+
+#### File Replacement Dialog
+
+When dragging files onto an already loaded audio file, MorphEdit presents options:
+
+- **Replace current audio**: Removes existing audio and loads new files
+- **Append to existing audio**: Adds new files to the end of current audio
+- **Cancel**: Cancels the operation
+
+![replace-audio](img/replace-audio.png)
+
+#### Length Warning Dialog
+
+When audio exceeds the Morphagene's 174-second limit, options are presented:
+
+- **Truncate to 174 seconds**: Keeps only the first 174 seconds
+- **Keep full length**: Maintains original length (for non-Morphagene use)
+- **Cancel**: Cancels the operation
+
+![alt text](img/length.png)
+
+#### Loading States
+
+- **File Loading**: Shows progress when loading/processing audio files
+- **Append Operations**: Displays "Appending audio files..." during concatenation
+- **Processing Operations**: Shows progress for crop, fade, and export operations
+
+### Audio File Management
+
+#### Append vs. Concatenation
+
+- **Concatenation**: Loading multiple files simultaneously creates a single composition
+- **Appending**: Adding files to an existing composition extends the current audio
+- **Boundary Markers**: Both operations automatically place splice markers at file junctions
+- **Marker Preservation**: Existing splice markers and cue points are maintained
+
+#### Undo System
+
+- **Single-Level Undo**: Can undo the last processing operation (crop, fade, or append)
+- **State Preservation**: Previous audio state is stored for restoration
+- **Automatic Cleanup**: Undo history is cleared after successful undo operation
 
 ### Zero-Crossing Detection
 
@@ -466,6 +613,55 @@ This provides detailed information about:
 - **File Preparation**: Pre-process very long files in external editors if needed
 - **Marker Density**: Use reasonable marker density (not too many for short files)
 - **Browser Resources**: Close unnecessary tabs and applications
+
+---
+
+## Common Workflows
+
+### Building a Composition with Multiple Sources
+
+1. **Start with Base Audio**: Load your primary/longest audio file first
+2. **Add Splice Markers**: Use transient detection or manual placement on the base audio
+3. **Append Additional Elements**:
+   - Use "Append Audio" button to add drums, textures, or other elements
+   - Each appended file automatically gets boundary markers
+4. **Refine Markers**: Adjust marker positions and lock important ones
+5. **Test Playback**: Use number keys (1-0) and letters (Q-P) to audition different slices
+6. **Apply Processing**: Add fades or crop if needed
+7. **Export**: Export to WAV with embedded splice markers
+
+### Creating Variations from Existing Compositions
+
+1. **Load Base Composition**: Start with an existing audio file with splice markers
+2. **Experiment with Appends**: Add new elements to create variations
+3. **Use Undo**: Quickly revert to try different combinations
+4. **Lock Key Markers**: Preserve important splice points during auto-slice operations
+5. **Export Multiple Versions**: Create different exports for comparison
+
+### Preparing Loops and Samples
+
+1. **Individual Loop Processing**:
+   - Load single loop files
+   - Use transient detection for automatic slice points
+   - Fine-tune with manual adjustments
+2. **Loop Set Assembly**:
+   - Start with your main loop
+   - Append variations, fills, and breaks
+   - Test transitions using splice playback
+3. **Morphagene Optimization**:
+   - Keep total length under 174 seconds
+   - Use appropriate splice density (8-20 markers typically)
+   - Export in 48kHz 32-bit format
+
+### Quick Audition Workflow
+
+1. **Load Audio**: Import your audio file(s)
+2. **Auto-Generate Markers**: Use auto-slice (8-16 slices) or transient detection
+3. **Rapid Testing**: Use keyboard shortcuts to quickly play through slices:
+   - Press 1-0 to hear first 10 slices
+   - Press Q-P to hear slices 11-20
+4. **Refinement**: Adjust or remove markers that don't sound good
+5. **Final Export**: Export when satisfied with slice points
 
 ---
 

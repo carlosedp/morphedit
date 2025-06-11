@@ -15,6 +15,34 @@ import { keyboardShortcuts } from "./keyboardShortcuts";
 export const KeyboardShortcutsHelp = () => {
   const [open, setOpen] = useState(false);
 
+  // Group shortcuts for better display
+  const groupedShortcuts = () => {
+    const splicePlaybackKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'];
+    const otherShortcuts = Object.entries(keyboardShortcuts).filter(([key]) => !splicePlaybackKeys.includes(key));
+
+    return [
+      // Add consolidated splice playback shortcuts
+      {
+        key: 'splice-numbers',
+        shortcut: {
+          key: '1-0',
+          description: 'Play splice markers 1-10',
+          action: 'playSpliceNumbers'
+        }
+      },
+      {
+        key: 'splice-letters',
+        shortcut: {
+          key: 'Q-P',
+          description: 'Play splice markers 11-20',
+          action: 'playSpliceLetters'
+        }
+      },
+      // Add all other shortcuts
+      ...otherShortcuts.map(([key, shortcut]) => ({ key, shortcut }))
+    ];
+  };
+
   return (
     <Box>
       <Button
@@ -36,7 +64,7 @@ export const KeyboardShortcutsHelp = () => {
         <DialogTitle>Keyboard Shortcuts</DialogTitle>
         <DialogContent>
           <Stack spacing={2}>
-            {Object.entries(keyboardShortcuts).map(([key, shortcut]) => (
+            {groupedShortcuts().map(({ key, shortcut }) => (
               <Box
                 key={key}
                 sx={{

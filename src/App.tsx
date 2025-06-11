@@ -9,10 +9,11 @@ import {
   Stack,
   Tooltip,
 } from "@mui/material";
-import Waveform from "./Waveform";
+import Waveform, { type WaveformRef } from "./Waveform";
 import { useAudioStore } from "./audioStore";
 import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
 import { KeyboardShortcutsHelp } from "./KeyboardShortcutsHelp";
+import { ManualPage } from "./components/ManualPage";
 import { FileLengthWarningDialog } from "./components/FileLengthWarningDialog";
 import { LoadingDialog } from "./components/LoadingDialog";
 import { MultipleFilesDialog } from "./components/MultipleFilesDialog";
@@ -50,37 +51,12 @@ function App() {
   const [shouldResetZoomAfterLoad, setShouldResetZoomAfterLoad] = useState(false);
   const [pendingAppendResult, setPendingAppendResult] = useState<ConcatenationResult | null>(null);
   const [appendOriginalDuration, setAppendOriginalDuration] = useState(0);
+  const [showManual, setShowManual] = useState(false);
 
   // State for tracking append mode in length warning dialog
   const [isInAppendMode, setIsInAppendMode] = useState(false);
   const reset = useAudioStore((state) => state.reset);
-  const waveformRef = useRef<{
-    handlePlayPause: () => void;
-    handleCropRegion: () => void;
-    handleLoop: () => void;
-    handleZoom: (value: number) => void;
-    handleZoomReset: () => void;
-    getCurrentZoom: () => number;
-    handleSkipForward: () => void;
-    handleSkipBackward: () => void;
-    handleIncreaseSkipIncrement: () => void;
-    handleDecreaseSkipIncrement: () => void;
-    handleFadeInRegion: () => void;
-    handleFadeOutRegion: () => void;
-    handleApplyCrop: () => void;
-    handleApplyFades: () => void;
-    handleUndo: () => void;
-    handleExportWav: () => void;
-    handleAddSpliceMarker: () => void;
-    handleRemoveSpliceMarker: () => void;
-    handleToggleMarkerLock: () => void;
-    handleAutoSlice: () => void;
-    handleHalfMarkers: () => void;
-    handleClearAllMarkers: () => void;
-    handleTransientDetection: () => void;
-    handleSnapToZeroCrossings: () => void;
-    handleTruncateAudio: () => void;
-  } | null>(null);
+  const waveformRef = useRef<WaveformRef>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -667,6 +643,66 @@ function App() {
       case "clearAllMarkers":
         waveformRef.current?.handleClearAllMarkers();
         break;
+      case "playSplice1":
+        waveformRef.current?.handlePlaySplice1();
+        break;
+      case "playSplice2":
+        waveformRef.current?.handlePlaySplice2();
+        break;
+      case "playSplice3":
+        waveformRef.current?.handlePlaySplice3();
+        break;
+      case "playSplice4":
+        waveformRef.current?.handlePlaySplice4();
+        break;
+      case "playSplice5":
+        waveformRef.current?.handlePlaySplice5();
+        break;
+      case "playSplice6":
+        waveformRef.current?.handlePlaySplice6();
+        break;
+      case "playSplice7":
+        waveformRef.current?.handlePlaySplice7();
+        break;
+      case "playSplice8":
+        waveformRef.current?.handlePlaySplice8();
+        break;
+      case "playSplice9":
+        waveformRef.current?.handlePlaySplice9();
+        break;
+      case "playSplice10":
+        waveformRef.current?.handlePlaySplice10();
+        break;
+      case "playSplice11":
+        waveformRef.current?.handlePlaySplice11();
+        break;
+      case "playSplice12":
+        waveformRef.current?.handlePlaySplice12();
+        break;
+      case "playSplice13":
+        waveformRef.current?.handlePlaySplice13();
+        break;
+      case "playSplice14":
+        waveformRef.current?.handlePlaySplice14();
+        break;
+      case "playSplice15":
+        waveformRef.current?.handlePlaySplice15();
+        break;
+      case "playSplice16":
+        waveformRef.current?.handlePlaySplice16();
+        break;
+      case "playSplice17":
+        waveformRef.current?.handlePlaySplice17();
+        break;
+      case "playSplice18":
+        waveformRef.current?.handlePlaySplice18();
+        break;
+      case "playSplice19":
+        waveformRef.current?.handlePlaySplice19();
+        break;
+      case "playSplice20":
+        waveformRef.current?.handlePlaySplice20();
+        break;
     }
   };
 
@@ -674,6 +710,11 @@ function App() {
     onAction: handleShortcutAction,
     enabled: true,
   });
+
+  // If showing manual, render the manual page instead of the main app
+  if (showManual) {
+    return <ManualPage onBack={() => setShowManual(false)} />;
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -723,8 +764,24 @@ function App() {
           alignItems="center"
           mb={3}
         >
-          <Typography variant="h4">Morphedit Audio Editor</Typography>
-          <KeyboardShortcutsHelp />
+          <Box display="flex" alignItems="center" gap={2}>
+            <img
+              src="/MorphEdit-Logo.png"
+              alt="MorphEdit Logo"
+              style={{ height: '96px', width: 'auto' }}
+            />
+            <Typography variant="h4">Morphedit Audio Editor</Typography>
+          </Box>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => setShowManual(true)}
+            >
+              User Manual
+            </Button>
+            <KeyboardShortcutsHelp />
+          </Stack>
         </Box>
         <Box mb={2}>
           <Stack direction="row" spacing={2}>
@@ -805,11 +862,6 @@ function App() {
           />
         )}
         <Box mt={4}>
-          <Typography variant="body2" color="text.secondary">
-            Beat detection features coming soon.
-          </Typography>
-        </Box>{" "}
-        <Box mt={4}>
           <Typography
             variant="caption"
             color="text.secondary"
@@ -832,6 +884,27 @@ function App() {
               Fork me on GitHub
             </a>
           </Typography>
+          <Box mt={4}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{
+                textAlign: "center",
+                opacity: 0.7,
+                "& a": {
+                  color: "text.secondary",
+                  textDecoration: "underline",
+                },
+              }}
+            >
+              Report bugs at <a
+                href="https://github.com/carlosedp/morphedit/issues"
+                target="_blank"
+                rel="noopener noreferrer"
+              >GitHub Issues
+              </a>
+            </Typography>
+          </Box>
         </Box>
       </Container>
 
@@ -863,7 +936,7 @@ function App() {
       />
 
       <LoadingDialog open={isLoading} message={loadingMessage} />
-    </ThemeProvider>
+    </ThemeProvider >
   );
 }
 

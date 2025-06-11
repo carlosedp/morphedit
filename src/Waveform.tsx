@@ -66,6 +66,7 @@ import {
   increaseSkipIncrement,
   decreaseSkipIncrement,
   undo,
+  playSpliceMarker,
 } from "./utils/playbackUtils";
 import { useWaveformState, useWaveformRefs } from "./hooks/useWaveformState";
 import { WaveformControls } from "./components/WaveformControls";
@@ -106,6 +107,26 @@ export interface WaveformRef {
   handleClearAllMarkers: () => void;
   handleTransientDetection: () => void;
   handleSnapToZeroCrossings: () => void;
+  handlePlaySplice1: () => void;
+  handlePlaySplice2: () => void;
+  handlePlaySplice3: () => void;
+  handlePlaySplice4: () => void;
+  handlePlaySplice5: () => void;
+  handlePlaySplice6: () => void;
+  handlePlaySplice7: () => void;
+  handlePlaySplice8: () => void;
+  handlePlaySplice9: () => void;
+  handlePlaySplice10: () => void;
+  handlePlaySplice11: () => void;
+  handlePlaySplice12: () => void;
+  handlePlaySplice13: () => void;
+  handlePlaySplice14: () => void;
+  handlePlaySplice15: () => void;
+  handlePlaySplice16: () => void;
+  handlePlaySplice17: () => void;
+  handlePlaySplice18: () => void;
+  handlePlaySplice19: () => void;
+  handlePlaySplice20: () => void;
 }
 
 const Waveform = forwardRef<WaveformRef, WaveformProps>(
@@ -1292,6 +1313,87 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       [spliceMarkersStore, actions],
     );
 
+    // Splice playback handlers - play specific splice markers by index
+    const handlePlaySplice1 = useCallback(() => {
+      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 1);
+    }, [spliceMarkersStore, wavesurferRef]);
+
+    const handlePlaySplice2 = useCallback(() => {
+      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 2);
+    }, [spliceMarkersStore, wavesurferRef]);
+
+    const handlePlaySplice3 = useCallback(() => {
+      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 3);
+    }, [spliceMarkersStore, wavesurferRef]);
+
+    const handlePlaySplice4 = useCallback(() => {
+      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 4);
+    }, [spliceMarkersStore, wavesurferRef]);
+
+    const handlePlaySplice5 = useCallback(() => {
+      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 5);
+    }, [spliceMarkersStore, wavesurferRef]);
+
+    const handlePlaySplice6 = useCallback(() => {
+      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 6);
+    }, [spliceMarkersStore, wavesurferRef]);
+
+    const handlePlaySplice7 = useCallback(() => {
+      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 7);
+    }, [spliceMarkersStore, wavesurferRef]);
+
+    const handlePlaySplice8 = useCallback(() => {
+      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 8);
+    }, [spliceMarkersStore, wavesurferRef]);
+
+    const handlePlaySplice9 = useCallback(() => {
+      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 9);
+    }, [spliceMarkersStore, wavesurferRef]);
+
+    const handlePlaySplice10 = useCallback(() => {
+      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 10);
+    }, [spliceMarkersStore, wavesurferRef]);
+
+    const handlePlaySplice11 = useCallback(() => {
+      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 11);
+    }, [spliceMarkersStore, wavesurferRef]);
+
+    const handlePlaySplice12 = useCallback(() => {
+      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 12);
+    }, [spliceMarkersStore, wavesurferRef]);
+
+    const handlePlaySplice13 = useCallback(() => {
+      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 13);
+    }, [spliceMarkersStore, wavesurferRef]);
+
+    const handlePlaySplice14 = useCallback(() => {
+      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 14);
+    }, [spliceMarkersStore, wavesurferRef]);
+
+    const handlePlaySplice15 = useCallback(() => {
+      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 15);
+    }, [spliceMarkersStore, wavesurferRef]);
+
+    const handlePlaySplice16 = useCallback(() => {
+      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 16);
+    }, [spliceMarkersStore, wavesurferRef]);
+
+    const handlePlaySplice17 = useCallback(() => {
+      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 17);
+    }, [spliceMarkersStore, wavesurferRef]);
+
+    const handlePlaySplice18 = useCallback(() => {
+      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 18);
+    }, [spliceMarkersStore, wavesurferRef]);
+
+    const handlePlaySplice19 = useCallback(() => {
+      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 19);
+    }, [spliceMarkersStore, wavesurferRef]);
+
+    const handlePlaySplice20 = useCallback(() => {
+      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 20);
+    }, [spliceMarkersStore, wavesurferRef]);
+
     // Memoized region info that updates when regions change
     const regionInfo = useMemo(() => {
       return getRegionInfo(regionsRef.current);
@@ -1326,6 +1428,26 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleClearAllMarkers,
         handleTransientDetection,
         handleSnapToZeroCrossings,
+        handlePlaySplice1,
+        handlePlaySplice2,
+        handlePlaySplice3,
+        handlePlaySplice4,
+        handlePlaySplice5,
+        handlePlaySplice6,
+        handlePlaySplice7,
+        handlePlaySplice8,
+        handlePlaySplice9,
+        handlePlaySplice10,
+        handlePlaySplice11,
+        handlePlaySplice12,
+        handlePlaySplice13,
+        handlePlaySplice14,
+        handlePlaySplice15,
+        handlePlaySplice16,
+        handlePlaySplice17,
+        handlePlaySplice18,
+        handlePlaySplice19,
+        handlePlaySplice20,
       }),
       [
         handlePlayPause,
@@ -1351,6 +1473,26 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleClearAllMarkers,
         handleTransientDetection,
         handleSnapToZeroCrossings,
+        handlePlaySplice1,
+        handlePlaySplice2,
+        handlePlaySplice3,
+        handlePlaySplice4,
+        handlePlaySplice5,
+        handlePlaySplice6,
+        handlePlaySplice7,
+        handlePlaySplice8,
+        handlePlaySplice9,
+        handlePlaySplice10,
+        handlePlaySplice11,
+        handlePlaySplice12,
+        handlePlaySplice13,
+        handlePlaySplice14,
+        handlePlaySplice15,
+        handlePlaySplice16,
+        handlePlaySplice17,
+        handlePlaySplice18,
+        handlePlaySplice19,
+        handlePlaySplice20,
         state.zoom,
       ],
     );
