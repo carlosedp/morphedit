@@ -1,0 +1,109 @@
+name: Version Update and Production PR
+
+on:
+  push:
+    tags:
+      - "v*" # Triggers on version tags like v1.0.0, v2.1.3, etc.
+
+jobs:
+  update-version-and-create-pr:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract version from tag
+        id: get_version
+        run: |
+          # Get the tag name and remove the 'v' prefix if present
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version extracted: $VERSION"
+
+      - name: Update version in Version.ts
+        run: |
+          # Update the version in src/Version.ts
+          sed -i 's/export const version = ".*";/export const version = "${{ steps.get_version.outputs.version }}";/' src/Version.ts
+          echo "Updated version in src/Version.ts to ${{ steps.get_version.outputs.version }}"
+
+      - name: Verify version update
+        run: |
+          echo "Current version line in src/Version.ts:"
+          grep 'const version' src/Version.ts
+
+      - name: Setup Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Create version update branch
+        run: |
+          BRANCH_NAME="version-update-${{ steps.get_version.outputs.version }}"
+          git checkout -b "$BRANCH_NAME"
+          git add src/Version.ts
+          git commit -m "chore: update version to ${{ steps.get_version.outputs.version }}"
+          git push origin "$BRANCH_NAME"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - name: Create Pull Request to Production
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pullRequest } = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚀 Release ${{ steps.get_version.outputs.version }} to Production`,
+              head: process.env.branch_name,
+              base: 'production',
+              body: `## Release ${{ steps.get_version.outputs.version }} to Production
+
+              This PR was automatically created when tag \`${{ steps.get_version.outputs.version }}\` was pushed.
+
+              ### Changes
+              - ✅ Updated version number to \`${{ steps.get_version.outputs.version }}\` in \`src/Version.ts\`
+              - 🏷️ Tagged as \`${{ steps.get_version.outputs.version }}\`
+
+              ### Deployment
+              Once this PR is merged to the \`production\` branch, the GitHub Pages deployment will automatically trigger.
+
+              ### Review Checklist
+              - [ ] Version number is correct
+              - [ ] All features are working as expected
+              - [ ] Ready for production deployment
+
+              ---
+              *This PR was created automatically by the Version Update workflow.*`
+            });
+
+            console.log(`Created PR #${pullRequest.number}: ${pullRequest.html_url}`);
+
+            // Add labels if they exist
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pullRequest.number,
+                labels: ['release', 'production', 'automated']
+              });
+            } catch (error) {
+              console.log('Note: Could not add labels (they may not exist):', error.message);
+            }
+
+      - name: Summary
+        run: |
+          echo "## Summary" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Version updated to \`${{ steps.get_version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Created branch \`${{ env.branch_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Created PR to \`production\` branch" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next steps:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. Review and merge the PR to deploy to production" >> $GITHUB_STEP_SUMMARY
+          echo "2. The deployment workflow will automatically trigger on merge" >> $GITHUB_STEP_SUMMARY
