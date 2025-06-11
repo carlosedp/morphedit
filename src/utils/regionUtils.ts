@@ -315,19 +315,52 @@ export const applyCrop = async (
 
   console.log("Loading cropped audio...");
 
+  // Set processing flag to prevent buffer overrides
+  const store = useAudioStore.getState();
+  store.setIsProcessingAudio(true);
+
   // Save current audio URL for undo before loading new one
   callbacks.setPreviousAudioUrl(currentAudioUrl);
   callbacks.setCanUndo(true);
 
   // Load the new cropped audio
   try {
+    // Set the audio buffer BEFORE loading to ensure it's in the store
+    console.log("CROP DEBUG - Setting cropped buffer in store BEFORE WS load");
+    callbacks.setAudioBuffer(newBuffer);
+    
     await ws.load(newUrl);
     console.log("Crop applied successfully");
+    console.log(
+      "CROP DEBUG - New buffer details:",
+      `Duration: ${newBuffer.length / newBuffer.sampleRate}s`,
+      `Length: ${newBuffer.length} samples`,
+      `Sample rate: ${newBuffer.sampleRate}Hz`
+    );
+    console.log(
+      "CROP DEBUG - WaveSurfer duration after load:",
+      ws.getDuration()
+    );
+    
     // Update the current audio URL to the new cropped version
     callbacks.setCurrentAudioUrl(newUrl);
-    // Update the audio buffer in the store with the new cropped buffer
+    
+    // Set the audio buffer AGAIN after loading to ensure it's correct
+    console.log("CROP DEBUG - Setting cropped buffer in store AFTER WS load");
     callbacks.setAudioBuffer(newBuffer);
     console.log("Updated audio buffer with cropped version");
+    
+    // Verify the buffer in store is correct
+    const storeBuffer = useAudioStore.getState().audioBuffer;
+    if (storeBuffer) {
+      console.log(
+        "CROP DEBUG - Verification - Buffer in store:",
+        `Duration: ${storeBuffer.length / storeBuffer.sampleRate}s`,
+        `Length: ${storeBuffer.length} samples`
+      );
+    } else {
+      console.error("CROP DEBUG - ERROR: No buffer found in store after setting!");
+    }
 
     // Clear crop region after applying
     callbacks.setCropMode(false);
@@ -431,8 +464,16 @@ export const applyCrop = async (
         ws.zoom(resetZoom);
       }
     }
+    
+    // Clear processing flag
+    console.log("CROP DEBUG - Clearing processing flag (success)");
+    store.setIsProcessingAudio(false);
   } catch (error) {
     console.error("Error loading cropped audio:", error);
+    // Clear processing flag on error too
+    console.log("CROP DEBUG - Clearing processing flag (error)");
+    const store = useAudioStore.getState();
+    store.setIsProcessingAudio(false);
   }
 };
 

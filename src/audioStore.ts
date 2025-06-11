@@ -18,6 +18,9 @@ export interface AudioState {
   setPreviousAudioUrl: (url: string | null) => void;
   canUndo: boolean;
   setCanUndo: (canUndo: boolean) => void;
+  // Processing state to prevent buffer overrides
+  isProcessingAudio: boolean;
+  setIsProcessingAudio: (processing: boolean) => void;
   reset: () => void;
 }
 
@@ -47,6 +50,9 @@ export const useAudioStore = create<AudioState>(
     setPreviousAudioUrl: (url) => set({ previousAudioUrl: url }),
     canUndo: false,
     setCanUndo: (canUndo) => set({ canUndo }),
+    // Processing state
+    isProcessingAudio: false,
+    setIsProcessingAudio: (processing) => set({ isProcessingAudio: processing }),
     reset: () =>
       set({
         audioBuffer: null,
@@ -56,6 +62,7 @@ export const useAudioStore = create<AudioState>(
         lockedSpliceMarkers: [],
         previousAudioUrl: null,
         canUndo: false,
+        isProcessingAudio: false,
       }),
   })
 );

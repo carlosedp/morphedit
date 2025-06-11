@@ -356,7 +356,33 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
         // Update audio buffer in store - but only if not already correctly set
         const currentStoredBuffer = useAudioStore.getState().audioBuffer;
+        const isCurrentlyProcessing = useAudioStore.getState().isProcessingAudio;
         const wsDuration = ws.getDuration();
+
+        // If we're currently processing audio, don't override the buffer
+        if (isCurrentlyProcessing) {
+          console.log(
+            "Ready event - audio processing in progress, skipping buffer update"
+          );
+          return;
+        }
+
+        // For processed audio (cropped/faded), trust the buffer that's already in the store
+        // since it was specifically set by the processing operations
+        if (isProcessedAudio && currentStoredBuffer) {
+          console.log(
+            "Ready event - processed audio detected, keeping existing buffer in store"
+          );
+          console.log(
+            `Store buffer duration: ${currentStoredBuffer.length / currentStoredBuffer.sampleRate}s, WS duration: ${wsDuration}s`
+          );
+          
+          // Double-check that our store buffer makes sense for processed audio
+          const urlContainsCropped = urlToLoad.includes("#morphedit-cropped");
+          const urlContainsFaded = urlToLoad.includes("#morphedit-faded");
+          console.log("Ready event - URL flags:", { urlContainsCropped, urlContainsFaded });
+          return;
+        }
 
         // Check if we already have a buffer with the correct duration (within 0.01s tolerance)
         const bufferAlreadyCorrect =
@@ -1048,15 +1074,32 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     // Export handlers
     const handleExportWav = useCallback(() => {
       const audioBuffer = useAudioStore.getState().audioBuffer;
+      const isProcessing = useAudioStore.getState().isProcessingAudio;
+      
       if (!audioBuffer) {
         console.log("No audio buffer found");
         return;
       }
 
+      console.log("=================== EXPORT DEBUG ===================");
+      console.log("Export - Current audio URL:", state.currentAudioUrl);
+      console.log("Export - Is processing:", isProcessing);
       console.log(
         "Exporting WAV with splice markers as cue points:",
         spliceMarkersStore,
       );
+      console.log(
+        "Export - Audio buffer details:",
+        `Duration: ${audioBuffer.length / audioBuffer.sampleRate}s`,
+        `Length: ${audioBuffer.length} samples`,
+        `Sample rate: ${audioBuffer.sampleRate}Hz`,
+        `Channels: ${audioBuffer.numberOfChannels}`
+      );
+      console.log(
+        "Export - Current WaveSurfer duration:",
+        wavesurferRef.current?.getDuration() || "N/A"
+      );
+      console.log("=====================================================");
 
       // Use the default export format (48kHz 32-bit Float Stereo)
       const defaultFormat = exportFormats[0]; // 48kHz 32-bit Float Stereo
@@ -1066,7 +1109,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         spliceMarkersStore,
       );
       downloadWav(wav, "morphedit-export.wav");
-    }, [spliceMarkersStore]);
+    }, [spliceMarkersStore, wavesurferRef, state.currentAudioUrl]);
 
     const handleExportWavFormat = useCallback(
       (format: ExportFormat) => {
@@ -1081,6 +1124,13 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           format,
           "with splice markers:",
           spliceMarkersStore,
+        );
+        console.log(
+          "Export format - Audio buffer details:",
+          `Duration: ${audioBuffer.length / audioBuffer.sampleRate}s`,
+          `Length: ${audioBuffer.length} samples`,
+          `Sample rate: ${audioBuffer.sampleRate}Hz`,
+          `Channels: ${audioBuffer.numberOfChannels}`
         );
 
         const wav = audioBufferToWavFormat(
