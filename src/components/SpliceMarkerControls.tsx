@@ -93,14 +93,16 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             enterDelay={500}
             leaveDelay={200}
           >
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={onRemoveSpliceMarker}
-              disabled={!selectedSpliceMarker}
-            >
-              <DeleteIcon />
-            </Button>
+            <Box component="span">
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={onRemoveSpliceMarker}
+                disabled={!selectedSpliceMarker}
+              >
+                <DeleteIcon />
+              </Button>
+            </Box>
           </Tooltip>
 
           <Tooltip
@@ -112,14 +114,16 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             enterDelay={500}
             leaveDelay={200}
           >
-            <Button
-              variant="outlined"
-              color={selectedSpliceMarkerLocked ? "warning" : "primary"}
-              onClick={onToggleMarkerLock}
-              disabled={!selectedSpliceMarker}
-            >
-              {selectedSpliceMarkerLocked ? <LockIcon /> : <LockOpenIcon />}
-            </Button>
+            <Box component="span">
+              <Button
+                variant="outlined"
+                color={selectedSpliceMarkerLocked ? "warning" : "primary"}
+                onClick={onToggleMarkerLock}
+                disabled={!selectedSpliceMarker}
+              >
+                {selectedSpliceMarkerLocked ? <LockIcon /> : <LockOpenIcon />}
+              </Button>
+            </Box>
           </Tooltip>
 
           <Tooltip
@@ -145,15 +149,17 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             enterDelay={500}
             leaveDelay={200}
           >
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={onAutoSlice}
-              startIcon={<ContentCutIcon />}
-              disabled={!duration || duration <= 0}
-            >
-              Auto Slice
-            </Button>
+            <Box component="span">
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={onAutoSlice}
+                startIcon={<ContentCutIcon />}
+                disabled={!duration || duration <= 0}
+              >
+                Auto Slice
+              </Button>
+            </Box>
           </Tooltip>
 
           <Tooltip
@@ -161,15 +167,17 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             enterDelay={500}
             leaveDelay={200}
           >
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={onHalfMarkers}
-              startIcon={<FilterListIcon />}
-              disabled={spliceMarkersCount <= 1}
-            >
-              Half Markers
-            </Button>
+            <Box component="span">
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={onHalfMarkers}
+                startIcon={<FilterListIcon />}
+                disabled={spliceMarkersCount <= 1}
+              >
+                Half Markers
+              </Button>
+            </Box>
           </Tooltip>
 
           <Tooltip
@@ -177,15 +185,17 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             enterDelay={500}
             leaveDelay={200}
           >
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={onClearAllMarkers}
-              startIcon={<ClearIcon />}
-              disabled={spliceMarkersCount === 0}
-            >
-              Clear All
-            </Button>
+            <Box component="span">
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={onClearAllMarkers}
+                startIcon={<ClearIcon />}
+                disabled={spliceMarkersCount === 0}
+              >
+                Clear All
+              </Button>
+            </Box>
           </Tooltip>
 
           <Tooltip
@@ -193,16 +203,18 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             enterDelay={500}
             leaveDelay={200}
           >
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={onSnapToZeroCrossings}
-              disabled={spliceMarkersCount === 0}
-              startIcon={<CenterFocusStrongIcon />}
-              sx={{ minWidth: 140 }}
-            >
-              Snap All to Zero
-            </Button>
+            <Box component="span">
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={onSnapToZeroCrossings}
+                disabled={spliceMarkersCount === 0}
+                startIcon={<CenterFocusStrongIcon />}
+                sx={{ minWidth: 140 }}
+              >
+                Snap All to Zero
+              </Button>
+            </Box>
           </Tooltip>
         </Stack>
       </Box>
@@ -297,15 +309,17 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             enterDelay={500}
             leaveDelay={200}
           >
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={onTransientDetection}
-              disabled={!duration || duration <= 0}
-              startIcon={<AutoFixHighIcon />}
-            >
-              Detect
-            </Button>
+            <Box component="span">
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={onTransientDetection}
+                disabled={!duration || duration <= 0}
+                startIcon={<AutoFixHighIcon />}
+              >
+                Detect
+              </Button>
+            </Box>
           </Tooltip>
         </Stack>
       </Box>

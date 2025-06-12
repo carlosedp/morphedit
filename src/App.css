@@ -10,6 +10,7 @@
   padding: 1.5em;
   will-change: filter;
   transition: filter 300ms;
+      border-radius: 50%;
 }
 
 .logo:hover {
@@ -106,13 +107,13 @@
   top: -6px;
 }
 
-#waveform-container ::part(marker) {
+/* #waveform-container ::part(marker) { */
   /* position: relative; */
   /* width: 0px; */
   /* height: 0px; */
   /* left: -13px; */
   /* top: -6px; */
-}
+/* } */
 
 /* #waveform-container ::part(wrapper) {
   --box-size: 10px;

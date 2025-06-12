@@ -13,7 +13,6 @@ import Waveform, { type WaveformRef } from "./Waveform";
 import { useAudioStore } from "./audioStore";
 import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
 import { KeyboardShortcutsHelp } from "./KeyboardShortcutsHelp";
-import { ManualPage } from "./components/ManualPage";
 import { FileLengthWarningDialog } from "./components/FileLengthWarningDialog";
 import { LoadingDialog } from "./components/LoadingDialog";
 import { MultipleFilesDialog } from "./components/MultipleFilesDialog";
@@ -57,12 +56,16 @@ function App() {
   const [pendingAppendResult, setPendingAppendResult] =
     useState<ConcatenationResult | null>(null);
   const [appendOriginalDuration, setAppendOriginalDuration] = useState(0);
-  const [showManual, setShowManual] = useState(false);
 
   // State for tracking append mode in length warning dialog
   const [isInAppendMode, setIsInAppendMode] = useState(false);
   const reset = useAudioStore((state) => state.reset);
   const waveformRef = useRef<WaveformRef>(null);
+
+  // Function to open manual in a new window/tab
+  const handleOpenManual = () => {
+    window.open("./manual.html", "_blank");
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -738,11 +741,6 @@ function App() {
     enabled: true,
   });
 
-  // If showing manual, render the manual page instead of the main app
-  if (showManual) {
-    return <ManualPage onBack={() => setShowManual(false)} />;
-  }
-
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -792,9 +790,9 @@ function App() {
         >
           <Box display="flex" alignItems="center" gap={2}>
             <img
-              src="/MorphEdit-Logo.png"
+              src="/MorphEdit-Logo-Small.png"
               alt="MorphEdit Logo"
-              style={{ height: "96px", width: "auto" }}
+              style={{ height: "96px", width: "auto", borderRadius: "20px" }}
             />
             <Typography variant="h4">Morphedit Audio Editor</Typography>
           </Box>
@@ -802,7 +800,7 @@ function App() {
             <Button
               variant="outlined"
               color="primary"
-              onClick={() => setShowManual(true)}
+              onClick={handleOpenManual}
             >
               User Manual
             </Button>
@@ -837,13 +835,15 @@ function App() {
               />
             </Button>
             <Tooltip title="Unload current audio and clear all data">
-              <Button
-                variant="outlined"
-                onClick={handleReset}
-                disabled={!audioUrl}
-              >
-                Reset
-              </Button>
+              <Box component="span">
+                <Button
+                  variant="outlined"
+                  onClick={handleReset}
+                  disabled={!audioUrl}
+                >
+                  Reset
+                </Button>
+              </Box>
             </Tooltip>
           </Stack>
         </Box>

@@ -1,6 +1,6 @@
 // Region controls component - crop, fade in/out, apply operations
 import React from "react";
-import { Button, Stack, Tooltip } from "@mui/material";
+import { Box, Button, Stack, Tooltip } from "@mui/material";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 import UndoIcon from "@mui/icons-material/Undo";
@@ -80,15 +80,17 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
         enterDelay={500}
         leaveDelay={200}
       >
-        <Button
-          variant="contained"
-          color="success"
-          onClick={onApplyCrop}
-          sx={{ ml: 2 }}
-          disabled={!cropMode}
-        >
-          Apply Crop
-        </Button>
+        <Box component="span">
+          <Button
+            variant="contained"
+            color="success"
+            onClick={onApplyCrop}
+            sx={{ ml: 2 }}
+            disabled={!cropMode}
+          >
+            Apply Crop
+          </Button>
+        </Box>
       </Tooltip>
 
       <Tooltip
@@ -96,28 +98,32 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
         enterDelay={500}
         leaveDelay={200}
       >
-        <Button
-          variant="contained"
-          color="success"
-          onClick={onApplyFades}
-          sx={{ ml: 2 }}
-          disabled={!fadeInMode && !fadeOutMode}
-        >
-          Apply Fades
-        </Button>
+        <Box component="span">
+          <Button
+            variant="contained"
+            color="success"
+            onClick={onApplyFades}
+            sx={{ ml: 2 }}
+            disabled={!fadeInMode && !fadeOutMode}
+          >
+            Apply Fades
+          </Button>
+        </Box>
       </Tooltip>
 
       <Tooltip title="Undo last edit" enterDelay={500} leaveDelay={200}>
-        <Button
-          variant="outlined"
-          color="primary"
-          onClick={onUndo}
-          sx={{ ml: 2 }}
-          disabled={!canUndo}
-          startIcon={<UndoIcon />}
-        >
-          Undo
-        </Button>
+        <Box component="span">
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={onUndo}
+            sx={{ ml: 2 }}
+            disabled={!canUndo}
+            startIcon={<UndoIcon />}
+          >
+            Undo
+          </Button>
+        </Box>
       </Tooltip>
     </Stack>
   );
