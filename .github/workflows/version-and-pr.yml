@@ -28,6 +28,29 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version extracted: $VERSION"
 
+      - name: Setup Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Create release branch from production
+        run: |
+          # Get the latest production branch
+          git fetch origin production
+
+          # Create a new branch from production for this release
+          BRANCH_NAME="release-${{ steps.get_version.outputs.version }}"
+          git checkout -b "$BRANCH_NAME" origin/production
+
+          # Get the commit that the tag points to
+          TAG_COMMIT=$(git rev-list -n 1 ${{ steps.get_version.outputs.version }})
+          echo "Tag ${{ steps.get_version.outputs.version }} points to commit: $TAG_COMMIT"
+
+          # Merge the tagged commit into the release branch
+          git merge --no-ff $TAG_COMMIT -m "Merge tag ${{ steps.get_version.outputs.version }} for release"
+
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_ENV
+
       - name: Update version in Version.ts
         run: |
           # Update the version in src/Version.ts
@@ -39,19 +62,11 @@ jobs:
           echo "Current version line in src/Version.ts:"
           grep 'const version' src/Version.ts
 
-      - name: Setup Git
+      - name: Commit version update and push
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-
-      - name: Create version update branch
-        run: |
-          BRANCH_NAME="version-update-${{ steps.get_version.outputs.version }}"
-          git checkout -b "$BRANCH_NAME"
           git add src/Version.ts
           git commit -m "chore: update version to ${{ steps.get_version.outputs.version }}"
-          git push origin "$BRANCH_NAME"
-          echo "branch_name=$BRANCH_NAME" >> $GITHUB_ENV
+          git push origin "${{ env.branch_name }}"
 
       - name: Create Pull Request to Production
         uses: actions/github-script@v7
@@ -68,6 +83,7 @@ jobs:
               This PR was automatically created when tag \`${{ steps.get_version.outputs.version }}\` was pushed.
 
               ### Changes
+              - ✅ Merged all changes from tag \`${{ steps.get_version.outputs.version }}\` into production
               - ✅ Updated version number to \`${{ steps.get_version.outputs.version }}\` in \`src/Version.ts\`
               - 🏷️ Tagged as \`${{ steps.get_version.outputs.version }}\`
 
@@ -101,7 +117,8 @@ jobs:
         run: |
           echo "## Summary" >> $GITHUB_STEP_SUMMARY
           echo "✅ Version updated to \`${{ steps.get_version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Created branch \`${{ env.branch_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Created release branch \`${{ env.branch_name }}\` from production" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Merged tagged changes into release branch" >> $GITHUB_STEP_SUMMARY
           echo "✅ Created PR to \`production\` branch" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Next steps:**" >> $GITHUB_STEP_SUMMARY
