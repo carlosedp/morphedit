@@ -102,11 +102,28 @@ export const createFadeInRegion = (
     .find((r: Region) => r.id === "fade-in");
 
   if (!existingRegion) {
-    // Create new fade-in region (first 10% of duration)
-    const duration = ws.getDuration();
+    // Check if there's a crop region that should constrain the fade
+    const cropRegion = regions
+      .getRegions()
+      .find((r: Region) => r.id === "crop-loop");
+    
+    let fadeStart: number, fadeEnd: number;
+    
+    if (cropRegion) {
+      // Create fade-in region within the crop region (first 10% of crop region duration)
+      const cropDuration = cropRegion.end - cropRegion.start;
+      fadeStart = cropRegion.start;
+      fadeEnd = cropRegion.start + (cropDuration * 0.1);
+    } else {
+      // Create fade-in region for entire audio (first 10% of total duration)
+      const duration = ws.getDuration();
+      fadeStart = 0;
+      fadeEnd = duration * 0.1;
+    }
+    
     const region = regions.addRegion({
-      start: 0,
-      end: duration * 0.1,
+      start: fadeStart,
+      end: fadeEnd,
       color: "rgba(0, 255, 0, 0.2)",
       drag: true,
       resize: true,
@@ -135,11 +152,28 @@ export const createFadeOutRegion = (
     .find((r: Region) => r.id === "fade-out");
 
   if (!existingRegion) {
-    // Create new fade-out region (last 10% of duration)
-    const duration = ws.getDuration();
+    // Check if there's a crop region that should constrain the fade
+    const cropRegion = regions
+      .getRegions()
+      .find((r: Region) => r.id === "crop-loop");
+    
+    let fadeStart: number, fadeEnd: number;
+    
+    if (cropRegion) {
+      // Create fade-out region within the crop region (last 10% of crop region duration)
+      const cropDuration = cropRegion.end - cropRegion.start;
+      fadeStart = cropRegion.end - (cropDuration * 0.1);
+      fadeEnd = cropRegion.end;
+    } else {
+      // Create fade-out region for entire audio (last 10% of total duration)
+      const duration = ws.getDuration();
+      fadeStart = duration * 0.9;
+      fadeEnd = duration;
+    }
+    
     const region = regions.addRegion({
-      start: duration * 0.9,
-      end: duration,
+      start: fadeStart,
+      end: fadeEnd,
       color: "rgba(255, 0, 0, 0.2)",
       drag: true,
       resize: true,
@@ -500,11 +534,11 @@ export const applyFades = async (
   console.log("Audio buffer sample rate:", audioBuffer.sampleRate);
   console.log(
     "Fade-in region:",
-    fadeInRegionData ? `0 to ${fadeInRegionData.end}` : "none",
+    fadeInRegionData ? `${fadeInRegionData.start} to ${fadeInRegionData.end}` : "none",
   );
   console.log(
     "Fade-out region:",
-    fadeOutRegionData ? `${fadeOutRegionData.start} to end` : "none",
+    fadeOutRegionData ? `${fadeOutRegionData.start} to ${fadeOutRegionData.end}` : "none",
   );
 
   const sampleRate = audioBuffer.sampleRate;
@@ -534,36 +568,54 @@ export const applyFades = async (
 
     // Apply fade-in if exists
     if (fadeInRegionData) {
-      // Snap fade-in end to nearest zero crossing to avoid audio artifacts
+      // Snap fade-in boundaries to nearest zero crossings to avoid audio artifacts
+      const adjustedFadeInStart = findNearestZeroCrossing(
+        audioBuffer,
+        fadeInRegionData.start,
+      );
       const adjustedFadeInEnd = findNearestZeroCrossing(
         audioBuffer,
         fadeInRegionData.end,
       );
+      const fadeInStartSample = Math.floor(adjustedFadeInStart * sampleRate);
       const fadeInEndSample = Math.floor(adjustedFadeInEnd * sampleRate);
+      const fadeInLength = fadeInEndSample - fadeInStartSample;
+      
       console.log(
-        "Zero-crossing adjusted fade-in end:",
-        `${fadeInRegionData.end} -> ${adjustedFadeInEnd} (sample ${fadeInEndSample})`,
+        "Zero-crossing adjusted fade-in:",
+        `${fadeInRegionData.start} -> ${adjustedFadeInStart} to ${fadeInRegionData.end} -> ${adjustedFadeInEnd}`,
+        `(samples ${fadeInStartSample} to ${fadeInEndSample})`,
       );
-      for (let i = 0; i < fadeInEndSample; i++) {
-        const gain = i / fadeInEndSample; // Linear fade from 0 to 1
+      
+      for (let i = fadeInStartSample; i < fadeInEndSample; i++) {
+        const gain = (i - fadeInStartSample) / fadeInLength; // Linear fade from 0 to 1
         newChannelData[i] *= gain;
       }
     }
 
     // Apply fade-out if exists
     if (fadeOutRegionData) {
-      // Snap fade-out start to nearest zero crossing to avoid audio artifacts
+      // Snap fade-out boundaries to nearest zero crossings to avoid audio artifacts
       const adjustedFadeOutStart = findNearestZeroCrossing(
         audioBuffer,
         fadeOutRegionData.start,
       );
-      const fadeOutStartSample = Math.floor(adjustedFadeOutStart * sampleRate);
-      console.log(
-        "Zero-crossing adjusted fade-out start:",
-        `${fadeOutRegionData.start} -> ${adjustedFadeOutStart} (sample ${fadeOutStartSample})`,
+      const adjustedFadeOutEnd = findNearestZeroCrossing(
+        audioBuffer,
+        fadeOutRegionData.end,
       );
-      for (let i = fadeOutStartSample; i < bufferLength; i++) {
-        const gain = (bufferLength - i) / (bufferLength - fadeOutStartSample); // Linear fade from 1 to 0
+      const fadeOutStartSample = Math.floor(adjustedFadeOutStart * sampleRate);
+      const fadeOutEndSample = Math.floor(adjustedFadeOutEnd * sampleRate);
+      const fadeOutLength = fadeOutEndSample - fadeOutStartSample;
+      
+      console.log(
+        "Zero-crossing adjusted fade-out:",
+        `${fadeOutRegionData.start} -> ${adjustedFadeOutStart} to ${fadeOutRegionData.end} -> ${adjustedFadeOutEnd}`,
+        `(samples ${fadeOutStartSample} to ${fadeOutEndSample})`,
+      );
+      
+      for (let i = fadeOutStartSample; i < fadeOutEndSample; i++) {
+        const gain = (fadeOutEndSample - i) / fadeOutLength; // Linear fade from 1 to 0
         newChannelData[i] *= gain;
       }
     }
