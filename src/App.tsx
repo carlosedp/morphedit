@@ -55,7 +55,6 @@ function App() {
     useState(false);
   const [pendingAppendResult, setPendingAppendResult] =
     useState<ConcatenationResult | null>(null);
-  const [appendOriginalDuration, setAppendOriginalDuration] = useState(0);
 
   // State for tracking append mode in length warning dialog
   const [isInAppendMode, setIsInAppendMode] = useState(false);
@@ -96,8 +95,6 @@ function App() {
       }
 
       // Calculate the boundary position before concatenation
-      const originalDuration = audioBuffer.length / audioBuffer.sampleRate;
-      setAppendOriginalDuration(originalDuration);
 
       setIsLoading(true);
       setLoadingMessage("Appending audio files...");
@@ -123,7 +120,7 @@ function App() {
           setLengthWarningOpen(true);
         } else {
           // Proceed with the concatenated audio
-          await finishAppendProcess(result, originalDuration);
+          await finishAppendProcess(result);
         }
       } catch (error) {
         console.error("Error appending audio:", error);
@@ -182,12 +179,16 @@ function App() {
       setAudioUrl(url);
 
       // Store splice marker positions in the audio store
-      const { setSpliceMarkers } = useAudioStore.getState();
+      const { setSpliceMarkers, setLockedSpliceMarkers } = useAudioStore.getState();
       setSpliceMarkers(result.spliceMarkerPositions);
+
+      // Lock the boundary markers (markers at the beginning of each file)
+      setLockedSpliceMarkers(result.boundaryMarkerPositions);
 
       console.log(
         `Concatenated ${pendingFiles.length} files with ${result.spliceMarkerPositions.length} splice markers`,
       );
+      console.log(`Locked ${result.boundaryMarkerPositions.length} boundary markers:`, result.boundaryMarkerPositions);
 
       setPendingFiles([]);
       setPendingMultipleFilesDuration(0);
@@ -312,7 +313,7 @@ function App() {
         MORPHAGENE_MAX_DURATION,
       );
 
-      await finishAppendProcess(truncatedResult, appendOriginalDuration);
+      await finishAppendProcess(truncatedResult);
     } catch (error) {
       console.error("Error appending and truncating audio:", error);
       setIsLoading(false);
@@ -322,7 +323,6 @@ function App() {
       // Reset append mode state
       setIsInAppendMode(false);
       setPendingAppendResult(null);
-      setAppendOriginalDuration(0);
     }
   };
 
@@ -333,7 +333,7 @@ function App() {
     setLoadingMessage("Finishing append process...");
 
     try {
-      await finishAppendProcess(pendingAppendResult, appendOriginalDuration);
+      await finishAppendProcess(pendingAppendResult);
     } catch (error) {
       console.error("Error finishing append process:", error);
       setIsLoading(false);
@@ -343,7 +343,6 @@ function App() {
       // Reset append mode state
       setIsInAppendMode(false);
       setPendingAppendResult(null);
-      setAppendOriginalDuration(0);
     }
   };
 
@@ -355,7 +354,6 @@ function App() {
       // Reset append mode state
       setIsInAppendMode(false);
       setPendingAppendResult(null);
-      setAppendOriginalDuration(0);
       setPendingReplaceFiles([]);
       return;
     }
@@ -401,10 +399,6 @@ function App() {
       return;
     }
 
-    // Calculate the boundary position before concatenation
-    const originalDuration = audioBuffer.length / audioBuffer.sampleRate;
-    setAppendOriginalDuration(originalDuration);
-
     setIsLoading(true);
     setLoadingMessage("Appending audio files...");
 
@@ -438,7 +432,7 @@ function App() {
       }
 
       // If duration is acceptable, proceed normally
-      await finishAppendProcess(result, originalDuration);
+      await finishAppendProcess(result);
     } catch (error) {
       console.error("Error appending audio files:", error);
       setIsLoading(false);
@@ -449,12 +443,7 @@ function App() {
 
   // Helper function to finish the append process
   const finishAppendProcess = async (
-    result: {
-      concatenatedBuffer: AudioBuffer;
-      spliceMarkerPositions: number[];
-      totalDuration: number;
-    },
-    originalDuration: number,
+    result: ConcatenationResult,
   ) => {
     // Convert AudioBuffer to WAV blob with all cue points
     const wavBlob = await audioBufferToWavBlob(
@@ -481,26 +470,19 @@ function App() {
     setAudioBuffer(result.concatenatedBuffer);
     console.log("Updated audio buffer in store with concatenated buffer");
 
-    // Add the boundary marker as locked (at the start of the appended audio)
+    // Add the boundary markers as locked (including the start of the appended audio)
     const currentLockedSpliceMarkers =
       useAudioStore.getState().lockedSpliceMarkers;
 
-    console.log(`Adding locked boundary marker at ${originalDuration} seconds`);
-    const newLockedMarkers = [...currentLockedSpliceMarkers];
-    if (
-      !newLockedMarkers.some(
-        (marker) => Math.abs(marker - originalDuration) < 0.001,
-      )
-    ) {
-      newLockedMarkers.push(originalDuration);
-      newLockedMarkers.sort((a, b) => a - b);
-      setLockedSpliceMarkers(newLockedMarkers);
-      console.log(
-        `Locked boundary marker added. Total locked markers: ${newLockedMarkers.length}`,
-      );
-    } else {
-      console.log("Boundary marker already exists in locked markers");
-    }
+    // Combine existing locked markers with new boundary markers
+    const allLockedMarkers = [...currentLockedSpliceMarkers, ...result.boundaryMarkerPositions];
+    const uniqueLockedMarkers = Array.from(new Set(allLockedMarkers)).sort((a, b) => a - b);
+
+    setLockedSpliceMarkers(uniqueLockedMarkers);
+    console.log(
+      `Added ${result.boundaryMarkerPositions.length} boundary markers as locked. Total locked markers: ${uniqueLockedMarkers.length}`,
+    );
+    console.log("New boundary markers:", result.boundaryMarkerPositions);
 
     console.log(
       `Appended ${pendingReplaceFiles.length} files with ${result.spliceMarkerPositions.length} splice markers`,
@@ -867,9 +849,9 @@ function App() {
             cursor: !audioUrl ? "pointer" : "default",
             "&:hover": !audioUrl
               ? {
-                  backgroundColor: "action.hover",
-                  borderColor: "primary.light",
-                }
+                backgroundColor: "action.hover",
+                borderColor: "primary.light",
+              }
               : {},
             transition: "background-color 0.2s, border-color 0.2s",
           }}
