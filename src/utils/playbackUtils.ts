@@ -14,11 +14,11 @@ let currentSpliceStopListener: ((time: number) => void) | null = null;
 export const playSpliceMarker = (
   ws: WaveSurfer,
   spliceMarkers: number[],
-  index: number
+  index: number,
 ) => {
   if (!ws || !spliceMarkers || spliceMarkers.length === 0) {
     console.log(
-      "Cannot play splice marker: no wavesurfer or splice markers available"
+      "Cannot play splice marker: no wavesurfer or splice markers available",
     );
     return;
   }
@@ -28,7 +28,7 @@ export const playSpliceMarker = (
 
   if (markerIndex < 0 || markerIndex >= spliceMarkers.length) {
     console.log(
-      `Splice marker ${index} does not exist (only ${spliceMarkers.length} markers available)`
+      `Splice marker ${index} does not exist (only ${spliceMarkers.length} markers available)`,
     );
     return;
   }
@@ -51,7 +51,7 @@ export const playSpliceMarker = (
       nextMarkerTime
         ? ` (will stop at ${nextMarkerTime.toFixed(3)}s)`
         : " (no next marker, will play to end)"
-    }`
+    }`,
   );
 
   // Seek to the marker position (normalized to 0-1)
@@ -65,8 +65,8 @@ export const playSpliceMarker = (
         if (time >= nextMarkerTime) {
           console.log(
             `Reached next splice marker at ${nextMarkerTime.toFixed(
-              3
-            )}s, stopping playback`
+              3,
+            )}s, stopping playback`,
           );
           ws.pause();
 
@@ -102,7 +102,7 @@ export const playPause = (
   ws: WaveSurfer,
   regions: RegionsPlugin,
   isPlaying: boolean,
-  cropRegion: Region | null
+  cropRegion: Region | null,
 ) => {
   if (!ws) return;
 
@@ -127,7 +127,7 @@ export const playPause = (
 export const rewind = (
   ws: WaveSurfer,
   regions: RegionsPlugin,
-  cropRegion: Region | null
+  cropRegion: Region | null,
 ) => {
   if (!ws) return;
 
@@ -194,11 +194,11 @@ export const undo = async (
     setCropRegion: (region: Region | null) => void;
     setFadeInMode: (mode: boolean) => void;
     setFadeOutMode: (mode: boolean) => void;
-  }
+  },
 ): Promise<void> => {
   if (!ws || !canUndo || !previousAudioUrl) {
     console.log(
-      "Cannot undo: no wavesurfer, undo not available, or no previous URL"
+      "Cannot undo: no wavesurfer, undo not available, or no previous URL",
     );
     return;
   }

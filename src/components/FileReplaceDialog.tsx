@@ -49,9 +49,7 @@ export const FileReplaceDialog: React.FC<FileReplaceDialogProps> = ({
             </strong>
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {isMultipleFiles
-              ? `${fileCount} audio files selected`
-              : fileName}
+            {isMultipleFiles ? `${fileCount} audio files selected` : fileName}
           </Typography>
         </Box>
 

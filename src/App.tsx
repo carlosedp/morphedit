@@ -18,7 +18,11 @@ import { FileLengthWarningDialog } from "./components/FileLengthWarningDialog";
 import { LoadingDialog } from "./components/LoadingDialog";
 import { MultipleFilesDialog } from "./components/MultipleFilesDialog";
 import { FileReplaceDialog } from "./components/FileReplaceDialog";
-import { getAudioFileDuration, isFileTooLong, MORPHAGENE_MAX_DURATION } from "./utils/fileLengthUtils";
+import {
+  getAudioFileDuration,
+  isFileTooLong,
+  MORPHAGENE_MAX_DURATION,
+} from "./utils/fileLengthUtils";
 import {
   concatenateAudioFiles,
   getMultipleAudioFilesDuration,
@@ -48,8 +52,10 @@ function App() {
   const [loadingMessage, setLoadingMessage] = useState("");
   const [fileReplaceDialogOpen, setFileReplaceDialogOpen] = useState(false);
   const [pendingReplaceFiles, setPendingReplaceFiles] = useState<File[]>([]);
-  const [shouldResetZoomAfterLoad, setShouldResetZoomAfterLoad] = useState(false);
-  const [pendingAppendResult, setPendingAppendResult] = useState<ConcatenationResult | null>(null);
+  const [shouldResetZoomAfterLoad, setShouldResetZoomAfterLoad] =
+    useState(false);
+  const [pendingAppendResult, setPendingAppendResult] =
+    useState<ConcatenationResult | null>(null);
   const [appendOriginalDuration, setAppendOriginalDuration] = useState(0);
   const [showManual, setShowManual] = useState(false);
 
@@ -71,7 +77,9 @@ function App() {
     }
   };
 
-  const handleAppendFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAppendFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       const audioFiles = filterAudioFiles(files);
@@ -96,11 +104,13 @@ function App() {
           audioBuffer,
           spliceMarkers,
           audioFiles,
-          false // Don't truncate by default
+          false, // Don't truncate by default
         );
 
         // Check if the concatenated audio exceeds 174 seconds
-        const totalDuration = result.concatenatedBuffer.length / result.concatenatedBuffer.sampleRate;
+        const totalDuration =
+          result.concatenatedBuffer.length /
+          result.concatenatedBuffer.sampleRate;
 
         if (totalDuration > MORPHAGENE_MAX_DURATION) {
           // Store the result for potential truncation
@@ -155,7 +165,8 @@ function App() {
       const result = await concatenateAudioFiles(
         pendingFiles,
         shouldTruncate,
-        shouldTruncate ? MORPHAGENE_MAX_DURATION : undefined);
+        shouldTruncate ? MORPHAGENE_MAX_DURATION : undefined,
+      );
 
       // Convert AudioBuffer to WAV blob with cue points
       const wavBlob = await audioBufferToWavBlob(
@@ -295,7 +306,7 @@ function App() {
         spliceMarkers,
         pendingReplaceFiles,
         true, // Enable truncation
-        MORPHAGENE_MAX_DURATION
+        MORPHAGENE_MAX_DURATION,
       );
 
       await finishAppendProcess(truncatedResult, appendOriginalDuration);
@@ -399,14 +410,16 @@ function App() {
         audioBuffer,
         spliceMarkers,
         pendingReplaceFiles,
-        false // Don't truncate by default
+        false, // Don't truncate by default
       );
 
       // Check if the concatenated audio exceeds 174 seconds
       const totalDuration = result.totalDuration;
 
       if (totalDuration > MORPHAGENE_MAX_DURATION) {
-        console.log(`Concatenated audio duration (${totalDuration}s) exceeds Morphagene limit (${MORPHAGENE_MAX_DURATION}s)`);
+        console.log(
+          `Concatenated audio duration (${totalDuration}s) exceeds Morphagene limit (${MORPHAGENE_MAX_DURATION}s)`,
+        );
 
         // Stop loading and show truncate dialog in append mode
         setIsLoading(false);
@@ -423,7 +436,6 @@ function App() {
 
       // If duration is acceptable, proceed normally
       await finishAppendProcess(result, originalDuration);
-
     } catch (error) {
       console.error("Error appending audio files:", error);
       setIsLoading(false);
@@ -433,7 +445,14 @@ function App() {
   };
 
   // Helper function to finish the append process
-  const finishAppendProcess = async (result: { concatenatedBuffer: AudioBuffer; spliceMarkerPositions: number[]; totalDuration: number }, originalDuration: number) => {
+  const finishAppendProcess = async (
+    result: {
+      concatenatedBuffer: AudioBuffer;
+      spliceMarkerPositions: number[];
+      totalDuration: number;
+    },
+    originalDuration: number,
+  ) => {
     // Convert AudioBuffer to WAV blob with all cue points
     const wavBlob = await audioBufferToWavBlob(
       result.concatenatedBuffer,
@@ -450,7 +469,8 @@ function App() {
 
     // Update audio URL and splice markers
     setAudioUrl(url);
-    const { setSpliceMarkers, setLockedSpliceMarkers, setAudioBuffer } = useAudioStore.getState();
+    const { setSpliceMarkers, setLockedSpliceMarkers, setAudioBuffer } =
+      useAudioStore.getState();
     setSpliceMarkers(result.spliceMarkerPositions);
 
     // CRITICAL: Update the audio buffer in the store with the concatenated buffer
@@ -459,15 +479,22 @@ function App() {
     console.log("Updated audio buffer in store with concatenated buffer");
 
     // Add the boundary marker as locked (at the start of the appended audio)
-    const currentLockedSpliceMarkers = useAudioStore.getState().lockedSpliceMarkers;
+    const currentLockedSpliceMarkers =
+      useAudioStore.getState().lockedSpliceMarkers;
 
     console.log(`Adding locked boundary marker at ${originalDuration} seconds`);
     const newLockedMarkers = [...currentLockedSpliceMarkers];
-    if (!newLockedMarkers.some(marker => Math.abs(marker - originalDuration) < 0.001)) {
+    if (
+      !newLockedMarkers.some(
+        (marker) => Math.abs(marker - originalDuration) < 0.001,
+      )
+    ) {
       newLockedMarkers.push(originalDuration);
       newLockedMarkers.sort((a, b) => a - b);
       setLockedSpliceMarkers(newLockedMarkers);
-      console.log(`Locked boundary marker added. Total locked markers: ${newLockedMarkers.length}`);
+      console.log(
+        `Locked boundary marker added. Total locked markers: ${newLockedMarkers.length}`,
+      );
     } else {
       console.log("Boundary marker already exists in locked markers");
     }
@@ -753,8 +780,7 @@ function App() {
             <Typography variant="body1" color="grey.300">
               {!audioUrl
                 ? "Drop single or multiple files to load/concatenate"
-                : "Replace current audio or append to existing audio"
-              }
+                : "Replace current audio or append to existing audio"}
             </Typography>
           </Box>
         )}
@@ -768,7 +794,7 @@ function App() {
             <img
               src="/MorphEdit-Logo.png"
               alt="MorphEdit Logo"
-              style={{ height: '96px', width: 'auto' }}
+              style={{ height: "96px", width: "auto" }}
             />
             <Typography variant="h4">Morphedit Audio Editor</Typography>
           </Box>
@@ -841,9 +867,9 @@ function App() {
             cursor: !audioUrl ? "pointer" : "default",
             "&:hover": !audioUrl
               ? {
-                backgroundColor: "action.hover",
-                borderColor: "primary.light",
-              }
+                  backgroundColor: "action.hover",
+                  borderColor: "primary.light",
+                }
               : {},
             transition: "background-color 0.2s, border-color 0.2s",
           }}
@@ -884,22 +910,22 @@ function App() {
               Fork me on GitHub
             </a>
           </Typography>
-        </Box>        <Box mt={4}>
+        </Box>{" "}
+        <Box mt={4}>
           <Typography
             variant="caption"
             color="text.secondary"
             sx={{
-              textAlign: 'center',
+              textAlign: "center",
               opacity: 0.7,
-              '& a': {
-                color: 'text.secondary',
-                textDecoration: 'underline',
-              }
+              "& a": {
+                color: "text.secondary",
+                textDecoration: "underline",
+              },
             }}
-          >
-          </Typography>
+          ></Typography>
         </Box>
-      </Container >
+      </Container>
 
       <FileLengthWarningDialog
         open={lengthWarningOpen}
@@ -920,7 +946,9 @@ function App() {
 
       <FileReplaceDialog
         open={fileReplaceDialogOpen}
-        fileName={pendingReplaceFiles.length > 0 ? pendingReplaceFiles[0].name : ""}
+        fileName={
+          pendingReplaceFiles.length > 0 ? pendingReplaceFiles[0].name : ""
+        }
         isMultipleFiles={pendingReplaceFiles.length > 1}
         fileCount={pendingReplaceFiles.length}
         onReplace={handleReplaceAudio}
@@ -929,7 +957,7 @@ function App() {
       />
 
       <LoadingDialog open={isLoading} message={loadingMessage} />
-    </ThemeProvider >
+    </ThemeProvider>
   );
 }
 

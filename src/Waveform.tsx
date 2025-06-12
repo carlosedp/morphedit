@@ -378,7 +378,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           }
           // For processed audio (cropped/faded), create visual markers directly from store to ensure correct positioning
           else if (isProcessedAudio && currentSpliceMarkers.length > 0) {
-            console.log("Creating visual markers from store for processed audio");
+            console.log(
+              "Creating visual markers from store for processed audio",
+            );
 
             // Clear existing visual markers
             const allRegions = regions.getRegions();
@@ -430,7 +432,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           // Call loading complete callback after everything is set up
           // Always call the callback for each ready event since each represents a new audio load
           console.log("About to call onLoadingComplete callback", {
-            hasCallback: !!onLoadingComplete
+            hasCallback: !!onLoadingComplete,
           });
           if (onLoadingComplete) {
             console.log("Waveform ready - calling onLoadingComplete callback");
@@ -440,7 +442,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               onLoadingComplete();
             }, 100);
           } else {
-            console.log("Waveform ready - no onLoadingComplete callback provided");
+            console.log(
+              "Waveform ready - no onLoadingComplete callback provided",
+            );
           }
 
           // Update audio buffer in store - but only if not already correctly set
@@ -482,7 +486,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             currentStoredBuffer &&
             Math.abs(
               currentStoredBuffer.length / currentStoredBuffer.sampleRate -
-              wsDuration,
+                wsDuration,
             ) < 0.01;
 
           if (bufferAlreadyCorrect) {
@@ -510,10 +514,12 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             );
             setAudioBuffer(backend.buffer);
           } else {
-            console.log("No backend buffer available, attempting manual decode");
+            console.log(
+              "No backend buffer available, attempting manual decode",
+            );
             // Fallback: load and decode the current audio file manually
             // Use cleaned URL to avoid fragment issues
-            const urlToLoad = (state.currentAudioUrl || audioUrl).split('#')[0];
+            const urlToLoad = (state.currentAudioUrl || audioUrl).split("#")[0];
             if (urlToLoad) {
               fetch(urlToLoad)
                 .then((response) => response.arrayBuffer())
@@ -521,9 +527,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
                   const audioContext = new (window.AudioContext ||
                     (
                       window as Window &
-                      typeof globalThis & {
-                        webkitAudioContext?: typeof AudioContext;
-                      }
+                        typeof globalThis & {
+                          webkitAudioContext?: typeof AudioContext;
+                        }
                     ).webkitAudioContext)();
                   return audioContext.decodeAudioData(arrayBuffer);
                 })
@@ -580,7 +586,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       // Load audio - preprocess for truncation if needed
       const loadAudio = async () => {
         // Strip URL fragments early to ensure all operations use clean URLs
-        let urlToLoad = audioUrl.split('#')[0];
+        let urlToLoad = audioUrl.split("#")[0];
 
         console.log("=== loadAudio called ===");
         console.log("shouldTruncate:", shouldTruncate);
@@ -627,9 +633,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             const audioContext = new (window.AudioContext ||
               (
                 window as Window &
-                typeof globalThis & {
-                  webkitAudioContext?: typeof AudioContext;
-                }
+                  typeof globalThis & {
+                    webkitAudioContext?: typeof AudioContext;
+                  }
               ).webkitAudioContext)();
 
             const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -866,29 +872,31 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           // Get all current regions data before clearing
           const allRegions = regionsRef.current.getRegions();
           const spliceMarkers = allRegions.filter((r: Region) =>
-            r.id.startsWith("splice-marker-")
+            r.id.startsWith("splice-marker-"),
           );
 
           if (spliceMarkers.length > 0) {
-            console.log(`Found ${spliceMarkers.length} splice markers to refresh`);
+            console.log(
+              `Found ${spliceMarkers.length} splice markers to refresh`,
+            );
 
             // Store region data
-            const markerData = spliceMarkers.map(region => ({
+            const markerData = spliceMarkers.map((region) => ({
               id: region.id,
               start: region.start,
               end: region.end,
               content: region.content?.textContent || "♦️",
               color: region.color,
               drag: region.drag,
-              resize: region.resize
+              resize: region.resize,
             }));
 
             // Remove all splice markers
-            spliceMarkers.forEach(region => region.remove());
+            spliceMarkers.forEach((region) => region.remove());
 
             // Re-add them after a brief delay to force complete re-render
             setTimeout(() => {
-              markerData.forEach(data => {
+              markerData.forEach((data) => {
                 regionsRef.current!.addRegion({
                   id: data.id,
                   start: data.start,
@@ -896,7 +904,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
                   content: data.content,
                   color: data.color,
                   drag: data.drag,
-                  resize: data.resize
+                  resize: data.resize,
                 });
               });
               console.log("Re-added splice markers after zoom reset");
@@ -1565,9 +1573,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           selectedSpliceMarkerLocked={
             state.selectedSpliceMarker
               ? isMarkerLocked(
-                state.selectedSpliceMarker.start,
-                lockedSpliceMarkersStore,
-              )
+                  state.selectedSpliceMarker.start,
+                  lockedSpliceMarkersStore,
+                )
               : false
           }
           numberOfSlices={state.numberOfSlices}
