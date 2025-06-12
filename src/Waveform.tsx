@@ -486,7 +486,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             currentStoredBuffer &&
             Math.abs(
               currentStoredBuffer.length / currentStoredBuffer.sampleRate -
-              wsDuration,
+                wsDuration,
             ) < 0.01;
 
           if (bufferAlreadyCorrect) {
@@ -527,9 +527,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
                   const audioContext = new (window.AudioContext ||
                     (
                       window as Window &
-                      typeof globalThis & {
-                        webkitAudioContext?: typeof AudioContext;
-                      }
+                        typeof globalThis & {
+                          webkitAudioContext?: typeof AudioContext;
+                        }
                     ).webkitAudioContext)();
                   return audioContext.decodeAudioData(arrayBuffer);
                 })
@@ -633,9 +633,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             const audioContext = new (window.AudioContext ||
               (
                 window as Window &
-                typeof globalThis & {
-                  webkitAudioContext?: typeof AudioContext;
-                }
+                  typeof globalThis & {
+                    webkitAudioContext?: typeof AudioContext;
+                  }
               ).webkitAudioContext)();
 
             const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -1577,9 +1577,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           selectedSpliceMarkerLocked={
             state.selectedSpliceMarker
               ? isMarkerLocked(
-                state.selectedSpliceMarker.start,
-                lockedSpliceMarkersStore,
-              )
+                  state.selectedSpliceMarker.start,
+                  lockedSpliceMarkersStore,
+                )
               : false
           }
           numberOfSlices={state.numberOfSlices}

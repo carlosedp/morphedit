@@ -11,7 +11,7 @@ export interface ConcatenationResult {
  * Get the duration of multiple audio files
  */
 export const getMultipleAudioFilesDuration = async (
-  files: File[]
+  files: File[],
 ): Promise<number> => {
   let totalDuration = 0;
 
@@ -43,7 +43,7 @@ export const getMultipleAudioFilesDuration = async (
  * Decode multiple audio files to AudioBuffers and extract existing cue points
  */
 const decodeAudioFilesWithCuePoints = async (
-  files: File[]
+  files: File[],
 ): Promise<{
   buffers: AudioBuffer[];
   allCuePoints: { fileIndex: number; cuePoints: number[] }[];
@@ -76,13 +76,13 @@ const decodeAudioFilesWithCuePoints = async (
         allCuePoints.push({ fileIndex: i, cuePoints });
         console.log(
           `File ${i} (${file.name}) has ${cuePoints.length} existing cue points:`,
-          cuePoints
+          cuePoints,
         );
       }
     } catch (error) {
       console.warn(
         `Could not extract cue points from file ${i} (${file.name}):`,
-        error
+        error,
       );
     }
   }
@@ -96,7 +96,7 @@ const decodeAudioFilesWithCuePoints = async (
 export const concatenateAudioFiles = async (
   files: File[],
   shouldTruncate: boolean = false,
-  maxDuration?: number
+  maxDuration?: number,
 ): Promise<ConcatenationResult> => {
   if (files.length === 0) {
     throw new Error("No files provided for concatenation");
@@ -108,12 +108,12 @@ export const concatenateAudioFiles = async (
   // Ensure all buffers have the same sample rate
   const targetSampleRate = buffers[0].sampleRate;
   const mismatchedSampleRates = buffers.some(
-    (buffer) => buffer.sampleRate !== targetSampleRate
+    (buffer) => buffer.sampleRate !== targetSampleRate,
   );
 
   if (mismatchedSampleRates) {
     console.warn(
-      "Sample rate mismatch detected. All files should have the same sample rate for best results."
+      "Sample rate mismatch detected. All files should have the same sample rate for best results.",
     );
   }
 
@@ -137,7 +137,7 @@ export const concatenateAudioFiles = async (
         }
       }
       console.log(
-        `Added ${fileCuePoints.cuePoints.length} existing cue points from file ${i}`
+        `Added ${fileCuePoints.cuePoints.length} existing cue points from file ${i}`,
       );
     }
 
@@ -160,7 +160,7 @@ export const concatenateAudioFiles = async (
       // Remove splice markers that would be beyond the truncated length
       const truncatedDuration = maxDuration;
       const filteredMarkers = spliceMarkerPositions.filter(
-        (pos) => pos < truncatedDuration
+        (pos) => pos < truncatedDuration,
       );
       spliceMarkerPositions.length = 0;
       spliceMarkerPositions.push(...filteredMarkers);
@@ -169,10 +169,10 @@ export const concatenateAudioFiles = async (
 
   // Sort and deduplicate splice markers
   const uniqueSortedMarkers = [...new Set(spliceMarkerPositions)].sort(
-    (a, b) => a - b
+    (a, b) => a - b,
   );
   console.log(
-    `Total splice markers after concatenation: ${uniqueSortedMarkers.length}`
+    `Total splice markers after concatenation: ${uniqueSortedMarkers.length}`,
   );
   console.log("Splice marker positions:", uniqueSortedMarkers);
 
@@ -184,12 +184,12 @@ export const concatenateAudioFiles = async (
     ).webkitAudioContext)();
 
   const numberOfChannels = Math.max(
-    ...buffers.map((buffer) => buffer.numberOfChannels)
+    ...buffers.map((buffer) => buffer.numberOfChannels),
   );
   const concatenatedBuffer = audioContext.createBuffer(
     numberOfChannels,
     totalLength,
-    targetSampleRate
+    targetSampleRate,
   );
 
   // Copy data from all buffers
@@ -259,7 +259,7 @@ export const sortAudioFilesByName = (files: File[]): File[] => {
  */
 export const audioBufferToWavBlob = async (
   buffer: AudioBuffer,
-  cuePoints: number[] = []
+  cuePoints: number[] = [],
 ): Promise<Blob> => {
   // Import the audioBufferToWavWithCues function
   const { audioBufferToWavWithCues } = await import("./audioProcessing");
@@ -276,7 +276,7 @@ export const appendAudioToExisting = async (
   existingSpliceMarkers: number[],
   newFiles: File[],
   shouldTruncate: boolean = false,
-  maxDuration?: number
+  maxDuration?: number,
 ): Promise<ConcatenationResult> => {
   if (newFiles.length === 0) {
     throw new Error("No files provided for appending");
@@ -290,12 +290,12 @@ export const appendAudioToExisting = async (
 
   // Check for sample rate mismatches
   const mismatchedSampleRates = newBuffers.some(
-    (buffer) => buffer.sampleRate !== targetSampleRate
+    (buffer) => buffer.sampleRate !== targetSampleRate,
   );
 
   if (mismatchedSampleRates) {
     console.warn(
-      "Sample rate mismatch detected between existing audio and new files. Results may be unexpected."
+      "Sample rate mismatch detected between existing audio and new files. Results may be unexpected.",
     );
   }
 
@@ -324,7 +324,7 @@ export const appendAudioToExisting = async (
         }
       }
       console.log(
-        `Added ${fileCuePoints.cuePoints.length} existing cue points from appended file ${i}`
+        `Added ${fileCuePoints.cuePoints.length} existing cue points from appended file ${i}`,
       );
     }
 
@@ -352,7 +352,7 @@ export const appendAudioToExisting = async (
   // Determine the number of channels (use the maximum from all buffers)
   const numberOfChannels = Math.max(
     existingBuffer.numberOfChannels,
-    ...newBuffers.map((buffer) => buffer.numberOfChannels)
+    ...newBuffers.map((buffer) => buffer.numberOfChannels),
   );
 
   // Create the concatenated buffer
@@ -364,7 +364,7 @@ export const appendAudioToExisting = async (
   const concatenatedBuffer = audioContext.createBuffer(
     numberOfChannels,
     totalLength,
-    targetSampleRate
+    targetSampleRate,
   );
 
   // Copy audio data
@@ -373,7 +373,7 @@ export const appendAudioToExisting = async (
   // Copy existing audio first
   const existingCopyLength = Math.min(
     existingBuffer.length,
-    totalLength - currentOffset
+    totalLength - currentOffset,
   );
   for (let channel = 0; channel < numberOfChannels; channel++) {
     const sourceData =

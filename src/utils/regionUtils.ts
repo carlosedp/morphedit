@@ -312,7 +312,10 @@ export const applyCrop = async (
 
   // Get current splice markers from store
   console.log("Current splice markers from store:", spliceMarkersStore);
-  console.log("Current locked splice markers from store:", lockedSpliceMarkersStore);
+  console.log(
+    "Current locked splice markers from store:",
+    lockedSpliceMarkersStore,
+  );
 
   // Also check visual markers for comparison
   const allRegions = regions.getRegions();

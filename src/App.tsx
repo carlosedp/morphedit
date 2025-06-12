@@ -179,7 +179,8 @@ function App() {
       setAudioUrl(url);
 
       // Store splice marker positions in the audio store
-      const { setSpliceMarkers, setLockedSpliceMarkers } = useAudioStore.getState();
+      const { setSpliceMarkers, setLockedSpliceMarkers } =
+        useAudioStore.getState();
       setSpliceMarkers(result.spliceMarkerPositions);
 
       // Lock the boundary markers (markers at the beginning of each file)
@@ -188,7 +189,10 @@ function App() {
       console.log(
         `Concatenated ${pendingFiles.length} files with ${result.spliceMarkerPositions.length} splice markers`,
       );
-      console.log(`Locked ${result.boundaryMarkerPositions.length} boundary markers:`, result.boundaryMarkerPositions);
+      console.log(
+        `Locked ${result.boundaryMarkerPositions.length} boundary markers:`,
+        result.boundaryMarkerPositions,
+      );
 
       setPendingFiles([]);
       setPendingMultipleFilesDuration(0);
@@ -442,9 +446,7 @@ function App() {
   };
 
   // Helper function to finish the append process
-  const finishAppendProcess = async (
-    result: ConcatenationResult,
-  ) => {
+  const finishAppendProcess = async (result: ConcatenationResult) => {
     // Convert AudioBuffer to WAV blob with all cue points
     const wavBlob = await audioBufferToWavBlob(
       result.concatenatedBuffer,
@@ -475,8 +477,13 @@ function App() {
       useAudioStore.getState().lockedSpliceMarkers;
 
     // Combine existing locked markers with new boundary markers
-    const allLockedMarkers = [...currentLockedSpliceMarkers, ...result.boundaryMarkerPositions];
-    const uniqueLockedMarkers = Array.from(new Set(allLockedMarkers)).sort((a, b) => a - b);
+    const allLockedMarkers = [
+      ...currentLockedSpliceMarkers,
+      ...result.boundaryMarkerPositions,
+    ];
+    const uniqueLockedMarkers = Array.from(new Set(allLockedMarkers)).sort(
+      (a, b) => a - b,
+    );
 
     setLockedSpliceMarkers(uniqueLockedMarkers);
     console.log(
@@ -849,9 +856,9 @@ function App() {
             cursor: !audioUrl ? "pointer" : "default",
             "&:hover": !audioUrl
               ? {
-                backgroundColor: "action.hover",
-                borderColor: "primary.light",
-              }
+                  backgroundColor: "action.hover",
+                  borderColor: "primary.light",
+                }
               : {},
             transition: "background-color 0.2s, border-color 0.2s",
           }}
@@ -872,6 +879,14 @@ function App() {
         <Box mt={4}>
           <Typography
             variant="caption"
+            color="text.primary"
+            sx={{ textAlign: "center" }}
+          >
+            Morphedit Audio Editor - All audio is processed in the browser,
+            client-side so <b>your files never leave your computer</b>.
+          </Typography>{" "}
+          <Typography
+            variant="caption"
             color="text.secondary"
             sx={{
               textAlign: "center",
@@ -882,8 +897,8 @@ function App() {
               },
             }}
           >
-            Morphedit Audio Editor - All audio is processed in the browser, client-side so your files never leave your device.
-            <br />Version {version} - Built with React and MUI
+            <br />
+            Version {version} - Built with React and MUI
             <br />© 2025 - Carlos Eduardo de Paula -{" "}
             <a
               href="https://github.com/carlosedp/morphedit"

@@ -320,7 +320,7 @@ async function buildManual() {
     // When image has alt=Logo, add the .logo class
     const finalHtmlWithLogoClass = finalHtml.replace(
       /<img\s+([^>]*?)alt="Logo"([^>]*)>/g,
-      '<img class="logo" $1$2>'
+      '<img class="logo" $1$2>',
     );
 
     // Ensure dist directory exists
