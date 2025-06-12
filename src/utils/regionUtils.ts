@@ -195,6 +195,7 @@ export const applyCrop = async (
   cropRegion: Region | null,
   currentAudioUrl: string | null,
   spliceMarkersStore: number[],
+  lockedSpliceMarkersStore: number[],
   callbacks: {
     setPreviousAudioUrl: (url: string | null) => void;
     setCanUndo: (canUndo: boolean) => void;
@@ -205,6 +206,7 @@ export const applyCrop = async (
     setFadeInMode: (mode: boolean) => void;
     setFadeOutMode: (mode: boolean) => void;
     setSpliceMarkersStore: (markers: number[]) => void;
+    setLockedSpliceMarkersStore: (markers: number[]) => void;
     setZoom?: (zoom: number) => void;
   },
 ): Promise<void> => {
@@ -310,6 +312,7 @@ export const applyCrop = async (
 
   // Get current splice markers from store
   console.log("Current splice markers from store:", spliceMarkersStore);
+  console.log("Current locked splice markers from store:", lockedSpliceMarkersStore);
 
   // Also check visual markers for comparison
   const allRegions = regions.getRegions();
@@ -324,13 +327,27 @@ export const applyCrop = async (
       markerTime >= adjustedStartTime && markerTime <= adjustedEndTime,
   );
 
+  // Filter and adjust locked splice markers to only include those within the cropped region
+  const filteredLockedSpliceMarkers = lockedSpliceMarkersStore.filter(
+    (markerTime) =>
+      markerTime >= adjustedStartTime && markerTime <= adjustedEndTime,
+  );
+
   // Adjust marker times relative to the new start time (subtract crop start)
   const adjustedSpliceMarkers = filteredSpliceMarkers.map(
     (markerTime) => markerTime - adjustedStartTime,
   );
 
+  // Adjust locked marker times relative to the new start time (subtract crop start)
+  const adjustedLockedSpliceMarkers = filteredLockedSpliceMarkers.map(
+    (markerTime) => markerTime - adjustedStartTime,
+  );
+
   console.log(
     `Crop markers: ${spliceMarkersStore.length} -> ${filteredSpliceMarkers.length} (filtered) -> ${adjustedSpliceMarkers.length} (adjusted)`,
+  );
+  console.log(
+    `Crop locked markers: ${lockedSpliceMarkersStore.length} -> ${filteredLockedSpliceMarkers.length} (filtered) -> ${adjustedLockedSpliceMarkers.length} (adjusted)`,
   );
 
   // Convert to WAV blob and create new URL
@@ -355,8 +372,12 @@ export const applyCrop = async (
   // This ensures the ready event sees the correct markers
   console.log("Updating store with adjusted markers before loading");
   callbacks.setSpliceMarkersStore(adjustedSpliceMarkers);
+  callbacks.setLockedSpliceMarkersStore(adjustedLockedSpliceMarkers);
   console.log(
     `Updated splice markers store: ${adjustedSpliceMarkers.length} markers for cropped audio`,
+  );
+  console.log(
+    `Updated locked splice markers store: ${adjustedLockedSpliceMarkers.length} locked markers for cropped audio`,
   );
 
   // Save current audio URL for undo before loading new one

@@ -882,7 +882,8 @@ function App() {
               },
             }}
           >
-            Version {version} - Built with React and MUI
+            Morphedit Audio Editor - All audio is processed in the browser, client-side so your files never leave your device.
+            <br />Version {version} - Built with React and MUI
             <br />© 2025 - Carlos Eduardo de Paula -{" "}
             <a
               href="https://github.com/carlosedp/morphedit"
