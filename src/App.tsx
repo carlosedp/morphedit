@@ -897,16 +897,6 @@ function App() {
               }
             }}
           >
-            Version {version} - Built with React and MUI
-            <br />
-            © 2025 - Carlos Eduardo de Paula -{" "}
-            <a
-              href="https://github.com/carlosedp/morphedit"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Fork me on GitHub
-            </a>
           </Typography>
         </Box>
       </Container >
