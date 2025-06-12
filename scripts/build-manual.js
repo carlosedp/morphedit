@@ -13,7 +13,7 @@ const themeColors = {
   primary: "rgb(255, 208, 0)",
   primaryDark: "#1565c0",
   background: "#121212",
-  paper: "#1e1e1e",
+  paper: "#232323",
   text: "rgb(255, 208, 0)",
   textDark: "rgb(255, 180, 0)",
   textSecondary: "#b0b0b0",
@@ -100,7 +100,7 @@ const htmlTemplate = `<!DOCTYPE html>
             border-bottom: 2px solid ${themeColors.primary};
             padding-bottom: 8px;
             margin-bottom: 24px;
-            font-size: 2rem;
+            font-size: 3rem;
         }
 
         h2 {
@@ -188,6 +188,13 @@ const htmlTemplate = `<!DOCTYPE html>
             border-radius: 20px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             margin: 16px 0;
+            display: block;
+        }
+
+        .logo {
+            max-width: 300px;
+            height: auto;
+            margin: 0 auto 16px;
             display: block;
         }
 
@@ -310,6 +317,12 @@ async function buildManual() {
     // Replace the content placeholder in the template
     const finalHtml = htmlTemplate.replace("{{CONTENT}}", htmlContent);
 
+    // When image has alt=Logo, add the .logo class
+    const finalHtmlWithLogoClass = finalHtml.replace(
+      /<img\s+([^>]*?)alt="Logo"([^>]*)>/g,
+      '<img class="logo" $1$2>'
+    );
+
     // Ensure dist directory exists
     const distDir = path.join(rootDir, "dist");
     if (!fs.existsSync(distDir)) {
@@ -318,11 +331,11 @@ async function buildManual() {
 
     // Write the final HTML file to dist directory
     const outputPath = path.join(distDir, "manual.html");
-    fs.writeFileSync(outputPath, finalHtml);
+    fs.writeFileSync(outputPath, finalHtmlWithLogoClass);
 
     // Also write to public directory for development server
     const publicOutputPath = path.join(rootDir, "public", "manual.html");
-    fs.writeFileSync(publicOutputPath, finalHtml);
+    fs.writeFileSync(publicOutputPath, finalHtmlWithLogoClass);
 
     // Copy images to dist directory
     const publicImgDir = path.join(rootDir, "public", "img");
