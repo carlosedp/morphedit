@@ -122,7 +122,7 @@ export const addSpliceMarker = (
     drag: true, // New markers are always draggable initially
     resize: false,
     id: `splice-marker-${Date.now()}`,
-    content: "♦️",
+    content: "🔶",
   });
 
   // Update store with splice marker times
@@ -287,7 +287,7 @@ export const autoSlice = (
       drag: true,
       resize: false,
       id: `splice-marker-auto-0-${Date.now()}`,
-      content: "♦️",
+      content: "🔶",
     });
   }
 
@@ -329,7 +329,7 @@ export const autoSlice = (
       drag: true, // New auto-slice markers are always draggable initially
       resize: false,
       id: `splice-marker-auto-${i}-${Date.now()}`,
-      content: "♦️",
+      content: "🔶",
     });
   }
 
@@ -515,7 +515,7 @@ export const updateSpliceMarkerColors = (
     (region as Region & { drag: boolean }).drag = !isLocked;
 
     // Update the icon based on locked state
-    const newIcon = isLocked ? "🔒" : "♦️";
+    const newIcon = isLocked ? "🔒" : "🔶";
 
     if (region.element) {
       region.setContent(newIcon); // Update content property directly
@@ -587,7 +587,7 @@ export const loadExistingCuePoints = (
         drag: !isLocked, // Prevent dragging if marker is locked
         resize: false,
         id: `splice-marker-store-${index}-${Date.now()}`,
-        content: isLocked ? "🔒" : "♦️", // Use lock icon for locked markers
+        content: isLocked ? "🔒" : "🔶", // Use lock icon for locked markers
       });
     });
 
@@ -628,7 +628,7 @@ export const loadExistingCuePoints = (
       drag: true, // Cue points from files are always draggable initially
       resize: false,
       id: `splice-marker-cue-${index}-${Date.now()}`,
-      content: "♦️",
+      content: "🔶",
     });
   });
 
@@ -654,14 +654,14 @@ export const updateMarkerIcons = (
   spliceRegions.forEach((region: Region) => {
     const markerTime = region.start;
     const isLocked = isMarkerLocked(markerTime, lockedMarkers);
-    const newIcon = isLocked ? "🔒" : "♦️";
+    const newIcon = isLocked ? "🔒" : "🔶";
 
     // Update the content (icon) of the region
     region.setContent(newIcon);
 
     console.log(
       `Updated marker icon at ${markerTime.toFixed(3)}s: ${
-        isLocked ? "🔒 (locked)" : "♦️ (unlocked)"
+        isLocked ? "🔒 (locked)" : "🔶 (unlocked)"
       }`,
     );
   });

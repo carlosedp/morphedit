@@ -193,17 +193,17 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       cropRegionRef.current = state.cropRegion;
     }, [state.cropRegion, cropRegionRef]);
 
-  // Update current time periodically when playing
-  useEffect(() => {
-    let interval: NodeJS.Timeout | undefined;
+    // Update current time periodically when playing
+    useEffect(() => {
+      let interval: NodeJS.Timeout | undefined;
 
-    if (state.isPlaying && wavesurferRef.current) {
-      interval = setInterval(() => {
-        if (wavesurferRef.current) {
-          setCurrentTime(wavesurferRef.current.getCurrentTime());
-        }
-      }, 100); // Update every 100ms
-    }
+      if (state.isPlaying && wavesurferRef.current) {
+        interval = setInterval(() => {
+          if (wavesurferRef.current) {
+            setCurrentTime(wavesurferRef.current.getCurrentTime());
+          }
+        }, 100); // Update every 100ms
+      }
 
       return () => {
         if (interval) {
@@ -368,7 +368,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
                 drag: !isLocked, // Prevent dragging if marker is locked
                 resize: false,
                 id: `splice-marker-concat-${index}-${Date.now()}`,
-                content: isLocked ? "🔒" : "♦️", // Use lock icon for locked markers
+                content: isLocked ? "🔒" : "🔶", // Use lock icon for locked markers
               });
             });
 
@@ -398,7 +398,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
                 drag: !isLocked, // Prevent dragging if marker is locked
                 resize: false,
                 id: `splice-marker-processed-${index}-${Date.now()}`,
-                content: isLocked ? "🔒" : "♦️", // Use lock icon for locked markers
+                content: isLocked ? "🔒" : "🔶", // Use lock icon for locked markers
               });
             });
 
@@ -486,7 +486,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             currentStoredBuffer &&
             Math.abs(
               currentStoredBuffer.length / currentStoredBuffer.sampleRate -
-                wsDuration,
+              wsDuration,
             ) < 0.01;
 
           if (bufferAlreadyCorrect) {
@@ -527,9 +527,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
                   const audioContext = new (window.AudioContext ||
                     (
                       window as Window &
-                        typeof globalThis & {
-                          webkitAudioContext?: typeof AudioContext;
-                        }
+                      typeof globalThis & {
+                        webkitAudioContext?: typeof AudioContext;
+                      }
                     ).webkitAudioContext)();
                   return audioContext.decodeAudioData(arrayBuffer);
                 })
@@ -633,9 +633,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             const audioContext = new (window.AudioContext ||
               (
                 window as Window &
-                  typeof globalThis & {
-                    webkitAudioContext?: typeof AudioContext;
-                  }
+                typeof globalThis & {
+                  webkitAudioContext?: typeof AudioContext;
+                }
               ).webkitAudioContext)();
 
             const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -885,7 +885,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               id: region.id,
               start: region.start,
               end: region.end,
-              content: region.content?.textContent || "♦️",
+              content: region.content?.textContent || "🔶",
               color: region.color,
               drag: region.drag,
               resize: region.resize,
@@ -1577,9 +1577,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           selectedSpliceMarkerLocked={
             state.selectedSpliceMarker
               ? isMarkerLocked(
-                  state.selectedSpliceMarker.start,
-                  lockedSpliceMarkersStore,
-                )
+                state.selectedSpliceMarker.start,
+                lockedSpliceMarkersStore,
+              )
               : false
           }
           numberOfSlices={state.numberOfSlices}

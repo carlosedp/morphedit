@@ -875,18 +875,6 @@ function App() {
           id="waveform-container"
           onClick={handleWaveformClick}
           sx={{
-            border: "1px solid",
-            borderColor: "primary.main",
-            borderRadius: 1,
-            width: "100%",
-            height: "200px",
-            mb: 2,
-            backgroundColor: "background.paper",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "text.secondary",
-            fontSize: "14px",
             cursor: !audioUrl ? "pointer" : "default",
             "&:hover": !audioUrl
               ? {
@@ -894,7 +882,6 @@ function App() {
                 borderColor: "primary.light",
               }
               : {},
-            transition: "background-color 0.2s, border-color 0.2s",
           }}
         >
           {!audioUrl &&

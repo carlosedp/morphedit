@@ -165,7 +165,7 @@ export const applyTransientDetection = (
       drag: true, // New transient markers are always draggable initially
       resize: false,
       id: `splice-marker-transient-${index}-${Date.now()}`,
-      content: "♦️",
+      content: "🔶",
     });
   });
 
@@ -270,7 +270,7 @@ export const snapToZeroCrossings = (
       drag: !isLocked, // Prevent dragging if marker is locked
       resize: false,
       id: `splice-marker-zerox-${index}-${Date.now()}`,
-      content: isLocked ? "🔒" : "♦️", // Use lock icon for locked markers
+      content: isLocked ? "🔒" : "🔶", // Use lock icon for locked markers
     });
   });
 
