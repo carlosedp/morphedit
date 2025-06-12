@@ -98,12 +98,12 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
         {/* Main audio time */}
         <Stack direction="row" spacing={1} alignItems="center">
           <Typography variant="body2">
-            {formatTime(currentTime)} / {formatTime(duration)}
+            🕒 {formatTime(currentTime)} / {formatTime(duration)}
           </Typography>
-          <Typography variant="body2">Skip: {skipIncrement}s</Typography>
+          <Typography variant="body2">| Skip: {skipIncrement}s</Typography>
           {spliceMarkersCount > 0 && (
             <Typography variant="body2" color="primary">
-              Splice markers: {spliceMarkersCount}
+              | Splice markers: {spliceMarkersCount}
             </Typography>
           )}
         </Stack>
@@ -112,35 +112,35 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
         {(regionInfo.cropRegion ||
           regionInfo.fadeInRegion ||
           regionInfo.fadeOutRegion) && (
-          <Stack
-            direction="row"
-            spacing={2}
-            alignItems="center"
-            sx={{ mt: 0.5 }}
-          >
-            {regionInfo.cropRegion && (
-              <Typography variant="caption" color="warning.main">
-                Crop: {formatTime(regionInfo.cropRegion.start)} -{" "}
-                {formatTime(regionInfo.cropRegion.end)} (Δ
-                {formatTime(regionInfo.cropRegion.duration)})
-              </Typography>
-            )}
-            {regionInfo.fadeInRegion && (
-              <Typography variant="caption" color="success.main">
-                Fade In: {formatTime(regionInfo.fadeInRegion.start)} -{" "}
-                {formatTime(regionInfo.fadeInRegion.end)} (Δ
-                {formatTime(regionInfo.fadeInRegion.duration)})
-              </Typography>
-            )}
-            {regionInfo.fadeOutRegion && (
-              <Typography variant="caption" color="error.main">
-                Fade Out: {formatTime(regionInfo.fadeOutRegion.start)} -{" "}
-                {formatTime(regionInfo.fadeOutRegion.end)} (Δ
-                {formatTime(regionInfo.fadeOutRegion.duration)})
-              </Typography>
-            )}
-          </Stack>
-        )}
+            <Stack
+              direction="row"
+              spacing={2}
+              alignItems="center"
+              sx={{ mt: 0.5 }}
+            >
+              {regionInfo.cropRegion && (
+                <Typography variant="caption" color="warning.main">
+                  Crop: {formatTime(regionInfo.cropRegion.start)} -{" "}
+                  {formatTime(regionInfo.cropRegion.end)} (Δ
+                  {formatTime(regionInfo.cropRegion.duration)})
+                </Typography>
+              )}
+              {regionInfo.fadeInRegion && (
+                <Typography variant="caption" color="success.main">
+                  Fade In: {formatTime(regionInfo.fadeInRegion.start)} -{" "}
+                  {formatTime(regionInfo.fadeInRegion.end)} (Δ
+                  {formatTime(regionInfo.fadeInRegion.duration)})
+                </Typography>
+              )}
+              {regionInfo.fadeOutRegion && (
+                <Typography variant="caption" color="error.main">
+                  Fade Out: {formatTime(regionInfo.fadeOutRegion.start)} -{" "}
+                  {formatTime(regionInfo.fadeOutRegion.end)} (Δ
+                  {formatTime(regionInfo.fadeOutRegion.duration)})
+                </Typography>
+              )}
+            </Stack>
+          )}
       </Stack>
     </Stack>
   );
