@@ -1,4 +1,17 @@
-import React, { useState, useRef } from "react";
+declare global {
+  interface Window {
+    electronAPI?: {
+      onOpenAudioDialog: (callback: () => void) => void;
+      onAppendAudioDialog: (callback: () => void) => void;
+      showOpenDialog: (options?: any) => Promise<{ canceled: boolean, filePaths: string[] }>;
+      readFile: (filePath: string) => Promise<{ success: boolean, data?: number[], path?: string, name?: string, error?: string }>;
+      isElectron: boolean;
+      platform: string;
+    };
+  }
+}
+
+import React, { useState, useRef, useEffect } from "react";
 import {
   Container,
   Typography,
@@ -730,6 +743,26 @@ function App() {
     enabled: true,
   });
 
+  useEffect(() => {
+    if (window.electronAPI) {
+      if (window.electronAPI.onOpenAudioDialog) {
+        window.electronAPI.onOpenAudioDialog(() => {
+          const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement | null;
+          if (fileInput) fileInput.click();
+        });
+      }
+      if (window.electronAPI.onAppendAudioDialog) {
+        window.electronAPI.onAppendAudioDialog(() => {
+          // Find the append file input (the second file input in the DOM)
+          const fileInputs = document.querySelectorAll('input[type="file"]');
+          if (fileInputs.length > 1) {
+            (fileInputs[1] as HTMLInputElement).click();
+          }
+        });
+      }
+    }
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -739,6 +772,7 @@ function App() {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        data-drop-target="true"
       >
         {/* Drag and Drop Overlay */}
         {isDragOver && (
@@ -779,11 +813,11 @@ function App() {
         >
           <Box display="flex" alignItems="center" gap={2}>
             <img
-              src="/MorphEdit-Logo-Small.png"
+              src="MorphEdit-Logo-Small.png"
               alt="MorphEdit Logo"
               style={{ height: "96px", width: "auto", borderRadius: "20px" }}
             />
-            <Typography variant="h4">Morphedit Audio Editor</Typography>
+            <Typography variant="h4">MorphEdit Audio Editor</Typography>
           </Box>
           <Stack direction="row" spacing={2} alignItems="center">
             <Button
@@ -856,9 +890,9 @@ function App() {
             cursor: !audioUrl ? "pointer" : "default",
             "&:hover": !audioUrl
               ? {
-                  backgroundColor: "action.hover",
-                  borderColor: "primary.light",
-                }
+                backgroundColor: "action.hover",
+                borderColor: "primary.light",
+              }
               : {},
             transition: "background-color 0.2s, border-color 0.2s",
           }}

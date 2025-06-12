@@ -193,17 +193,17 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       cropRegionRef.current = state.cropRegion;
     }, [state.cropRegion, cropRegionRef]);
 
-    // Update current time periodically when playing
-    useEffect(() => {
-      let interval: number;
+  // Update current time periodically when playing
+  useEffect(() => {
+    let interval: NodeJS.Timeout | undefined;
 
-      if (state.isPlaying && wavesurferRef.current) {
-        interval = setInterval(() => {
-          if (wavesurferRef.current) {
-            setCurrentTime(wavesurferRef.current.getCurrentTime());
-          }
-        }, 100); // Update every 100ms
-      }
+    if (state.isPlaying && wavesurferRef.current) {
+      interval = setInterval(() => {
+        if (wavesurferRef.current) {
+          setCurrentTime(wavesurferRef.current.getCurrentTime());
+        }
+      }, 100); // Update every 100ms
+    }
 
       return () => {
         if (interval) {

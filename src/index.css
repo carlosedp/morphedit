@@ -1,5 +1,4 @@
-/* @import "npm:@fontsource/roboto-mono/400.css";
-@import "npm:@fontsource/roboto-mono/700.css"; */
+@import "@fontsource/roboto-mono/400.css";
 
 :root {
   line-height: 1.5;
@@ -27,6 +26,7 @@ body {
   min-height: 100vh;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
+  font-family: 'Roboto Mono', monospace;
 }
 
 a {
