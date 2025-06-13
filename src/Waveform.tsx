@@ -1532,14 +1532,22 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         <Stack
           direction="row"
           alignItems="center"
-          sx={{ mt: 2, width: "100%" }}
+          sx={{
+            mt: 2,
+            width: "100%",
+            flexDirection: { xs: "column", lg: "row" },
+            gap: { xs: 2, lg: 0 },
+          }}
         >
           {/* Left column - Export controls */}
           <Stack
             direction="row"
             spacing={1}
             alignItems="center"
-            sx={{ flex: 1 }}
+            sx={{
+              flex: 1,
+              justifyContent: { xs: "center", lg: "flex-start" },
+            }}
           >
             <ExportControls
               exportAnchorEl={state.exportAnchorEl}
@@ -1554,7 +1562,12 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             direction="row"
             spacing={1}
             alignItems="center"
-            sx={{ flex: 1, justifyContent: "flex-end" }}
+            sx={{
+              flex: 1,
+              justifyContent: { xs: "center", lg: "flex-end" },
+              flexWrap: "wrap",
+              gap: { xs: 1, sm: 1 },
+            }}
           >
             <RegionControls
               cropMode={state.cropMode}

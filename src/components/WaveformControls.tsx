@@ -43,11 +43,38 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
   onZoomReset,
 }) => {
   return (
-    <Stack direction="row" alignItems="center" sx={{ mt: 2, width: "100%" }}>
+    <Stack
+      direction="row"
+      alignItems="center"
+      sx={{
+        mt: 2,
+        width: "100%",
+        flexDirection: { xs: "column", md: "row" },
+        gap: { xs: 2, md: 0 },
+      }}
+    >
       {/* Left column - Controls */}
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1 }}>
+      <Stack
+        direction="row"
+        spacing={2}
+        alignItems="center"
+        sx={{
+          flex: 1,
+          flexWrap: "wrap",
+          gap: { xs: 1, sm: 2 },
+          justifyContent: { xs: "center", md: "flex-start" },
+        }}
+      >
         <Tooltip title="Play/Pause" enterDelay={500} leaveDelay={200}>
-          <IconButton onClick={onPlayPause} color="primary" size="large">
+          <IconButton
+            onClick={onPlayPause}
+            color="primary"
+            size="large"
+            sx={{
+              fontSize: { xs: "1.5rem", sm: "1.5rem" },
+              padding: { xs: "12px", sm: "12px" },
+            }}
+          >
             {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
           </IconButton>
         </Tooltip>
@@ -56,19 +83,37 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           <IconButton
             onClick={onLoop}
             color={isLooping ? "primary" : "default"}
+            sx={{
+              padding: { xs: "10px", sm: "8px" },
+            }}
           >
             <RepeatIcon />
           </IconButton>
         </Tooltip>
 
         <Tooltip title="Rewind to start" enterDelay={500} leaveDelay={200}>
-          <IconButton onClick={onRewind} color="default">
+          <IconButton
+            onClick={onRewind}
+            color="default"
+            sx={{
+              padding: { xs: "10px", sm: "8px" },
+            }}
+          >
             <FirstPageIcon />
           </IconButton>
         </Tooltip>
 
         {/* Zoom controls */}
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ ml: 2 }}>
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+          sx={{
+            ml: { xs: 0, sm: 2 },
+            minWidth: { xs: "100%", sm: "auto" },
+            justifyContent: { xs: "center", sm: "flex-start" },
+          }}
+        >
           <ZoomOutIcon color="action" />
           <Slider
             value={zoom}
@@ -76,7 +121,7 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
             min={1}
             max={3000}
             step={1}
-            sx={{ width: 100 }}
+            sx={{ width: { xs: 140, sm: 100 } }}
             size="small"
           />
           <ZoomInIcon color="action" />
@@ -93,16 +138,41 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
         direction="column"
         spacing={0}
         alignItems="flex-end"
-        sx={{ flex: 1, justifyContent: "flex-end" }}
+        sx={{
+          flex: 1,
+          justifyContent: "flex-end",
+          alignItems: { xs: "center", md: "flex-end" },
+          textAlign: { xs: "center", md: "right" },
+        }}
       >
         {/* Main audio time */}
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Typography variant="body2">
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+          sx={{
+            flexWrap: "wrap",
+            justifyContent: { xs: "center", md: "flex-end" },
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
+          >
             🕒 {formatTime(currentTime)} / {formatTime(duration)}
           </Typography>
-          <Typography variant="body2">| Skip: {skipIncrement}s</Typography>
+          <Typography
+            variant="body2"
+            sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
+          >
+            | Skip: {skipIncrement}s
+          </Typography>
           {spliceMarkersCount > 0 && (
-            <Typography variant="body2" color="primary">
+            <Typography
+              variant="body2"
+              color="primary"
+              sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
+            >
               | Splice markers: {spliceMarkersCount}
             </Typography>
           )}
@@ -116,7 +186,11 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
               direction="row"
               spacing={2}
               alignItems="center"
-              sx={{ mt: 0.5 }}
+              sx={{
+                mt: 0.5,
+                flexWrap: "wrap",
+                justifyContent: { xs: "center", md: "flex-end" },
+              }}
             >
               {regionInfo.cropRegion && (
                 <Typography variant="caption" color="warning.main">

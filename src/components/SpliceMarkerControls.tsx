@@ -71,9 +71,18 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
           Manual Splice Marker Controls
         </Typography>
 
-        {/* Auto-slice controls */}
-        {/* <Box sx={{ mt: 2, mb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}> */}
-        <Stack direction="row" spacing={1} alignItems="center">
+        {/* First row: Add/Remove/Lock buttons (Manual Controls) */}
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+          sx={{
+            flexWrap: "wrap",
+            gap: { xs: 0.5, sm: 1 },
+            mb: 1.5,
+            justifyContent: { xs: "center", sm: "flex-start" },
+          }}
+        >
           <Tooltip
             title="Add splice marker at current time"
             enterDelay={500}
@@ -83,6 +92,11 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
               variant="outlined"
               color="primary"
               onClick={onAddSpliceMarker}
+              sx={{
+                minWidth: { xs: "48px", sm: "auto" },
+                minHeight: { xs: "48px", sm: "36px" },
+                fontSize: { xs: "1.1rem", sm: "1rem" },
+              }}
             >
               <AddIcon />
             </Button>
@@ -99,6 +113,11 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
                 color="primary"
                 onClick={onRemoveSpliceMarker}
                 disabled={!selectedSpliceMarker}
+                sx={{
+                  minWidth: { xs: "48px", sm: "auto" },
+                  minHeight: { xs: "48px", sm: "36px" },
+                  fontSize: { xs: "1.1rem", sm: "1rem" },
+                }}
               >
                 <DeleteIcon />
               </Button>
@@ -120,12 +139,30 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
                 color={selectedSpliceMarkerLocked ? "warning" : "primary"}
                 onClick={onToggleMarkerLock}
                 disabled={!selectedSpliceMarker}
+                sx={{
+                  minWidth: { xs: "48px", sm: "auto" },
+                  minHeight: { xs: "48px", sm: "36px" },
+                  fontSize: { xs: "1.1rem", sm: "1rem" },
+                }}
               >
                 {selectedSpliceMarkerLocked ? <LockIcon /> : <LockOpenIcon />}
               </Button>
             </Box>
           </Tooltip>
+        </Stack>
 
+        {/* Second row: Auto-slice controls */}
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+          sx={{
+            flexWrap: "wrap",
+            gap: { xs: 0.5, sm: 1 },
+            mb: 1.5,
+            justifyContent: { xs: "center", sm: "flex-start" },
+          }}
+        >
           <Tooltip
             title="Number of equal slices to create"
             enterDelay={500}
@@ -140,7 +177,19 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
               }
               size="small"
               inputProps={{ min: 2, max: 100 }}
-              sx={{ width: 80 }}
+              sx={{
+                width: { xs: 90, sm: 80 },
+                "& .MuiInputBase-root": {
+                  height: { xs: "48px", sm: "36px" },
+                },
+                "& .MuiInputBase-input": {
+                  fontSize: { xs: "1rem", sm: "0.875rem" },
+                  padding: { xs: "10px 12px", sm: "8.5px 14px" },
+                },
+                "& .MuiInputLabel-root": {
+                  fontSize: { xs: "1rem", sm: "0.875rem" },
+                },
+              }}
             />
           </Tooltip>
 
@@ -156,6 +205,11 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
                 onClick={onAutoSlice}
                 startIcon={<ContentCutIcon />}
                 disabled={!duration || duration <= 0}
+                sx={{
+                  fontSize: { xs: "0.9rem", sm: "0.875rem" },
+                  padding: { xs: "0.6em 1em", sm: "6px 16px" },
+                  minHeight: { xs: "48px", sm: "36px" },
+                }}
               >
                 Auto Slice
               </Button>
@@ -174,12 +228,29 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
                 onClick={onHalfMarkers}
                 startIcon={<FilterListIcon />}
                 disabled={spliceMarkersCount <= 1}
+                sx={{
+                  fontSize: { xs: "0.9rem", sm: "0.875rem" },
+                  padding: { xs: "0.6em 1em", sm: "6px 16px" },
+                  minHeight: { xs: "48px", sm: "36px" },
+                }}
               >
                 Half Markers
               </Button>
             </Box>
           </Tooltip>
+        </Stack>
 
+        {/* Third row: Utility controls */}
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+          sx={{
+            flexWrap: "wrap",
+            gap: { xs: 0.5, sm: 1 },
+            justifyContent: { xs: "center", sm: "flex-start" },
+          }}
+        >
           <Tooltip
             title="Clear all splice markers"
             enterDelay={500}
@@ -192,6 +263,11 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
                 onClick={onClearAllMarkers}
                 startIcon={<ClearIcon />}
                 disabled={spliceMarkersCount === 0}
+                sx={{
+                  fontSize: { xs: "0.9rem", sm: "0.875rem" },
+                  padding: { xs: "0.6em 1em", sm: "6px 16px" },
+                  minHeight: { xs: "48px", sm: "36px" },
+                }}
               >
                 Clear All
               </Button>
@@ -210,7 +286,12 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
                 onClick={onSnapToZeroCrossings}
                 disabled={spliceMarkersCount === 0}
                 startIcon={<CenterFocusStrongIcon />}
-                sx={{ minWidth: 140 }}
+                sx={{
+                  minWidth: { xs: 130, sm: 140 },
+                  fontSize: { xs: "0.9rem", sm: "0.875rem" },
+                  padding: { xs: "0.6em 1em", sm: "6px 16px" },
+                  minHeight: { xs: "48px", sm: "36px" },
+                }}
               >
                 Snap All to Zero
               </Button>
@@ -218,16 +299,33 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
           </Tooltip>
         </Stack>
       </Box>
+
       {/* Transient detection controls */}
       <Box sx={{ p: 2, border: 1, borderColor: "divider", borderRadius: 1 }}>
         <Typography variant="subtitle2" gutterBottom>
           Splice Detection
         </Typography>
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="body2" width={120} align="left">
+        <Stack
+          direction="row"
+          spacing={2}
+          alignItems="center"
+          sx={{
+            mb: 2,
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: { xs: "stretch", sm: "center" },
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{
+              width: { xs: "100%", sm: 120 },
+              textAlign: { xs: "center", sm: "left" },
+              fontSize: { xs: "1rem", sm: "0.875rem" },
+            }}
+          >
             Sensitivity:
           </Typography>
-          <Box sx={{ width: 200 }}>
+          <Box sx={{ width: { xs: "100%", sm: 200 }, pr: { xs: 2, sm: 1 } }}>
             <Slider
               value={transientSensitivity}
               onChange={(_, value) =>
@@ -242,16 +340,41 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
                 { value: 50, label: "Med" },
                 { value: 100, label: "High" },
               ]}
+              sx={{
+                "& .MuiSlider-thumb": {
+                  width: { xs: 24, sm: 20 },
+                  height: { xs: 24, sm: 20 },
+                },
+                "& .MuiSlider-markLabel": {
+                  fontSize: { xs: "0.875rem", sm: "0.75rem" },
+                },
+              }}
             />
           </Box>
         </Stack>
 
         {/* Advanced controls - Frame Size and Overlap */}
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="body2" width={120} align="left">
+        <Stack
+          direction="row"
+          spacing={2}
+          alignItems="center"
+          sx={{
+            mb: 2,
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: { xs: "stretch", sm: "center" },
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{
+              width: { xs: "100%", sm: 120 },
+              textAlign: { xs: "center", sm: "left" },
+              fontSize: { xs: "1rem", sm: "0.875rem" },
+            }}
+          >
             Frame Size:
           </Typography>
-          <Box sx={{ width: 200 }}>
+          <Box sx={{ width: { xs: "100%", sm: 200 }, pr: { xs: 2, sm: 1 } }}>
             <Slider
               value={transientFrameSize}
               onChange={(_, value) => onSetTransientFrameSize(value as number)}
@@ -261,15 +384,37 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
               valueLabelDisplay="auto"
               valueLabelFormat={(value) => `${value}ms`}
               size="small"
+              sx={{
+                "& .MuiSlider-thumb": {
+                  width: { xs: 20, sm: 16 },
+                  height: { xs: 20, sm: 16 },
+                },
+              }}
             />
           </Box>
         </Stack>
 
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="body2" width={120} align="left">
+        <Stack
+          direction="row"
+          spacing={2}
+          alignItems="center"
+          sx={{
+            mb: 2,
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: { xs: "stretch", sm: "center" },
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{
+              width: { xs: "100%", sm: 120 },
+              textAlign: { xs: "center", sm: "left" },
+              fontSize: { xs: "1rem", sm: "0.875rem" },
+            }}
+          >
             Overlap:
           </Typography>
-          <Box sx={{ width: 200 }}>
+          <Box sx={{ width: { xs: "100%", sm: 200 }, pr: { xs: 2, sm: 1 } }}>
             <Slider
               value={transientOverlap}
               onChange={(_, value) => onSetTransientOverlap(value as number)}
@@ -279,6 +424,12 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
               valueLabelDisplay="auto"
               valueLabelFormat={(value) => `${value}%`}
               size="small"
+              sx={{
+                "& .MuiSlider-thumb": {
+                  width: { xs: 20, sm: 16 },
+                  height: { xs: 20, sm: 16 },
+                },
+              }}
             />
           </Box>
         </Stack>
@@ -291,12 +442,17 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
           <Typography
             variant="caption"
             color="text.disabled"
-            sx={{ minWidth: 60, textAlign: "left" }}
+            sx={{
+              minWidth: 60,
+              textAlign: "left",
+              fontSize: { xs: "0.8rem", sm: "0.75rem" },
+              lineHeight: { xs: 1.4, sm: 1.33 },
+            }}
           >
             Sensitivity affects how many transients are detected. Higher values
             detect more transients but may include noise. Frame size determines
-            the duration of each analysis window (5-50ms). Overlap controls how
-            much each frame overlaps with the next (50-90%). In general, higher
+            the duration of each analysis window (5-200ms). Overlap controls how
+            much each frame overlaps with the next (20-90%). In general, higher
             sensitivity and overlap values will detect more transients, but may
             also include more noise.
           </Typography>
@@ -316,6 +472,11 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
                 onClick={onTransientDetection}
                 disabled={!duration || duration <= 0}
                 startIcon={<AutoFixHighIcon />}
+                sx={{
+                  fontSize: { xs: "1rem", sm: "0.875rem" },
+                  padding: { xs: "0.7em 1.5em", sm: "6px 16px" },
+                  minHeight: { xs: "48px", sm: "36px" },
+                }}
               >
                 Detect
               </Button>

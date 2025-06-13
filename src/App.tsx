@@ -3,7 +3,16 @@ declare global {
     electronAPI?: {
       onOpenAudioDialog: (callback: () => void) => void;
       onAppendAudioDialog: (callback: () => void) => void;
-      showOpenDialog: (options?: any) => Promise<{ canceled: boolean, filePaths: string[] }>;
+      showOpenDialog: (options?: {
+        title?: string;
+        defaultPath?: string;
+        buttonLabel?: string;
+        filters?: Array<{
+          name: string;
+          extensions: string[];
+        }>;
+        properties?: Array<'openFile' | 'openDirectory' | 'multiSelections' | 'showHiddenFiles' | 'createDirectory' | 'promptToCreate' | 'noResolveAliases' | 'treatPackageAsDirectory'>;
+      }) => Promise<{ canceled: boolean, filePaths: string[] }>;
       readFile: (filePath: string) => Promise<{ success: boolean, data?: number[], path?: string, name?: string, error?: string }>;
       isElectron: boolean;
       platform: string;
@@ -768,7 +777,11 @@ function App() {
       <CssBaseline />
       <Container
         maxWidth="lg"
-        sx={{ py: 4, position: "relative" }}
+        sx={{
+          py: 4,
+          px: { xs: 1, sm: 3 },
+          position: "relative",
+        }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -810,29 +823,94 @@ function App() {
           justifyContent="space-between"
           alignItems="center"
           mb={3}
+          sx={{
+            flexDirection: { xs: "column", md: "row" },
+            gap: { xs: 2, md: 0 },
+            textAlign: { xs: "center", md: "left" },
+            mx: { xs: 1, sm: 2 }, // Add horizontal margin
+            mt: { xs: 1, sm: 0 }, // Add top margin on mobile
+          }}
         >
-          <Box display="flex" alignItems="center" gap={2}>
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={2}
+            sx={{
+              flexDirection: { xs: "column", sm: "row" },
+              textAlign: { xs: "center", sm: "left" },
+            }}
+          >
             <img
               src="MorphEdit-Logo-Small.png"
               alt="MorphEdit Logo"
-              style={{ height: "96px", width: "auto", borderRadius: "20px" }}
+              style={{
+                height: "96px",
+                width: "auto",
+                borderRadius: "20px",
+              }}
             />
-            <Typography variant="h4">MorphEdit Audio Editor</Typography>
+            <Typography
+              variant="h4"
+              sx={{
+                fontSize: { xs: "1.75rem", sm: "2.125rem" },
+              }}
+            >
+              MorphEdit Audio Editor
+            </Typography>
           </Box>
-          <Stack direction="row" spacing={2} alignItems="center">
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            sx={{
+              flexDirection: "row", // Keep on same line for all breakpoints
+              gap: { xs: 1, sm: 2 },
+              alignItems: "center",
+              justifyContent: { xs: "center", sm: "flex-end" },
+            }}
+          >
             <Button
               variant="outlined"
               color="primary"
               onClick={handleOpenManual}
+              sx={{
+                fontSize: { xs: "0.85rem", sm: "0.875rem" },
+                padding: { xs: "0.5em 1em", sm: "6px 16px" },
+                minHeight: { xs: "40px", sm: "36px" }, // Slightly smaller on mobile
+                width: "auto", // Don't stretch to full width
+                minWidth: { xs: "100px", sm: "120px" }, // Smaller minimum width
+              }}
             >
               User Manual
             </Button>
             <KeyboardShortcutsHelp />
           </Stack>
         </Box>
-        <Box mb={2}>
-          <Stack direction="row" spacing={2}>
-            <Button variant="contained" component="label">
+        <Box mb={2} sx={{ mx: { xs: 3, sm: 2 }, px: { xs: 2, sm: 0 } }}> {/* Add horizontal margin and padding */}
+          <Stack
+            direction="row"
+            // spacing={2}
+            sx={{
+              flexDirection: { xs: "column", sm: "row" },
+              gap: { xs: 1, sm: 2 },
+              alignItems: { xs: "stretch", sm: "center" },
+            }}
+          >
+            <Button
+              variant="contained"
+              component="label"
+              sx={{
+                flex: { xs: 1, sm: "none" },
+                minWidth: { sm: "160px" },
+                fontSize: { xs: "0.9rem", sm: "0.875rem" },
+                padding: { xs: "0.7em 1.2em", sm: "6px 16px" },
+                minHeight: { xs: "48px", sm: "36px" },
+                height: { xs: "48px", sm: "auto" }, // Force consistent height on mobile
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               Open Audio File(s)
               <input
                 type="file"
@@ -846,7 +924,18 @@ function App() {
               variant="outlined"
               component="label"
               disabled={!audioUrl}
-              sx={{ opacity: !audioUrl ? 0.5 : 1 }}
+              sx={{
+                opacity: !audioUrl ? 0.5 : 1,
+                flex: { xs: 1, sm: "none" },
+                minWidth: { sm: "160px" },
+                fontSize: { xs: "0.9rem", sm: "0.875rem" },
+                padding: { xs: "0.7em 1.2em", sm: "6px 16px" },
+                minHeight: { xs: "48px", sm: "36px" },
+                height: { xs: "48px", sm: "auto" }, // Force consistent height on mobile
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
             >
               Append Audio
               <input
@@ -858,11 +947,25 @@ function App() {
               />
             </Button>
             <Tooltip title="Unload current audio and clear all data">
-              <Box component="span">
+              <Box
+                component="span"
+                sx={{ flex: { xs: 1, sm: "none" } }}
+              >
                 <Button
                   variant="outlined"
                   onClick={handleReset}
                   disabled={!audioUrl}
+                  sx={{
+                    width: { xs: "100%", sm: "auto" },
+                    minWidth: { sm: "80px" },
+                    fontSize: { xs: "0.85rem", sm: "0.8rem" },
+                    padding: { xs: "0.6em 1em", sm: "4px 12px" },
+                    minHeight: { xs: "44px", sm: "32px" },
+                    height: { xs: "44px", sm: "auto" }, // Consistent but smaller height
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
                   Reset
                 </Button>
@@ -876,6 +979,8 @@ function App() {
           onClick={handleWaveformClick}
           sx={{
             cursor: !audioUrl ? "pointer" : "default",
+            mx: { xs: 1, sm: 2 }, // Add horizontal margin
+            mb: { xs: 2, sm: 0 }, // Add bottom margin on mobile
             "&:hover": !audioUrl
               ? {
                 backgroundColor: "action.hover",
@@ -888,20 +993,25 @@ function App() {
             "Click here, use the button above, or drag and drop audio file(s) to load/concatenate them"}
         </Box>
         {audioUrl && (
-          <Waveform
-            audioUrl={audioUrl}
-            shouldTruncate={shouldTruncateAudio}
-            onLoadingComplete={handleLoadingComplete}
-            onProcessingStart={handleProcessingStart}
-            onProcessingComplete={handleProcessingComplete}
-            ref={waveformRef}
-          />
+          <Box sx={{ mx: { xs: 1, sm: 2 } }}> {/* Add margin wrapper for waveform */}
+            <Waveform
+              audioUrl={audioUrl}
+              shouldTruncate={shouldTruncateAudio}
+              onLoadingComplete={handleLoadingComplete}
+              onProcessingStart={handleProcessingStart}
+              onProcessingComplete={handleProcessingComplete}
+              ref={waveformRef}
+            />
+          </Box>
         )}
-        <Box mt={4}>
+        <Box mt={4} sx={{ mx: { xs: 1, sm: 2 } }}> {/* Add horizontal margin to footer */}
           <Typography
             variant="caption"
             color="text.primary"
-            sx={{ textAlign: "center" }}
+            sx={{
+              textAlign: "center",
+              fontSize: { xs: "0.75rem", sm: "0.75rem" }, // Ensure readability on mobile
+            }}
           >
             Morphedit Audio Editor - All audio is processed in the browser,
             client-side so <b>your files never leave your computer</b>.
@@ -912,6 +1022,7 @@ function App() {
             sx={{
               textAlign: "center",
               opacity: 0.7,
+              fontSize: { xs: "0.7rem", sm: "0.75rem" }, // Slightly smaller on mobile
               "& a": {
                 color: "text.secondary",
                 textDecoration: "underline",
@@ -929,20 +1040,6 @@ function App() {
               Fork me on GitHub
             </a>
           </Typography>
-        </Box>{" "}
-        <Box mt={4}>
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{
-              textAlign: "center",
-              opacity: 0.7,
-              "& a": {
-                color: "text.secondary",
-                textDecoration: "underline",
-              },
-            }}
-          ></Typography>
         </Box>
       </Container>
 

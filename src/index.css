@@ -16,6 +16,12 @@
 html {
   font-size: 16px;
   box-sizing: border-box;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+  width: 100%;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
 }
 
 body {
@@ -27,6 +33,28 @@ body {
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
   font-family: 'Roboto Mono', monospace;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  body {
+    min-width: 280px;
+  }
+
+  html {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    min-width: 240px;
+  }
+
+  html {
+    font-size: 14px;
+  }
 }
 
 a {

@@ -73,7 +73,14 @@ export const KeyboardShortcutsHelp = () => {
         size="small"
         startIcon={<HelpOutlineIcon />}
         onClick={() => setOpen(true)}
-        sx={{ textTransform: "none" }}
+        sx={{
+          textTransform: "none",
+          fontSize: { xs: "0.9rem", sm: "0.875rem" },
+          padding: { xs: "0.6em 1.2em", sm: "6px 16px" },
+          minHeight: { xs: "44px", sm: "36px" }, // Match User Manual button height
+          width: { xs: "100%", sm: "auto" },
+          minWidth: { sm: "120px" }, // Consistent minimum width
+        }}
       >
         Shortcuts
       </Button>
@@ -83,6 +90,13 @@ export const KeyboardShortcutsHelp = () => {
         onClose={() => setOpen(false)}
         maxWidth="sm"
         fullWidth
+        sx={{
+          "& .MuiDialog-paper": {
+            margin: { xs: 1, sm: 3 },
+            width: { xs: "calc(100% - 16px)", sm: "auto" },
+            maxHeight: { xs: "90vh", sm: "80vh" },
+          },
+        }}
       >
         <DialogTitle>Keyboard Shortcuts</DialogTitle>
         <DialogContent>

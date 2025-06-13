@@ -38,7 +38,17 @@ export const MultipleFilesDialog: React.FC<MultipleFilesDialogProps> = ({
   const exceedsMaxLength = totalDuration > MORPHAGENE_MAX_DURATION;
 
   return (
-    <Dialog open={open} maxWidth="md" fullWidth>
+    <Dialog
+      open={open}
+      maxWidth="md"
+      fullWidth
+      sx={{
+        "& .MuiDialog-paper": {
+          margin: { xs: 1, sm: 3 },
+          width: { xs: "calc(100% - 16px)", sm: "auto" },
+        },
+      }}
+    >
       <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <InfoIcon color="info" />
         Multiple Audio Files Detected

@@ -25,6 +25,8 @@ export const LoadingDialog: React.FC<LoadingDialogProps> = ({
       PaperProps={{
         sx: {
           minHeight: "150px",
+          margin: { xs: 1, sm: 3 },
+          width: { xs: "calc(100% - 16px)", sm: "auto" },
         },
       }}
     >

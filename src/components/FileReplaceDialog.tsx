@@ -31,7 +31,17 @@ export const FileReplaceDialog: React.FC<FileReplaceDialogProps> = ({
   onCancel,
 }) => {
   return (
-    <Dialog open={open} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      maxWidth="sm"
+      fullWidth
+      sx={{
+        "& .MuiDialog-paper": {
+          margin: { xs: 1, sm: 3 },
+          width: { xs: "calc(100% - 16px)", sm: "auto" },
+        },
+      }}
+    >
       <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <QuestionMarkIcon color="info" />
         Audio Already Loaded

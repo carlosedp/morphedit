@@ -31,7 +31,15 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
   onUndo,
 }) => {
   return (
-    <Stack direction="row" spacing={1} alignItems="center">
+    <Stack
+      direction="row"
+      spacing={1}
+      alignItems="center"
+      sx={{
+        flexWrap: "wrap",
+        gap: { xs: 0.5, sm: 1 },
+      }}
+    >
       <Tooltip
         title="Create crop/loop region"
         enterDelay={500}

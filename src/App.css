@@ -5,6 +5,20 @@
   text-align: center;
 }
 
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  #root {
+    padding: 1rem 0.5rem;
+  }
+}
+
+/* Additional mobile breakpoints */
+@media (max-width: 480px) {
+  #root {
+    padding: 0.5rem 0.25rem;
+  }
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -59,10 +73,27 @@
   font-size: 14px;
   transition: background-color 0.2s ease-in-out;
 
-  /* height: 165px; */
-  /* position: relative; */
-  /* padding: 0; */
-  /* scrollbar-width: thin; */
+  /* Mobile responsiveness */
+  overflow-x: auto;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  #waveform-container {
+    min-height: 120px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  #waveform-container {
+    min-height: 100px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    padding: 4px;
+  }
 }
 
 #transport-controls {
@@ -85,6 +116,17 @@
   background-color: #333;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .info-container {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 6px;
+    gap: 6px;
+  }
 }
 
 .info-item {
@@ -93,6 +135,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .info-item {
+    flex: none;
+    width: 100%;
+  }
 }
 
 .info-item-zoom {
@@ -102,12 +152,60 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .info-item-zoom {
+    flex: none;
+    width: 100%;
+    gap: 4px;
+  }
 }
 
 .zoom-controls {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+/* Mobile responsive button and input styles */
+@media (max-width: 768px) {
+  button {
+    font-size: 0.9rem !important;
+    padding: 0.6em 1em !important;
+    min-width: auto !important;
+  }
+
+  .MuiTextField-root {
+    min-width: 80px !important;
+  }
+
+  .MuiSlider-root {
+    min-width: 120px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  button {
+    font-size: 0.85rem !important;
+    padding: 0.5em 0.8em !important;
+  }
+
+  .MuiIconButton-root {
+    padding: 8px !important;
+  }
+
+  /* Ensure very small screens don't have horizontal scroll */
+  * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .MuiContainer-root {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
 }
 
 /* Splice marker */
