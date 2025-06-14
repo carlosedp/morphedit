@@ -51,6 +51,7 @@ import {
   sortAudioFilesByName,
   audioBufferToWavBlob,
   appendAudioToExisting,
+  truncateConcatenationResult,
   type ConcatenationResult,
 } from "./utils/audioConcatenation";
 import { createActionDispatcher } from "./utils/actionHandlers";
@@ -146,6 +147,8 @@ function App() {
           // Store the result for potential truncation
           setPendingAppendResult(result);
           setIsInAppendMode(true);
+          setPendingDuration(totalDuration);
+          setPendingReplaceFiles(audioFiles); // Store the files for truncation
           setIsLoading(false);
           setLengthWarningOpen(true);
         } else {
@@ -168,8 +171,16 @@ function App() {
       // Sort files alphabetically for consistent order
       const sortedFiles = sortAudioFilesByName(files);
 
-      // Calculate total duration
-      const totalDuration = await getMultipleAudioFilesDuration(sortedFiles);
+      // Calculate total duration of the new files
+      const newFilesDuration = await getMultipleAudioFilesDuration(sortedFiles);
+      
+      // If there's existing audio (append mode), add its duration
+      const existingAudioBuffer = useAudioStore.getState().audioBuffer;
+      const existingDuration = existingAudioBuffer 
+        ? existingAudioBuffer.length / existingAudioBuffer.sampleRate 
+        : 0;
+      
+      const totalDuration = existingDuration + newFilesDuration;
 
       setIsLoading(false);
       setPendingFiles(sortedFiles);
@@ -192,37 +203,55 @@ function App() {
     setLoadingMessage("Concatenating audio files...");
 
     try {
-      const result = await concatenateAudioFiles(
-        pendingFiles,
-        shouldTruncate,
-        shouldTruncate ? CONST_MORPHAGENE_MAX_DURATION : undefined,
-      );
+      // Check if there's existing audio (append mode)
+      const existingAudioBuffer = useAudioStore.getState().audioBuffer;
+      const existingSpliceMarkers = useAudioStore.getState().spliceMarkers;
+      
+      if (existingAudioBuffer) {
+        // Append mode - use append logic
+        const result = await appendAudioToExisting(
+          existingAudioBuffer,
+          existingSpliceMarkers,
+          pendingFiles,
+          shouldTruncate,
+          shouldTruncate ? CONST_MORPHAGENE_MAX_DURATION : undefined,
+        );
 
-      // Convert AudioBuffer to WAV blob with cue points
-      const wavBlob = await audioBufferToWavBlob(
-        result.concatenatedBuffer,
-        result.spliceMarkerPositions,
-      );
-      const url = URL.createObjectURL(wavBlob) + "#morphedit-concatenated";
+        await finishAppendProcess(result);
+      } else {
+        // Concatenate mode - use concatenate logic (no existing audio)
+        const result = await concatenateAudioFiles(
+          pendingFiles,
+          shouldTruncate,
+          shouldTruncate ? CONST_MORPHAGENE_MAX_DURATION : undefined,
+        );
 
-      setShouldTruncateAudio(false);
-      setAudioUrl(url);
+        // Convert AudioBuffer to WAV blob with cue points
+        const wavBlob = await audioBufferToWavBlob(
+          result.concatenatedBuffer,
+          result.spliceMarkerPositions,
+        );
+        const url = URL.createObjectURL(wavBlob) + "#morphedit-concatenated";
 
-      // Store splice marker positions in the audio store
-      const { setSpliceMarkers, setLockedSpliceMarkers } =
-        useAudioStore.getState();
-      setSpliceMarkers(result.spliceMarkerPositions);
+        setShouldTruncateAudio(false);
+        setAudioUrl(url);
 
-      // Lock the boundary markers (markers at the beginning of each file)
-      setLockedSpliceMarkers(result.boundaryMarkerPositions);
+        // Store splice marker positions in the audio store
+        const { setSpliceMarkers, setLockedSpliceMarkers } =
+          useAudioStore.getState();
+        setSpliceMarkers(result.spliceMarkerPositions);
 
-      concatenationLogger.audioOperation(
-        `Concatenated ${pendingFiles.length} files`,
-        {
-          spliceMarkers: result.spliceMarkerPositions.length,
-          boundaryMarkers: result.boundaryMarkerPositions.length
-        }
-      );
+        // Lock the boundary markers (markers at the beginning of each file)
+        setLockedSpliceMarkers(result.boundaryMarkerPositions);
+
+        concatenationLogger.audioOperation(
+          `Concatenated ${pendingFiles.length} files`,
+          {
+            spliceMarkers: result.spliceMarkerPositions.length,
+            boundaryMarkers: result.boundaryMarkerPositions.length
+          }
+        );
+      }
 
       setPendingFiles([]);
       setPendingMultipleFilesDuration(FILE_HANDLING.NO_FILES);
@@ -325,31 +354,24 @@ function App() {
 
   // Append-specific handlers for length warning dialog
   const handleAppendTruncation = async () => {
-    if (!pendingAppendResult) return;
+    if (!pendingAppendResult) {
+      console.error("❌ No pendingAppendResult found for truncation");
+      return;
+    }
 
     setIsLoading(true);
-    setLoadingMessage("Appending and truncating audio...");
+    setLoadingMessage("Truncating appended audio...");
 
     try {
-      const audioBuffer = useAudioStore.getState().audioBuffer;
-      const spliceMarkers = useAudioStore.getState().spliceMarkers;
-
-      if (!audioBuffer) {
-        throw new Error("No existing audio buffer to append to");
-      }
-
-      // Re-run append with truncation enabled
-      const truncatedResult = await appendAudioToExisting(
-        audioBuffer,
-        spliceMarkers,
-        pendingReplaceFiles,
-        true, // Enable truncation
+      // Truncate the existing result instead of re-appending
+      const truncatedResult = await truncateConcatenationResult(
+        pendingAppendResult,
         MORPHAGENE_MAX_DURATION,
       );
 
       await finishAppendProcess(truncatedResult);
     } catch (error) {
-      console.error("Error appending and truncating audio:", error);
+      console.error("Error truncating appended audio:", error);
       setIsLoading(false);
       setLoadingMessage("");
       setPendingReplaceFiles([]);
@@ -357,6 +379,7 @@ function App() {
       // Reset append mode state
       setIsInAppendMode(false);
       setPendingAppendResult(null);
+      setPendingReplaceFiles([]);
     }
   };
 
@@ -377,6 +400,7 @@ function App() {
       // Reset append mode state
       setIsInAppendMode(false);
       setPendingAppendResult(null);
+      setPendingReplaceFiles([]);
     }
   };
 
@@ -948,6 +972,7 @@ function App() {
         open={multipleFilesDialogOpen}
         files={pendingFiles}
         totalDuration={pendingMultipleFilesDuration}
+        isAppendMode={!!useAudioStore.getState().audioBuffer}
         onConcatenate={() => handleConcatenateFiles(false)}
         onTruncateAndConcatenate={() => handleConcatenateFiles(true)}
         onCancel={handleCancelMultipleFiles}

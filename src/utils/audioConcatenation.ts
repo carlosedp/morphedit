@@ -377,15 +377,21 @@ export const appendAudioToExisting = async (
 
   // Copy new audio files
   for (const buffer of newBuffers) {
+    const remainingSpace = totalLength - currentOffset;
     const copyLength =
       shouldTruncate && maxDuration
-        ? Math.min(buffer.length, totalLength - currentOffset)
+        ? Math.min(buffer.length, remainingSpace)
         : buffer.length;
 
     // Use utility function to copy audio data
     copyAudioData(buffer, concatenatedBuffer, 0, currentOffset, copyLength);
 
     currentOffset += copyLength;
+
+    // If we've reached the truncation limit, stop copying
+    if (shouldTruncate && maxDuration && currentOffset >= totalLength) {
+      break;
+    }
   }
 
   // Remove duplicate markers and sort
@@ -410,5 +416,70 @@ export const appendAudioToExisting = async (
       })
       .sort((a, b) => a - b),
     totalDuration,
+  };
+};
+
+/**
+ * Truncate an existing concatenation result to a maximum duration
+ */
+export const truncateConcatenationResult = async (
+  result: ConcatenationResult,
+  maxDuration: number,
+): Promise<ConcatenationResult> => {
+  const { concatenatedBuffer, spliceMarkerPositions, boundaryMarkerPositions } = result;
+  
+  const targetSampleRate = concatenatedBuffer.sampleRate;
+  const maxSamples = Math.floor(maxDuration * targetSampleRate);
+  
+  // If the buffer is already within the limit, return as-is
+  if (concatenatedBuffer.length <= maxSamples) {
+    console.log("Audio is already within limits, no truncation needed");
+    return result;
+  }
+  
+  console.log(`Truncating audio from ${result.totalDuration.toFixed(2)}s to ${maxDuration}s`);
+  
+  // Create a new truncated buffer
+  const audioContext = new (window.AudioContext ||
+    (
+      window as Window &
+        typeof globalThis & { webkitAudioContext?: typeof AudioContext }
+    ).webkitAudioContext)();
+    
+  const truncatedBuffer = audioContext.createBuffer(
+    concatenatedBuffer.numberOfChannels,
+    maxSamples,
+    targetSampleRate,
+  );
+  
+  // Copy the truncated audio data
+  for (let channel = 0; channel < concatenatedBuffer.numberOfChannels; channel++) {
+    const originalData = concatenatedBuffer.getChannelData(channel);
+    const truncatedData = truncatedBuffer.getChannelData(channel);
+    
+    for (let i = 0; i < maxSamples; i++) {
+      truncatedData[i] = originalData[i];
+    }
+  }
+  
+  // Filter splice markers to only include those within the truncated duration
+  const filteredSpliceMarkers = spliceMarkerPositions.filter(
+    (marker) => marker < maxDuration
+  );
+  
+  // Filter boundary markers as well
+  const filteredBoundaryMarkers = boundaryMarkerPositions.filter(
+    (marker) => marker < maxDuration
+  );
+  
+  console.log(`Filtered splice markers from ${spliceMarkerPositions.length} to ${filteredSpliceMarkers.length}`);
+  
+  const truncatedDuration = truncatedBuffer.length / truncatedBuffer.sampleRate;
+  
+  return {
+    concatenatedBuffer: truncatedBuffer,
+    spliceMarkerPositions: filteredSpliceMarkers,
+    boundaryMarkerPositions: filteredBoundaryMarkers,
+    totalDuration: truncatedDuration,
   };
 };
