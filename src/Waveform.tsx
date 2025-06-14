@@ -26,8 +26,9 @@ import { Container, Stack } from "@mui/material";
 import { parseWavCuePoints } from "./utils/audioProcessing";
 import {
   truncateAudioBuffer,
-  MORPHAGENE_MAX_DURATION,
 } from "./utils/fileLengthUtils";
+import { MORPHAGENE_MAX_DURATION, REGION_COLORS, UI_COLORS, MARKER_ICONS, POSITION_UPDATE_INTERVAL, PLAYBACK_TIMING, WAVEFORM_RENDERING } from "./constants";
+import { waveformLogger } from "./utils/logger";
 import {
   audioBufferToWavFormat,
   downloadWav,
@@ -45,6 +46,7 @@ import {
   toggleMarkerLock,
   isMarkerLocked,
 } from "./utils/spliceMarkerUtils";
+import { removeAllSpliceMarkersAndClearSelection } from "./utils/regionHelpers";
 import {
   applyTransientDetection,
   snapToZeroCrossings,
@@ -57,6 +59,8 @@ import {
   applyFades,
   getRegionInfo,
 } from "./utils/regionUtils";
+import { createGenericSpliceHandler } from "./utils/spliceMarkerHandlers";
+import { MAX_SPLICE_MARKERS } from "./constants";
 import {
   playPause,
   rewind,
@@ -66,7 +70,6 @@ import {
   increaseSkipIncrement,
   decreaseSkipIncrement,
   undo,
-  playSpliceMarker,
 } from "./utils/playbackUtils";
 import { useWaveformState, useWaveformRefs } from "./hooks/useWaveformState";
 import { WaveformControls } from "./components/WaveformControls";
@@ -180,7 +183,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
     // Sync currentAudioUrl with audioUrl prop
     useEffect(() => {
-      console.log("audioUrl changed, updating currentAudioUrl");
+      waveformLogger.debug("audioUrl changed, updating currentAudioUrl");
       actions.setCurrentAudioUrl(audioUrl);
     }, [audioUrl, actions]);
 
@@ -202,7 +205,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           if (wavesurferRef.current) {
             setCurrentTime(wavesurferRef.current.getCurrentTime());
           }
-        }, 100); // Update every 100ms
+        }, POSITION_UPDATE_INTERVAL); // Update every 100ms
       }
 
       return () => {
@@ -223,7 +226,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
     // Main wavesurfer initialization effect
     useEffect(() => {
-      console.log("WaveSurfer useEffect starting");
+      waveformLogger.debug("WaveSurfer useEffect starting");
 
       if (!audioUrl) {
         // If no audioUrl, clean up the wavesurfer instance
@@ -263,16 +266,16 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         waveColor: theme.palette.primary.main,
         progressColor: "white",
         cursorColor: theme.palette.primary.main,
-        cursorWidth: 2,
+        cursorWidth: WAVEFORM_RENDERING.CURSOR_WIDTH,
         minPxPerSec: 20, // Ensure waveform fills container initially
         plugins: [
           regions,
           TimelinePlugin.create({}),
           Hover.create({
             lineColor: theme.palette.secondary.main,
-            lineWidth: 1,
-            labelBackground: "#555",
-            labelColor: "#fff",
+            lineWidth: WAVEFORM_RENDERING.GRID_LINE_WIDTH,
+            labelBackground: UI_COLORS.LABEL_BACKGROUND,
+            labelColor: UI_COLORS.LABEL_TEXT,
             labelSize: "11px",
             formatTimeCallback: (seconds: number) => {
               const minutes = Math.floor(seconds / 60);
@@ -289,7 +292,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       // Set up event listeners
       ws.on("ready", async () => {
         try {
-          console.log("WaveSurfer ready - starting setup");
+          waveformLogger.debug("WaveSurfer ready - starting setup");
 
           actions.setDuration(ws.getDuration());
 
@@ -353,22 +356,18 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             );
 
             // Clear existing visual markers
-            const allRegions = regions.getRegions();
-            const existingSpliceMarkers = allRegions.filter((r: Region) =>
-              r.id.startsWith("splice-marker-"),
-            );
-            existingSpliceMarkers.forEach((marker: Region) => marker.remove());
+            removeAllSpliceMarkersAndClearSelection(regions, () => { }, () => { });
 
             // Create visual markers from store
             currentSpliceMarkers.forEach((markerTime, index) => {
               const isLocked = isMarkerLocked(markerTime, currentLockedMarkers);
               regions.addRegion({
                 start: markerTime,
-                color: "rgba(0, 255, 255, 0.8)",
+                color: REGION_COLORS.SPLICE_MARKER,
                 drag: !isLocked, // Prevent dragging if marker is locked
                 resize: false,
                 id: `splice-marker-concat-${index}-${Date.now()}`,
-                content: isLocked ? "🔒" : "🔶", // Use lock icon for locked markers
+                content: isLocked ? MARKER_ICONS.LOCKED : MARKER_ICONS.UNLOCKED, // Use lock icon for locked markers
               });
             });
 
@@ -394,11 +393,11 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               const isLocked = isMarkerLocked(markerTime, currentLockedMarkers);
               regions.addRegion({
                 start: markerTime,
-                color: "rgba(0, 255, 255, 0.8)",
+                color: REGION_COLORS.SPLICE_MARKER,
                 drag: !isLocked, // Prevent dragging if marker is locked
                 resize: false,
                 id: `splice-marker-processed-${index}-${Date.now()}`,
-                content: isLocked ? "🔒" : "🔶", // Use lock icon for locked markers
+                content: isLocked ? MARKER_ICONS.LOCKED : MARKER_ICONS.UNLOCKED, // Use lock icon for locked markers
               });
             });
 
@@ -440,7 +439,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             setTimeout(() => {
               console.log("Calling onLoadingComplete after brief delay");
               onLoadingComplete();
-            }, 100);
+            }, PLAYBACK_TIMING.READY_CALLBACK_DELAY);
           } else {
             console.log(
               "Waveform ready - no onLoadingComplete callback provided",
@@ -481,13 +480,13 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             return;
           }
 
-          // Check if we already have a buffer with the correct duration (within 0.01s tolerance)
+          // Check if we already have a buffer with the correct duration (within tolerance)
           const bufferAlreadyCorrect =
             currentStoredBuffer &&
             Math.abs(
               currentStoredBuffer.length / currentStoredBuffer.sampleRate -
               wsDuration,
-            ) < 0.01;
+            ) < WAVEFORM_RENDERING.BUFFER_DURATION_TOLERANCE;
 
           if (bufferAlreadyCorrect) {
             console.log(
@@ -1325,86 +1324,42 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       [spliceMarkersStore, actions],
     );
 
-    // Splice playback handlers - play specific splice markers by index
-    const handlePlaySplice1 = useCallback(() => {
-      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 1);
+    // Splice playback handlers - dynamically generate handlers for all 20 splice markers
+    const spliceHandlers = useMemo(() => {
+      const handlers: Record<string, () => void> = {};
+
+      for (let i = 1; i <= MAX_SPLICE_MARKERS; i++) {
+        handlers[`handlePlaySplice${i}`] = createGenericSpliceHandler(
+          wavesurferRef,
+          spliceMarkersStore,
+          i
+        );
+      }
+
+      return handlers;
     }, [spliceMarkersStore, wavesurferRef]);
 
-    const handlePlaySplice2 = useCallback(() => {
-      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 2);
-    }, [spliceMarkersStore, wavesurferRef]);
-
-    const handlePlaySplice3 = useCallback(() => {
-      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 3);
-    }, [spliceMarkersStore, wavesurferRef]);
-
-    const handlePlaySplice4 = useCallback(() => {
-      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 4);
-    }, [spliceMarkersStore, wavesurferRef]);
-
-    const handlePlaySplice5 = useCallback(() => {
-      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 5);
-    }, [spliceMarkersStore, wavesurferRef]);
-
-    const handlePlaySplice6 = useCallback(() => {
-      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 6);
-    }, [spliceMarkersStore, wavesurferRef]);
-
-    const handlePlaySplice7 = useCallback(() => {
-      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 7);
-    }, [spliceMarkersStore, wavesurferRef]);
-
-    const handlePlaySplice8 = useCallback(() => {
-      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 8);
-    }, [spliceMarkersStore, wavesurferRef]);
-
-    const handlePlaySplice9 = useCallback(() => {
-      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 9);
-    }, [spliceMarkersStore, wavesurferRef]);
-
-    const handlePlaySplice10 = useCallback(() => {
-      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 10);
-    }, [spliceMarkersStore, wavesurferRef]);
-
-    const handlePlaySplice11 = useCallback(() => {
-      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 11);
-    }, [spliceMarkersStore, wavesurferRef]);
-
-    const handlePlaySplice12 = useCallback(() => {
-      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 12);
-    }, [spliceMarkersStore, wavesurferRef]);
-
-    const handlePlaySplice13 = useCallback(() => {
-      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 13);
-    }, [spliceMarkersStore, wavesurferRef]);
-
-    const handlePlaySplice14 = useCallback(() => {
-      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 14);
-    }, [spliceMarkersStore, wavesurferRef]);
-
-    const handlePlaySplice15 = useCallback(() => {
-      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 15);
-    }, [spliceMarkersStore, wavesurferRef]);
-
-    const handlePlaySplice16 = useCallback(() => {
-      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 16);
-    }, [spliceMarkersStore, wavesurferRef]);
-
-    const handlePlaySplice17 = useCallback(() => {
-      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 17);
-    }, [spliceMarkersStore, wavesurferRef]);
-
-    const handlePlaySplice18 = useCallback(() => {
-      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 18);
-    }, [spliceMarkersStore, wavesurferRef]);
-
-    const handlePlaySplice19 = useCallback(() => {
-      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 19);
-    }, [spliceMarkersStore, wavesurferRef]);
-
-    const handlePlaySplice20 = useCallback(() => {
-      playSpliceMarker(wavesurferRef.current!, spliceMarkersStore, 20);
-    }, [spliceMarkersStore, wavesurferRef]);
+    // Extract individual handlers for the interface
+    const handlePlaySplice1 = spliceHandlers.handlePlaySplice1;
+    const handlePlaySplice2 = spliceHandlers.handlePlaySplice2;
+    const handlePlaySplice3 = spliceHandlers.handlePlaySplice3;
+    const handlePlaySplice4 = spliceHandlers.handlePlaySplice4;
+    const handlePlaySplice5 = spliceHandlers.handlePlaySplice5;
+    const handlePlaySplice6 = spliceHandlers.handlePlaySplice6;
+    const handlePlaySplice7 = spliceHandlers.handlePlaySplice7;
+    const handlePlaySplice8 = spliceHandlers.handlePlaySplice8;
+    const handlePlaySplice9 = spliceHandlers.handlePlaySplice9;
+    const handlePlaySplice10 = spliceHandlers.handlePlaySplice10;
+    const handlePlaySplice11 = spliceHandlers.handlePlaySplice11;
+    const handlePlaySplice12 = spliceHandlers.handlePlaySplice12;
+    const handlePlaySplice13 = spliceHandlers.handlePlaySplice13;
+    const handlePlaySplice14 = spliceHandlers.handlePlaySplice14;
+    const handlePlaySplice15 = spliceHandlers.handlePlaySplice15;
+    const handlePlaySplice16 = spliceHandlers.handlePlaySplice16;
+    const handlePlaySplice17 = spliceHandlers.handlePlaySplice17;
+    const handlePlaySplice18 = spliceHandlers.handlePlaySplice18;
+    const handlePlaySplice19 = spliceHandlers.handlePlaySplice19;
+    const handlePlaySplice20 = spliceHandlers.handlePlaySplice20;
 
     // Memoized region info that updates when regions change
     const regionInfo = useMemo(() => {

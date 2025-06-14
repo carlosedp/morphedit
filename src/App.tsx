@@ -20,7 +20,7 @@ declare global {
   }
 }
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   Container,
   Typography,
@@ -53,12 +53,20 @@ import {
   appendAudioToExisting,
   type ConcatenationResult,
 } from "./utils/audioConcatenation";
-import type { ShortcutAction } from "./keyboardShortcuts";
+import { createActionDispatcher } from "./utils/actionHandlers";
+import { audioLogger, concatenationLogger, createLogger } from "./utils/logger";
+import {
+  MORPHAGENE_MAX_DURATION as CONST_MORPHAGENE_MAX_DURATION,
+  FILE_HANDLING,
+  UI_COLORS,
+  PLAYBACK_TIMING
+} from "./constants";
 import "./App.css";
 import { version } from "./Version.ts";
 import { theme } from "./theme";
 
 function App() {
+  const appLogger = createLogger('App');
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -81,7 +89,7 @@ function App() {
   // State for tracking append mode in length warning dialog
   const [isInAppendMode, setIsInAppendMode] = useState(false);
   const reset = useAudioStore((state) => state.reset);
-  const waveformRef = useRef<WaveformRef>(null);
+  const waveformRef = useRef<WaveformRef | null>(null);
 
   // Function to open manual in a new window/tab
   const handleOpenManual = () => {
@@ -112,7 +120,7 @@ function App() {
       const spliceMarkers = useAudioStore.getState().spliceMarkers;
 
       if (!audioBuffer) {
-        console.error("No existing audio buffer to append to");
+        appLogger.error("No existing audio buffer to append to");
         return;
       }
 
@@ -134,7 +142,7 @@ function App() {
           result.concatenatedBuffer.length /
           result.concatenatedBuffer.sampleRate;
 
-        if (totalDuration > MORPHAGENE_MAX_DURATION) {
+        if (totalDuration > CONST_MORPHAGENE_MAX_DURATION) {
           // Store the result for potential truncation
           setPendingAppendResult(result);
           setIsInAppendMode(true);
@@ -145,7 +153,7 @@ function App() {
           await finishAppendProcess(result);
         }
       } catch (error) {
-        console.error("Error appending audio:", error);
+        appLogger.error("Error appending audio:", error);
         setIsLoading(false);
         setLoadingMessage("");
       }
@@ -168,10 +176,10 @@ function App() {
       setPendingMultipleFilesDuration(totalDuration);
       setMultipleFilesDialogOpen(true);
     } catch (error) {
-      console.error("Error analyzing multiple audio files:", error);
+      appLogger.error("Error analyzing multiple audio files:", error);
       setIsLoading(false);
       // Fallback: just load the first file
-      loadAudioFile(files[0]);
+      loadAudioFile(files[FILE_HANDLING.FIRST_FILE_INDEX]);
     }
   };
 
@@ -187,7 +195,7 @@ function App() {
       const result = await concatenateAudioFiles(
         pendingFiles,
         shouldTruncate,
-        shouldTruncate ? MORPHAGENE_MAX_DURATION : undefined,
+        shouldTruncate ? CONST_MORPHAGENE_MAX_DURATION : undefined,
       );
 
       // Convert AudioBuffer to WAV blob with cue points
@@ -208,19 +216,19 @@ function App() {
       // Lock the boundary markers (markers at the beginning of each file)
       setLockedSpliceMarkers(result.boundaryMarkerPositions);
 
-      console.log(
-        `Concatenated ${pendingFiles.length} files with ${result.spliceMarkerPositions.length} splice markers`,
-      );
-      console.log(
-        `Locked ${result.boundaryMarkerPositions.length} boundary markers:`,
-        result.boundaryMarkerPositions,
+      concatenationLogger.audioOperation(
+        `Concatenated ${pendingFiles.length} files`,
+        {
+          spliceMarkers: result.spliceMarkerPositions.length,
+          boundaryMarkers: result.boundaryMarkerPositions.length
+        }
       );
 
       setPendingFiles([]);
-      setPendingMultipleFilesDuration(0);
+      setPendingMultipleFilesDuration(FILE_HANDLING.NO_FILES);
       // Loading dialog will be closed when Waveform is ready
     } catch (error) {
-      console.error("Error concatenating audio files:", error);
+      appLogger.error("Error concatenating audio files:", error);
       setIsLoading(false);
       setLoadingMessage("");
     }
@@ -229,7 +237,7 @@ function App() {
   const handleCancelMultipleFiles = () => {
     setMultipleFilesDialogOpen(false);
     setPendingFiles([]);
-    setPendingMultipleFilesDuration(0);
+    setPendingMultipleFilesDuration(FILE_HANDLING.NO_FILES);
   };
 
   const loadAudioFile = async (file: File) => {
@@ -439,9 +447,9 @@ function App() {
       // Check if the concatenated audio exceeds 174 seconds
       const totalDuration = result.totalDuration;
 
-      if (totalDuration > MORPHAGENE_MAX_DURATION) {
-        console.log(
-          `Concatenated audio duration (${totalDuration}s) exceeds Morphagene limit (${MORPHAGENE_MAX_DURATION}s)`,
+      if (totalDuration > CONST_MORPHAGENE_MAX_DURATION) {
+        appLogger.warn(
+          `Concatenated audio duration (${totalDuration}s) exceeds Morphagene limit (${CONST_MORPHAGENE_MAX_DURATION}s)`
         );
 
         // Stop loading and show truncate dialog in append mode
@@ -492,7 +500,7 @@ function App() {
     // CRITICAL: Update the audio buffer in the store with the concatenated buffer
     // This ensures exports include the appended audio
     setAudioBuffer(result.concatenatedBuffer);
-    console.log("Updated audio buffer in store with concatenated buffer");
+    audioLogger.audioOperation("Updated audio buffer in store with concatenated buffer");
 
     // Add the boundary markers as locked (including the start of the appended audio)
     const currentLockedSpliceMarkers =
@@ -508,13 +516,13 @@ function App() {
     );
 
     setLockedSpliceMarkers(uniqueLockedMarkers);
-    console.log(
-      `Added ${result.boundaryMarkerPositions.length} boundary markers as locked. Total locked markers: ${uniqueLockedMarkers.length}`,
-    );
-    console.log("New boundary markers:", result.boundaryMarkerPositions);
-
-    console.log(
-      `Appended ${pendingReplaceFiles.length} files with ${result.spliceMarkerPositions.length} splice markers`,
+    concatenationLogger.audioOperation(
+      `Appended ${pendingReplaceFiles.length} files`,
+      {
+        newBoundaryMarkers: result.boundaryMarkerPositions.length,
+        totalLockedMarkers: uniqueLockedMarkers.length,
+        totalSpliceMarkers: result.spliceMarkerPositions.length
+      }
     );
 
     setPendingReplaceFiles([]);
@@ -536,13 +544,13 @@ function App() {
 
     // Reset zoom to show the entire waveform after append operations
     if (shouldResetZoomAfterLoad && waveformRef.current?.handleZoomReset) {
-      console.log("Auto-resetting zoom after append operation");
+      appLogger.debug("Auto-resetting zoom after append operation");
 
       // Add a small delay to ensure the waveform is fully loaded
       setTimeout(() => {
         waveformRef.current?.handleZoomReset();
         setShouldResetZoomAfterLoad(false);
-      }, 100);
+      }, PLAYBACK_TIMING.BRIEF_DELAY);
     }
   };
 
@@ -619,133 +627,11 @@ function App() {
     reset();
   };
 
-  const handleShortcutAction = (action: ShortcutAction) => {
-    switch (action) {
-      case "playPause":
-        waveformRef.current?.handlePlayPause();
-        break;
-      case "toggleCropRegion":
-        waveformRef.current?.handleCropRegion();
-        break;
-      case "reset":
-        handleReset();
-        break;
-      case "toggleLoop":
-        waveformRef.current?.handleLoop();
-        break;
-      case "zoomIn":
-        if (waveformRef.current) {
-          const currentZoom = waveformRef.current.getCurrentZoom();
-          waveformRef.current.handleZoom(Math.min(currentZoom + 20, 500));
-        }
-        break;
-      case "zoomOut":
-        if (waveformRef.current) {
-          const currentZoom = waveformRef.current.getCurrentZoom();
-          waveformRef.current.handleZoom(Math.max(currentZoom - 20, 0));
-        }
-        break;
-      case "skipForward":
-        waveformRef.current?.handleSkipForward();
-        break;
-      case "skipBackward":
-        waveformRef.current?.handleSkipBackward();
-        break;
-      case "increaseSkipIncrement":
-        waveformRef.current?.handleIncreaseSkipIncrement();
-        break;
-      case "decreaseSkipIncrement":
-        waveformRef.current?.handleDecreaseSkipIncrement();
-        break;
-      case "toggleFadeInRegion":
-        waveformRef.current?.handleFadeInRegion();
-        break;
-      case "toggleFadeOutRegion":
-        waveformRef.current?.handleFadeOutRegion();
-        break;
-      case "undo":
-        waveformRef.current?.handleUndo();
-        break;
-      case "addSpliceMarker":
-        waveformRef.current?.handleAddSpliceMarker();
-        break;
-      case "removeSpliceMarker":
-        waveformRef.current?.handleRemoveSpliceMarker();
-        break;
-      case "toggleMarkerLock":
-        waveformRef.current?.handleToggleMarkerLock();
-        break;
-      case "autoSlice":
-        waveformRef.current?.handleAutoSlice();
-        break;
-      case "halfMarkers":
-        waveformRef.current?.handleHalfMarkers();
-        break;
-      case "clearAllMarkers":
-        waveformRef.current?.handleClearAllMarkers();
-        break;
-      case "playSplice1":
-        waveformRef.current?.handlePlaySplice1();
-        break;
-      case "playSplice2":
-        waveformRef.current?.handlePlaySplice2();
-        break;
-      case "playSplice3":
-        waveformRef.current?.handlePlaySplice3();
-        break;
-      case "playSplice4":
-        waveformRef.current?.handlePlaySplice4();
-        break;
-      case "playSplice5":
-        waveformRef.current?.handlePlaySplice5();
-        break;
-      case "playSplice6":
-        waveformRef.current?.handlePlaySplice6();
-        break;
-      case "playSplice7":
-        waveformRef.current?.handlePlaySplice7();
-        break;
-      case "playSplice8":
-        waveformRef.current?.handlePlaySplice8();
-        break;
-      case "playSplice9":
-        waveformRef.current?.handlePlaySplice9();
-        break;
-      case "playSplice10":
-        waveformRef.current?.handlePlaySplice10();
-        break;
-      case "playSplice11":
-        waveformRef.current?.handlePlaySplice11();
-        break;
-      case "playSplice12":
-        waveformRef.current?.handlePlaySplice12();
-        break;
-      case "playSplice13":
-        waveformRef.current?.handlePlaySplice13();
-        break;
-      case "playSplice14":
-        waveformRef.current?.handlePlaySplice14();
-        break;
-      case "playSplice15":
-        waveformRef.current?.handlePlaySplice15();
-        break;
-      case "playSplice16":
-        waveformRef.current?.handlePlaySplice16();
-        break;
-      case "playSplice17":
-        waveformRef.current?.handlePlaySplice17();
-        break;
-      case "playSplice18":
-        waveformRef.current?.handlePlaySplice18();
-        break;
-      case "playSplice19":
-        waveformRef.current?.handlePlaySplice19();
-        break;
-      case "playSplice20":
-        waveformRef.current?.handlePlaySplice20();
-        break;
-    }
-  };
+  // Replace the large switch statement with a simple dispatcher
+  const handleShortcutAction = useMemo(
+    () => createActionDispatcher(waveformRef),
+    [waveformRef]
+  );
 
   useKeyboardShortcuts({
     onAction: handleShortcutAction,
@@ -796,7 +682,7 @@ function App() {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.7)",
+              backgroundColor: UI_COLORS.OVERLAY_BACKGROUND,
               color: "white",
               display: "flex",
               flexDirection: "column",
@@ -920,32 +806,39 @@ function App() {
                 onChange={handleFileChange}
               />
             </Button>
-            <Button
-              variant="outlined"
-              component="label"
-              disabled={!audioUrl}
-              sx={{
-                opacity: !audioUrl ? 0.5 : 1,
-                flex: { xs: 1, sm: "none" },
-                minWidth: { sm: "160px" },
-                fontSize: { xs: "0.9rem", sm: "0.875rem" },
-                padding: { xs: "0.7em 1.2em", sm: "6px 16px" },
-                minHeight: { xs: "48px", sm: "36px" },
-                height: { xs: "48px", sm: "auto" }, // Force consistent height on mobile
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              Append Audio
-              <input
-                type="file"
-                accept="audio/*"
-                multiple
-                hidden
-                onChange={handleAppendFileChange}
-              />
-            </Button>
+            <Tooltip title="Append audio to existing file(s)">
+              <Box
+                component="span"
+                sx={{ flex: { xs: 1, sm: "none" } }}
+              >
+                <Button
+                  variant="outlined"
+                  component="label"
+                  disabled={!audioUrl}
+                  sx={{
+                    opacity: !audioUrl ? 0.5 : 1,
+                    flex: { xs: 1, sm: "none" },
+                    minWidth: { sm: "160px" },
+                    fontSize: { xs: "0.9rem", sm: "0.875rem" },
+                    padding: { xs: "0.7em 1.2em", sm: "6px 16px" },
+                    minHeight: { xs: "48px", sm: "36px" },
+                    height: { xs: "48px", sm: "auto" }, // Force consistent height on mobile
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  Append Audio
+                  <input
+                    type="file"
+                    accept="audio/*"
+                    multiple
+                    hidden
+                    onChange={handleAppendFileChange}
+                  />
+                </Button>
+              </Box>
+            </Tooltip>
             <Tooltip title="Unload current audio and clear all data">
               <Box
                 component="span"

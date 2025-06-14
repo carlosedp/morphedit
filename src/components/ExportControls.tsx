@@ -4,6 +4,7 @@ import { Button, ButtonGroup, Menu, MenuItem, Tooltip } from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { exportFormats, type ExportFormat } from "../utils/exportUtils";
+import { TOOLTIP_DELAYS } from "../constants";
 
 interface ExportControlsProps {
   exportAnchorEl: HTMLElement | null;
@@ -25,8 +26,8 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
       <ButtonGroup variant="outlined" sx={{ ml: 2 }}>
         <Tooltip
           title="Export audio for MakeNoise Morphagene (48Khz/32-bit Float Stereo)"
-          enterDelay={500}
-          leaveDelay={200}
+          enterDelay={TOOLTIP_DELAYS.ENTER}
+          leaveDelay={TOOLTIP_DELAYS.LEAVE}
         >
           <Button onClick={onExportWav} startIcon={<DownloadIcon />}>
             Export WAV
@@ -34,8 +35,8 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
         </Tooltip>
         <Tooltip
           title="Export audio for other formats"
-          enterDelay={500}
-          leaveDelay={200}
+          enterDelay={TOOLTIP_DELAYS.ENTER}
+          leaveDelay={TOOLTIP_DELAYS.LEAVE}
         >
           <Button
             size="small"

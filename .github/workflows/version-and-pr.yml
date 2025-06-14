@@ -101,7 +101,7 @@ jobs:
               *This PR was created automatically by the Version Update workflow.*`
             });
 
-            console.log('Created PR #' + pullRequest.number + ': ' + pullRequest.html_url);
+            console.log(\`Created PR #\${pullRequest.number}: \${pullRequest.html_url}\`);
 
             // Add labels if they exist
             try {

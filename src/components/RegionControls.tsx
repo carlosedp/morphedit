@@ -4,6 +4,7 @@ import { Box, Button, Stack, Tooltip } from "@mui/material";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 import UndoIcon from "@mui/icons-material/Undo";
+import { TOOLTIP_DELAYS } from "../constants";
 
 interface RegionControlsProps {
   cropMode: boolean;
@@ -39,12 +40,11 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
         flexWrap: "wrap",
         gap: { xs: 0.5, sm: 1 },
       }}
+    >      <Tooltip
+      title="Create crop/loop region"
+      enterDelay={TOOLTIP_DELAYS.ENTER}
+      leaveDelay={TOOLTIP_DELAYS.LEAVE}
     >
-      <Tooltip
-        title="Create crop/loop region"
-        enterDelay={500}
-        leaveDelay={200}
-      >
         <Button
           variant={cropMode ? "contained" : "outlined"}
           color="primary"
@@ -53,12 +53,10 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
         >
           Crop/Loop Region
         </Button>
-      </Tooltip>
-
-      <Tooltip
+      </Tooltip>      <Tooltip
         title="Create a fade-in region"
-        enterDelay={500}
-        leaveDelay={200}
+        enterDelay={TOOLTIP_DELAYS.ENTER}
+        leaveDelay={TOOLTIP_DELAYS.LEAVE}
       >
         <Button
           variant={fadeInMode ? "contained" : "outlined"}
@@ -71,7 +69,7 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
         </Button>
       </Tooltip>
 
-      <Tooltip title="Create fade-out region" enterDelay={500} leaveDelay={200}>
+      <Tooltip title="Create fade-out region" enterDelay={TOOLTIP_DELAYS.ENTER} leaveDelay={TOOLTIP_DELAYS.LEAVE}>
         <Button
           variant={fadeOutMode ? "contained" : "outlined"}
           color="primary"
@@ -85,8 +83,8 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
 
       <Tooltip
         title="Apply crop to current audio"
-        enterDelay={500}
-        leaveDelay={200}
+        enterDelay={TOOLTIP_DELAYS.ENTER}
+        leaveDelay={TOOLTIP_DELAYS.LEAVE}
       >
         <Box component="span">
           <Button
@@ -103,8 +101,8 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
 
       <Tooltip
         title="Apply fade regions to current audio"
-        enterDelay={500}
-        leaveDelay={200}
+        enterDelay={TOOLTIP_DELAYS.ENTER}
+        leaveDelay={TOOLTIP_DELAYS.LEAVE}
       >
         <Box component="span">
           <Button
@@ -119,7 +117,7 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
         </Box>
       </Tooltip>
 
-      <Tooltip title="Undo last edit" enterDelay={500} leaveDelay={200}>
+      <Tooltip title="Undo last edit" enterDelay={TOOLTIP_DELAYS.ENTER} leaveDelay={TOOLTIP_DELAYS.LEAVE}>
         <Box component="span">
           <Button
             variant="outlined"

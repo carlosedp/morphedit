@@ -1,5 +1,11 @@
 // Audio concatenation utilities for handling multiple files
 
+import { copyAudioData } from "./audioBufferUtils";
+import { concatenationLogger } from "./logger";
+
+/**
+ * @deprecated Use `ConcatenationResultV2` instead.
+ */
 export interface ConcatenationResult {
   concatenatedBuffer: AudioBuffer;
   spliceMarkerPositions: number[];
@@ -136,8 +142,9 @@ export const concatenateAudioFiles = async (
           spliceMarkerPositions.push(currentTimeOffset + cuePoint);
         }
       }
-      console.log(
-        `Added ${fileCuePoints.cuePoints.length} existing cue points from file ${i}`,
+      concatenationLogger.markerOperation(
+        `Added existing cue points from file ${i}`,
+        fileCuePoints.cuePoints.length
       );
     }
 
@@ -206,18 +213,8 @@ export const concatenateAudioFiles = async (
         ? Math.min(buffer.length, totalLength - currentOffset)
         : buffer.length;
 
-    for (let channel = 0; channel < numberOfChannels; channel++) {
-      const sourceData =
-        buffer.numberOfChannels > channel
-          ? buffer.getChannelData(channel)
-          : new Float32Array(buffer.length); // Silent channel if source doesn't have it
-
-      const destData = concatenatedBuffer.getChannelData(channel);
-
-      for (let i = 0; i < copyLength; i++) {
-        destData[currentOffset + i] = sourceData[i];
-      }
-    }
+    // Use the utility function to copy audio data
+    copyAudioData(buffer, concatenatedBuffer, 0, currentOffset, copyLength);
 
     currentOffset += copyLength;
   }
@@ -375,18 +372,7 @@ export const appendAudioToExisting = async (
     existingBuffer.length,
     totalLength - currentOffset,
   );
-  for (let channel = 0; channel < numberOfChannels; channel++) {
-    const sourceData =
-      existingBuffer.numberOfChannels > channel
-        ? existingBuffer.getChannelData(channel)
-        : new Float32Array(existingBuffer.length);
-
-    const destData = concatenatedBuffer.getChannelData(channel);
-
-    for (let i = 0; i < existingCopyLength; i++) {
-      destData[currentOffset + i] = sourceData[i];
-    }
-  }
+  copyAudioData(existingBuffer, concatenatedBuffer, 0, currentOffset, existingCopyLength);
   currentOffset += existingCopyLength;
 
   // Copy new audio files
@@ -396,18 +382,8 @@ export const appendAudioToExisting = async (
         ? Math.min(buffer.length, totalLength - currentOffset)
         : buffer.length;
 
-    for (let channel = 0; channel < numberOfChannels; channel++) {
-      const sourceData =
-        buffer.numberOfChannels > channel
-          ? buffer.getChannelData(channel)
-          : new Float32Array(buffer.length);
-
-      const destData = concatenatedBuffer.getChannelData(channel);
-
-      for (let i = 0; i < copyLength; i++) {
-        destData[currentOffset + i] = sourceData[i];
-      }
-    }
+    // Use utility function to copy audio data
+    copyAudioData(buffer, concatenatedBuffer, 0, currentOffset, copyLength);
 
     currentOffset += copyLength;
   }
