@@ -24,21 +24,30 @@ jobs:
         id: get_version
         run: |
           # Get the tag name and remove the 'v' prefix if present
-          VERSION=${GITHUB_REF#refs/tags/}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Version extracted: $VERSION"
+          FULL_VERSION=${GITHUB_REF#refs/tags/}
+          VERSION_WITHOUT_V=${FULL_VERSION#v}
+          echo "full_version=$FULL_VERSION" >> $GITHUB_OUTPUT
+          echo "version_without_v=$VERSION_WITHOUT_V" >> $GITHUB_OUTPUT
+          echo "branch_name=release/$FULL_VERSION" >> $GITHUB_OUTPUT
+          echo "Full version extracted: $FULL_VERSION"
+          echo "Version without v: $VERSION_WITHOUT_V"
+
+      - name: Create release branch
+        run: |
+          git checkout -b ${{ steps.get_version.outputs.branch_name }}
+          echo "Created branch: ${{ steps.get_version.outputs.branch_name }}"
 
       - name: Update version in Version.ts
         run: |
-          # Update the version in src/Version.ts
-          sed -i 's/export const version = ".*";/export const version = "${{ steps.get_version.outputs.version }}";/' src/Version.ts
-          echo "Updated version in src/Version.ts to ${{ steps.get_version.outputs.version }}"
+          # Update the version in src/Version.ts (keep the 'v' prefix)
+          sed -i 's/export const version = ".*";/export const version = "${{ steps.get_version.outputs.full_version }}";/' src/Version.ts
+          echo "Updated version in src/Version.ts to ${{ steps.get_version.outputs.full_version }}"
 
       - name: Update version in package.json
         run: |
-          # Update the version in package.json
-          jq --arg version "${{ steps.get_version.outputs.version }}" '.version = $version' package.json > package.json.tmp && mv package.json.tmp package.json
-          echo "Updated version in package.json to ${{ steps.get_version.outputs.version }}"
+          # Update the version in package.json (without 'v' prefix)
+          jq --arg version "${{ steps.get_version.outputs.version_without_v }}" '.version = $version' package.json > package.json.tmp && mv package.json.tmp package.json
+          echo "Updated version in package.json to ${{ steps.get_version.outputs.version_without_v }}"
 
       - name: Verify package.json version update
         run: |
@@ -58,8 +67,8 @@ jobs:
       - name: Commit version update and push
         run: |
           git add src/Version.ts package.json
-          git commit -m "chore: update version to ${{ steps.get_version.outputs.version }}"
-          git push origin main
+          git commit -m "chore: update version to ${{ steps.get_version.outputs.full_version }}"
+          git push origin ${{ steps.get_version.outputs.branch_name }}
 
       - name: Create Pull Request to Production
         uses: actions/github-script@v7
@@ -68,17 +77,17 @@ jobs:
             const { data: pullRequest } = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `🚀 Release ${{ steps.get_version.outputs.version }} to Production`,
-              head: process.env.branch_name,
+              title: `🚀 Release ${{ steps.get_version.outputs.full_version }} to Production`,
+              head: '${{ steps.get_version.outputs.branch_name }}',
               base: 'production',
-              body: `## Release ${{ steps.get_version.outputs.version }} to Production
+              body: `## Release ${{ steps.get_version.outputs.full_version }} to Production
 
-              This PR was automatically created when tag \`${{ steps.get_version.outputs.version }}\` was pushed.
+              This PR was automatically created when tag \`${{ steps.get_version.outputs.full_version }}\` was pushed.
 
               ### Changes
-              - ✅ Merged all changes from tag \`${{ steps.get_version.outputs.version }}\` into production
-              - ✅ Updated version number to \`${{ steps.get_version.outputs.version }}\` in \`src/Version.ts\` and \`package.json\`
-              - 🏷️ Tagged as \`${{ steps.get_version.outputs.version }}\`
+              - ✅ Merged all changes from tag \`${{ steps.get_version.outputs.full_version }}\` into production
+              - ✅ Updated version number to \`${{ steps.get_version.outputs.full_version }}\` in \`src/Version.ts\` and \`package.json\`
+              - 🏷️ Tagged as \`${{ steps.get_version.outputs.full_version }}\`
 
               ### Deployment
               Once this PR is merged to the \`production\` branch, the GitHub Pages deployment will automatically trigger.
@@ -92,7 +101,7 @@ jobs:
               *This PR was created automatically by the Version Update workflow.*`
             });
 
-            console.log(`Created PR #${pullRequest.number}: ${pullRequest.html_url}`);
+            console.log('Created PR #' + pullRequest.number + ': ' + pullRequest.html_url);
 
             // Add labels if they exist
             try {
@@ -109,8 +118,8 @@ jobs:
       - name: Summary
         run: |
           echo "## Summary" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Version updated to \`${{ steps.get_version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Merged tagged changes into release branch" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Version updated to \`${{ steps.get_version.outputs.full_version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Created release branch \`${{ steps.get_version.outputs.branch_name }}\`" >> $GITHUB_STEP_SUMMARY
           echo "✅ Created PR to \`production\` branch" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Next steps:**" >> $GITHUB_STEP_SUMMARY
