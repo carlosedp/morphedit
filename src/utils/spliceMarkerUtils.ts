@@ -41,7 +41,22 @@ export const toggleMarkerLock = (
     );
     setLockedSpliceMarkers(newLockedMarkers);
     spliceLogger.markerOperation(
-      isLocked ? "Marker unlocked" : "Marker locked",
+      "Marker unlocked",
+      1,
+      `at ${markerTime.toFixed(3)}s`
+    );
+
+    // Update drag properties and icons of all markers
+    if (regions) {
+      updateMarkersDragProperty(regions, newLockedMarkers);
+      updateMarkerIcons(regions, newLockedMarkers);
+    }
+  } else {
+    // Lock: add to locked markers
+    const newLockedMarkers = [...lockedMarkers, markerTime];
+    setLockedSpliceMarkers(newLockedMarkers);
+    spliceLogger.markerOperation(
+      "Marker locked",
       1,
       `at ${markerTime.toFixed(3)}s`
     );
@@ -472,12 +487,12 @@ export const updateSpliceMarkerColors = (
     // Update the drag property based on locked state
     (region as Region & { drag: boolean }).drag = !isLocked;
 
-    // Determine the appropriate icon based on state priority: selected > locked > unlocked
+    // Determine the appropriate icon based on state priority: locked > selected > unlocked
     let newIcon: string;
-    if (isSelected) {
-      newIcon = MARKER_ICONS.SELECTED;
-    } else if (isLocked) {
+    if (isLocked) {
       newIcon = MARKER_ICONS.LOCKED;
+    } else if (isSelected) {
+      newIcon = MARKER_ICONS.SELECTED;
     } else {
       newIcon = MARKER_ICONS.UNLOCKED;
     }
@@ -492,13 +507,9 @@ export const updateSpliceMarkerColors = (
       region.element.style.backgroundColor = isLocked
         ? UI_COLORS.SELECTED_MARKER_BACKGROUND_LOCKED // Orange background if locked
         : UI_COLORS.SELECTED_MARKER_BACKGROUND_UNLOCKED; // Blue background if unlocked
-    } else if (isLocked) {
-      // Locked markers: use red/orange color to indicate they're locked
-      region.element.style.borderLeft = `2px solid ${UI_COLORS.LOCKED_MARKER_BORDER}`; // Thicker orange border for locked
-      region.element.style.backgroundColor = UI_COLORS.LOCKED_MARKER_BACKGROUND; // Slightly more opaque orange background
-      region.element.style.boxShadow = `0 0 4px ${UI_COLORS.LOCKED_MARKER_GLOW}`; // Add glow effect
     } else {
-      // Unselected, unlocked markers: use default cyan color
+      // Unselected markers (both locked and unlocked): use same default cyan color
+      // Only the icon will differ between locked (🔒) and unlocked (🔶) markers
       region.element.style.borderLeft = `2px solid ${REGION_COLORS.SPLICE_MARKER}`;
       region.element.style.backgroundColor = UI_COLORS.DEFAULT_MARKER_BACKGROUND;
       region.element.style.boxShadow = `none`; // Remove any existing glow

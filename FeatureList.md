@@ -40,6 +40,6 @@
 - [x] Concatenated audio when cropped, exports as full file and not cropped audio length
 - [x] Contatenated audio when cropped, have splice points duplicated
 - [x] Fix bug where splice markers appear at wrong visual positions after crop operations (while maintaining correct times in export and debug)
-- [ ] Locking splice markers are not working after refactor
-- [ ] Selecting a locked marker should keep the lock icon visible
-- [ ] Truncation seems to not work after refactor
+- [x] Locking splice markers are not working after refactor
+- [x] Selecting a locked marker should keep the lock icon visible
+- [x] Truncation seems to not work after refactor

@@ -580,6 +580,11 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       // Update current time when clicking on the waveform
       ws.on("click", () => {
         actions.setCurrentTime(ws.getCurrentTime());
+        // Deselect any selected splice marker when clicking on waveform
+        if (state.selectedSpliceMarker) {
+          actions.setSelectedSpliceMarker(null);
+          memoizedUpdateSpliceMarkerColors(null);
+        }
       });
 
       // Load audio - preprocess for truncation if needed
