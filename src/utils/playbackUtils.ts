@@ -2,6 +2,7 @@
 import type { Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type WaveSurfer from "wavesurfer.js";
+import { SKIP_INCREMENTS } from "../constants";
 
 // Store the current splice stop listener to clean it up when needed
 let currentSpliceStopListener: ((time: number) => void) | null = null;
@@ -166,9 +167,9 @@ export const skipBackward = (ws: WaveSurfer, skipIncrement: number) => {
 };
 
 export const increaseSkipIncrement = (skipIncrement: number): number => {
-  if (skipIncrement < 0.1) return skipIncrement + 0.01; // 0.01s increments for very small values
-  if (skipIncrement < 1) return skipIncrement + 0.1; // 0.1s increments for small values
-  if (skipIncrement < 10) return skipIncrement + 1; // 1s increments for medium values
+  if (skipIncrement < SKIP_INCREMENTS.SMALL_THRESHOLD) return skipIncrement + SKIP_INCREMENTS.SMALL_INCREMENT;
+  if (skipIncrement < SKIP_INCREMENTS.LARGE_THRESHOLD) return skipIncrement + SKIP_INCREMENTS.MEDIUM_INCREMENT;
+  if (skipIncrement < 10) return skipIncrement + SKIP_INCREMENTS.LARGE_INCREMENT; // 1s increments for medium values
   if (skipIncrement < 60) return skipIncrement + 10; // 10s increments for large values
   return skipIncrement + 30; // 30s increments for very large values
 };
@@ -176,10 +177,10 @@ export const increaseSkipIncrement = (skipIncrement: number): number => {
 export const decreaseSkipIncrement = (skipIncrement: number): number => {
   if (skipIncrement > 60) return skipIncrement - 30; // 30s decrements for very large values
   if (skipIncrement > 10) return skipIncrement - 10; // 10s decrements for large values
-  if (skipIncrement > 1) return skipIncrement - 1; // 1s decrements for medium values
-  if (skipIncrement > 0.1) return skipIncrement - 0.1; // 0.1s decrements for small values
-  if (skipIncrement > 0.01) return skipIncrement - 0.01; // 0.01s decrements for very small values
-  return 0.01; // Minimum value
+  if (skipIncrement > SKIP_INCREMENTS.LARGE_THRESHOLD) return skipIncrement - SKIP_INCREMENTS.LARGE_INCREMENT;
+  if (skipIncrement > SKIP_INCREMENTS.SMALL_THRESHOLD) return skipIncrement - SKIP_INCREMENTS.MEDIUM_INCREMENT;
+  if (skipIncrement > SKIP_INCREMENTS.SMALL_INCREMENT) return skipIncrement - SKIP_INCREMENTS.SMALL_INCREMENT;
+  return SKIP_INCREMENTS.MINIMUM_VALUE; // Minimum value
 };
 
 export const undo = async (

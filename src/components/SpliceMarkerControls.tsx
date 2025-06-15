@@ -18,6 +18,7 @@ import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
 import CenterFocusStrongIcon from "@mui/icons-material/CenterFocusStrong";
 import LockIcon from "@mui/icons-material/Lock";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
+import { TOOLTIP_DELAYS } from "../constants";
 
 interface SpliceMarkerControlsProps {
   selectedSpliceMarker: boolean;
@@ -85,8 +86,8 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
         >
           <Tooltip
             title="Add splice marker at current time"
-            enterDelay={500}
-            leaveDelay={200}
+            enterDelay={TOOLTIP_DELAYS.ENTER}
+            leaveDelay={TOOLTIP_DELAYS.LEAVE}
           >
             <Button
               variant="outlined"
@@ -100,12 +101,10 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             >
               <AddIcon />
             </Button>
-          </Tooltip>
-
-          <Tooltip
+          </Tooltip>          <Tooltip
             title="Remove selected splice marker"
-            enterDelay={500}
-            leaveDelay={200}
+            enterDelay={TOOLTIP_DELAYS.ENTER}
+            leaveDelay={TOOLTIP_DELAYS.LEAVE}
           >
             <Box component="span">
               <Button
@@ -130,8 +129,8 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
                 ? "Unlock selected splice marker"
                 : "Lock selected splice marker"
             }
-            enterDelay={500}
-            leaveDelay={200}
+            enterDelay={TOOLTIP_DELAYS.ENTER}
+            leaveDelay={TOOLTIP_DELAYS.LEAVE}
           >
             <Box component="span">
               <Button
@@ -165,8 +164,8 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
         >
           <Tooltip
             title="Number of equal slices to create"
-            enterDelay={500}
-            leaveDelay={200}
+            enterDelay={TOOLTIP_DELAYS.ENTER}
+            leaveDelay={TOOLTIP_DELAYS.LEAVE}
           >
             <TextField
               label="Slices"
@@ -195,8 +194,8 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
 
           <Tooltip
             title="Create equally distributed splice markers"
-            enterDelay={500}
-            leaveDelay={200}
+            enterDelay={TOOLTIP_DELAYS.ENTER}
+            leaveDelay={TOOLTIP_DELAYS.LEAVE}
           >
             <Box component="span">
               <Button
@@ -218,8 +217,8 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
 
           <Tooltip
             title="Remove every other splice marker (keep 1st, 3rd, 5th...)"
-            enterDelay={500}
-            leaveDelay={200}
+            enterDelay={TOOLTIP_DELAYS.ENTER}
+            leaveDelay={TOOLTIP_DELAYS.LEAVE}
           >
             <Box component="span">
               <Button
@@ -253,8 +252,8 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
         >
           <Tooltip
             title="Clear all splice markers"
-            enterDelay={500}
-            leaveDelay={200}
+            enterDelay={TOOLTIP_DELAYS.ENTER}
+            leaveDelay={TOOLTIP_DELAYS.LEAVE}
           >
             <Box component="span">
               <Button
@@ -276,8 +275,8 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
 
           <Tooltip
             title="Snap all existing markers to zero crossings (reduces audio artifacts)"
-            enterDelay={500}
-            leaveDelay={200}
+            enterDelay={TOOLTIP_DELAYS.ENTER}
+            leaveDelay={TOOLTIP_DELAYS.LEAVE}
           >
             <Box component="span">
               <Button
@@ -462,8 +461,8 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
         <Stack direction="row" spacing={1} justifyContent="center">
           <Tooltip
             title="Detect transients and create splice markers"
-            enterDelay={500}
-            leaveDelay={200}
+            enterDelay={TOOLTIP_DELAYS.ENTER}
+            leaveDelay={TOOLTIP_DELAYS.LEAVE}
           >
             <Box component="span">
               <Button

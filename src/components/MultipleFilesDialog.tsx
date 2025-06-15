@@ -22,6 +22,7 @@ interface MultipleFilesDialogProps {
   open: boolean;
   files: File[];
   totalDuration: number;
+  isAppendMode?: boolean;
   onConcatenate: () => void;
   onTruncateAndConcatenate: () => void;
   onCancel: () => void;
@@ -31,6 +32,7 @@ export const MultipleFilesDialog: React.FC<MultipleFilesDialogProps> = ({
   open,
   files,
   totalDuration,
+  isAppendMode = false,
   onConcatenate,
   onTruncateAndConcatenate,
   onCancel,
@@ -104,12 +106,12 @@ export const MultipleFilesDialog: React.FC<MultipleFilesDialogProps> = ({
           <Alert severity="warning" sx={{ mb: 2 }}>
             The total duration exceeds the Morphagene maximum of{" "}
             {formatDuration(MORPHAGENE_MAX_DURATION)}. You can truncate the
-            concatenated audio to fit the maximum length.
+            {isAppendMode ? " appended" : " concatenated"} audio to fit the maximum length.
           </Alert>
         )}
 
         <Typography variant="body2" color="text.secondary">
-          Files will be concatenated in the order shown above (alphabetical).
+          Files will be {isAppendMode ? "appended to the existing audio" : "concatenated"} in the order shown above (alphabetical).
           Splice markers will be automatically placed at the boundaries between
           files.
         </Typography>
@@ -124,11 +126,14 @@ export const MultipleFilesDialog: React.FC<MultipleFilesDialogProps> = ({
             color="primary"
             variant="outlined"
           >
-            Truncate & Concatenate
+            Truncate & {isAppendMode ? "Append" : "Concatenate"}
           </Button>
         )}
         <Button onClick={onConcatenate} color="primary" variant="contained">
-          {exceedsMaxLength ? "Concatenate Full Length" : "Concatenate Files"}
+          {exceedsMaxLength 
+            ? (isAppendMode ? "Append Full Length" : "Concatenate Full Length")
+            : (isAppendMode ? "Append Files" : "Concatenate Files")
+          }
         </Button>
       </DialogActions>
     </Dialog>

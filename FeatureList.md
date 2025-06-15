@@ -24,16 +24,22 @@
   - [ ]  Truncate lenght
 - [ ] Improve splice detection with maybe a different algorithm or more advanced settings
 - [ ] Add detection preset slots to save sensitivity, frame size, and overlap settings
+- [x] Use mouse scroll to zoom in/out on the waveform
+- [x] Add tooltip to append audio button
+- [ ] Detect if audio has more than 300 splice points and show warning if user wants to truncate it or not. Make this number a constant.
 
 ## To Test
 
 - [ ] Check if splice points are detected correctly when audio is truncated
-- [ ] Fix bug where splice points are not detected correctly when audio is appended
 
 ## Bugs
 
+- [x] Fix bug where splice points are not detected correctly when audio is appended
 - [x] Fix bug where splice points are not correctly placed after the audio is cropped
 - [x] Fix bug where audio files with existing splice markers (cue points) are not being imported/loaded
 - [x] Concatenated audio when cropped, exports as full file and not cropped audio length
 - [x] Contatenated audio when cropped, have splice points duplicated
 - [x] Fix bug where splice markers appear at wrong visual positions after crop operations (while maintaining correct times in export and debug)
+- [x] Locking splice markers are not working after refactor
+- [x] Selecting a locked marker should keep the lock icon visible
+- [x] Truncation seems to not work after refactor

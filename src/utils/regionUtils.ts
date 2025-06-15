@@ -1,9 +1,13 @@
-// Region utilities for crop and fade operations
+// Region utilities for crop, fade, and other region operations
 import type { Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type WaveSurfer from "wavesurfer.js";
-import { useAudioStore } from "../audioStore";
 import { audioBufferToWavWithCues } from "./audioProcessing";
+import { copyAudioData } from "./audioBufferUtils";
+import { regionLogger } from "./logger";
+import { getSpliceMarkerRegions } from "./regionHelpers";
+import { REGION_COLORS, REGION_POSITIONING } from "../constants";
+import { useAudioStore } from "../audioStore";
 import { findNearestZeroCrossing } from "./transientDetection";
 
 // Type for region info display
@@ -70,9 +74,9 @@ export const createCropRegion = (
     // Create new crop region
     const duration = ws.getDuration();
     const region = regions.addRegion({
-      start: duration * 0.25,
-      end: duration * 0.75,
-      color: "rgba(255, 208, 0, 0.2)",
+      start: duration * REGION_POSITIONING.DEFAULT_START_RATIO,
+      end: duration * REGION_POSITIONING.DEFAULT_END_RATIO,
+      color: REGION_COLORS.CROP_REGION,
       drag: true,
       resize: true,
       id: "crop-loop",
@@ -113,18 +117,18 @@ export const createFadeInRegion = (
       // Create fade-in region within the crop region (first 10% of crop region duration)
       const cropDuration = cropRegion.end - cropRegion.start;
       fadeStart = cropRegion.start;
-      fadeEnd = cropRegion.start + cropDuration * 0.1;
+      fadeEnd = cropRegion.start + cropDuration * REGION_POSITIONING.FADE_RATIO;
     } else {
       // Create fade-in region for entire audio (first 10% of total duration)
       const duration = ws.getDuration();
       fadeStart = 0;
-      fadeEnd = duration * 0.1;
+      fadeEnd = duration * REGION_POSITIONING.FADE_RATIO;
     }
 
     const region = regions.addRegion({
       start: fadeStart,
       end: fadeEnd,
-      color: "rgba(0, 255, 0, 0.2)",
+      color: REGION_COLORS.FADE_IN,
       drag: true,
       resize: true,
       id: "fade-in",
@@ -162,19 +166,19 @@ export const createFadeOutRegion = (
     if (cropRegion) {
       // Create fade-out region within the crop region (last 10% of crop region duration)
       const cropDuration = cropRegion.end - cropRegion.start;
-      fadeStart = cropRegion.end - cropDuration * 0.1;
+      fadeStart = cropRegion.end - cropDuration * REGION_POSITIONING.FADE_RATIO;
       fadeEnd = cropRegion.end;
     } else {
       // Create fade-out region for entire audio (last 10% of total duration)
       const duration = ws.getDuration();
-      fadeStart = duration * 0.9;
+      fadeStart = duration * (1 - REGION_POSITIONING.FADE_RATIO);
       fadeEnd = duration;
     }
 
     const region = regions.addRegion({
       start: fadeStart,
       end: fadeEnd,
-      color: "rgba(255, 0, 0, 0.2)",
+      color: REGION_COLORS.FADE_OUT,
       drag: true,
       resize: true,
       id: "fade-out",
@@ -299,29 +303,20 @@ export const applyCrop = async (
     sampleRate,
   );
 
-  for (let channel = 0; channel < numberOfChannels; channel++) {
-    const channelData = audioBuffer.getChannelData(channel);
-    const newChannelData = newBuffer.getChannelData(channel);
+  // Use utility function to copy the cropped portion
+  copyAudioData(audioBuffer, newBuffer, startSample, 0, newLength);
 
-    for (let i = 0; i < newLength; i++) {
-      newChannelData[i] = channelData[startSample + i];
-    }
-  }
-
-  console.log("New buffer created, converting to WAV...");
+  regionLogger.processingState("New buffer created, converting to WAV");
 
   // Get current splice markers from store
-  console.log("Current splice markers from store:", spliceMarkersStore);
-  console.log(
+  regionLogger.debug("Current splice markers from store:", spliceMarkersStore);
+  regionLogger.debug(
     "Current locked splice markers from store:",
     lockedSpliceMarkersStore,
   );
 
   // Also check visual markers for comparison
-  const allRegions = regions.getRegions();
-  const visualSpliceMarkers = allRegions.filter((r: Region) =>
-    r.id.startsWith("splice-marker-"),
-  );
+  const visualSpliceMarkers = getSpliceMarkerRegions(regions);
   console.log("Visual splice markers count:", visualSpliceMarkers.length);
 
   // Filter and adjust splice markers to only include those within the cropped region

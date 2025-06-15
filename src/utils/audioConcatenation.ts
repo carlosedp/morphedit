@@ -1,5 +1,11 @@
 // Audio concatenation utilities for handling multiple files
 
+import { copyAudioData } from "./audioBufferUtils";
+import { concatenationLogger } from "./logger";
+
+/**
+ * @deprecated Use `ConcatenationResultV2` instead.
+ */
 export interface ConcatenationResult {
   concatenatedBuffer: AudioBuffer;
   spliceMarkerPositions: number[];
@@ -136,8 +142,9 @@ export const concatenateAudioFiles = async (
           spliceMarkerPositions.push(currentTimeOffset + cuePoint);
         }
       }
-      console.log(
-        `Added ${fileCuePoints.cuePoints.length} existing cue points from file ${i}`,
+      concatenationLogger.markerOperation(
+        `Added existing cue points from file ${i}`,
+        fileCuePoints.cuePoints.length
       );
     }
 
@@ -206,18 +213,8 @@ export const concatenateAudioFiles = async (
         ? Math.min(buffer.length, totalLength - currentOffset)
         : buffer.length;
 
-    for (let channel = 0; channel < numberOfChannels; channel++) {
-      const sourceData =
-        buffer.numberOfChannels > channel
-          ? buffer.getChannelData(channel)
-          : new Float32Array(buffer.length); // Silent channel if source doesn't have it
-
-      const destData = concatenatedBuffer.getChannelData(channel);
-
-      for (let i = 0; i < copyLength; i++) {
-        destData[currentOffset + i] = sourceData[i];
-      }
-    }
+    // Use the utility function to copy audio data
+    copyAudioData(buffer, concatenatedBuffer, 0, currentOffset, copyLength);
 
     currentOffset += copyLength;
   }
@@ -375,41 +372,26 @@ export const appendAudioToExisting = async (
     existingBuffer.length,
     totalLength - currentOffset,
   );
-  for (let channel = 0; channel < numberOfChannels; channel++) {
-    const sourceData =
-      existingBuffer.numberOfChannels > channel
-        ? existingBuffer.getChannelData(channel)
-        : new Float32Array(existingBuffer.length);
-
-    const destData = concatenatedBuffer.getChannelData(channel);
-
-    for (let i = 0; i < existingCopyLength; i++) {
-      destData[currentOffset + i] = sourceData[i];
-    }
-  }
+  copyAudioData(existingBuffer, concatenatedBuffer, 0, currentOffset, existingCopyLength);
   currentOffset += existingCopyLength;
 
   // Copy new audio files
   for (const buffer of newBuffers) {
+    const remainingSpace = totalLength - currentOffset;
     const copyLength =
       shouldTruncate && maxDuration
-        ? Math.min(buffer.length, totalLength - currentOffset)
+        ? Math.min(buffer.length, remainingSpace)
         : buffer.length;
 
-    for (let channel = 0; channel < numberOfChannels; channel++) {
-      const sourceData =
-        buffer.numberOfChannels > channel
-          ? buffer.getChannelData(channel)
-          : new Float32Array(buffer.length);
-
-      const destData = concatenatedBuffer.getChannelData(channel);
-
-      for (let i = 0; i < copyLength; i++) {
-        destData[currentOffset + i] = sourceData[i];
-      }
-    }
+    // Use utility function to copy audio data
+    copyAudioData(buffer, concatenatedBuffer, 0, currentOffset, copyLength);
 
     currentOffset += copyLength;
+
+    // If we've reached the truncation limit, stop copying
+    if (shouldTruncate && maxDuration && currentOffset >= totalLength) {
+      break;
+    }
   }
 
   // Remove duplicate markers and sort
@@ -434,5 +416,70 @@ export const appendAudioToExisting = async (
       })
       .sort((a, b) => a - b),
     totalDuration,
+  };
+};
+
+/**
+ * Truncate an existing concatenation result to a maximum duration
+ */
+export const truncateConcatenationResult = async (
+  result: ConcatenationResult,
+  maxDuration: number,
+): Promise<ConcatenationResult> => {
+  const { concatenatedBuffer, spliceMarkerPositions, boundaryMarkerPositions } = result;
+  
+  const targetSampleRate = concatenatedBuffer.sampleRate;
+  const maxSamples = Math.floor(maxDuration * targetSampleRate);
+  
+  // If the buffer is already within the limit, return as-is
+  if (concatenatedBuffer.length <= maxSamples) {
+    console.log("Audio is already within limits, no truncation needed");
+    return result;
+  }
+  
+  console.log(`Truncating audio from ${result.totalDuration.toFixed(2)}s to ${maxDuration}s`);
+  
+  // Create a new truncated buffer
+  const audioContext = new (window.AudioContext ||
+    (
+      window as Window &
+        typeof globalThis & { webkitAudioContext?: typeof AudioContext }
+    ).webkitAudioContext)();
+    
+  const truncatedBuffer = audioContext.createBuffer(
+    concatenatedBuffer.numberOfChannels,
+    maxSamples,
+    targetSampleRate,
+  );
+  
+  // Copy the truncated audio data
+  for (let channel = 0; channel < concatenatedBuffer.numberOfChannels; channel++) {
+    const originalData = concatenatedBuffer.getChannelData(channel);
+    const truncatedData = truncatedBuffer.getChannelData(channel);
+    
+    for (let i = 0; i < maxSamples; i++) {
+      truncatedData[i] = originalData[i];
+    }
+  }
+  
+  // Filter splice markers to only include those within the truncated duration
+  const filteredSpliceMarkers = spliceMarkerPositions.filter(
+    (marker) => marker < maxDuration
+  );
+  
+  // Filter boundary markers as well
+  const filteredBoundaryMarkers = boundaryMarkerPositions.filter(
+    (marker) => marker < maxDuration
+  );
+  
+  console.log(`Filtered splice markers from ${spliceMarkerPositions.length} to ${filteredSpliceMarkers.length}`);
+  
+  const truncatedDuration = truncatedBuffer.length / truncatedBuffer.sampleRate;
+  
+  return {
+    concatenatedBuffer: truncatedBuffer,
+    spliceMarkerPositions: filteredSpliceMarkers,
+    boundaryMarkerPositions: filteredBoundaryMarkers,
+    totalDuration: truncatedDuration,
   };
 };

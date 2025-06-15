@@ -28,6 +28,7 @@ export interface WaveformState {
 
   // Navigation state
   zoom: number;
+  resetZoom: number;
   skipIncrement: number;
 
   // Audio URL state
@@ -52,6 +53,7 @@ export interface WaveformActions {
   setTransientFrameSize: (frameSize: number) => void;
   setTransientOverlap: (overlap: number) => void;
   setZoom: (zoom: number) => void;
+  setResetZoom: (resetZoom: number) => void;
   setSkipIncrement: (increment: number) => void;
   setCurrentAudioUrl: (url: string | null) => void;
   setExportAnchorEl: (element: HTMLElement | null) => void;
@@ -84,6 +86,7 @@ export const useWaveformState = (
 
   // Navigation state
   const [zoom, setZoom] = useState(0);
+  const [resetZoom, setResetZoom] = useState(2); // Default to ZOOM_LEVELS.MIN
   const [skipIncrement, setSkipIncrement] = useState(1.0);
 
   // Audio URL state
@@ -111,6 +114,7 @@ export const useWaveformState = (
     transientFrameSize,
     transientOverlap,
     zoom,
+    resetZoom,
     skipIncrement,
     currentAudioUrl,
     exportAnchorEl,
@@ -132,6 +136,7 @@ export const useWaveformState = (
       setTransientFrameSize,
       setTransientOverlap,
       setZoom,
+      setResetZoom,
       setSkipIncrement,
       setCurrentAudioUrl,
       setExportAnchorEl,
@@ -151,6 +156,7 @@ export const useWaveformState = (
       setTransientFrameSize,
       setTransientOverlap,
       setZoom,
+      setResetZoom,
       setSkipIncrement,
       setCurrentAudioUrl,
       setExportAnchorEl,

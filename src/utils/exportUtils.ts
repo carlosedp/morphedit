@@ -1,4 +1,5 @@
 // Export format configuration and handlers
+import { DEFAULT_SAMPLE_RATE } from "../constants";
 
 export interface ExportFormat {
   label: string;
@@ -12,7 +13,7 @@ export interface ExportFormat {
 export const exportFormats: ExportFormat[] = [
   {
     label: "48kHz 32-bit Float Stereo",
-    sampleRate: 48000,
+    sampleRate: DEFAULT_SAMPLE_RATE,
     bitDepth: 32,
     channels: "stereo",
     format: "float",
@@ -26,7 +27,7 @@ export const exportFormats: ExportFormat[] = [
   },
   {
     label: "48kHz 16-bit Stereo",
-    sampleRate: 48000,
+    sampleRate: DEFAULT_SAMPLE_RATE,
     bitDepth: 16,
     channels: "stereo",
     format: "int",
