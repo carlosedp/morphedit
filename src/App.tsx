@@ -173,13 +173,13 @@ function App() {
 
       // Calculate total duration of the new files
       const newFilesDuration = await getMultipleAudioFilesDuration(sortedFiles);
-      
+
       // If there's existing audio (append mode), add its duration
       const existingAudioBuffer = useAudioStore.getState().audioBuffer;
-      const existingDuration = existingAudioBuffer 
-        ? existingAudioBuffer.length / existingAudioBuffer.sampleRate 
+      const existingDuration = existingAudioBuffer
+        ? existingAudioBuffer.length / existingAudioBuffer.sampleRate
         : 0;
-      
+
       const totalDuration = existingDuration + newFilesDuration;
 
       setIsLoading(false);
@@ -206,7 +206,7 @@ function App() {
       // Check if there's existing audio (append mode)
       const existingAudioBuffer = useAudioStore.getState().audioBuffer;
       const existingSpliceMarkers = useAudioStore.getState().spliceMarkers;
-      
+
       if (existingAudioBuffer) {
         // Append mode - use append logic
         const result = await appendAudioToExisting(
@@ -898,19 +898,37 @@ function App() {
             cursor: !audioUrl ? "pointer" : "default",
             mx: { xs: 1, sm: 2 }, // Add horizontal margin
             mb: { xs: 2, sm: 0 }, // Add bottom margin on mobile
+            minHeight: audioUrl ? 150 : "auto", // Ensure enough height when audio is loaded
             "&:hover": !audioUrl
               ? {
                 backgroundColor: "action.hover",
                 borderColor: "primary.light",
               }
               : {},
+            // Add a subtle visual hint for mouse wheel zoom when audio is loaded
+            position: "relative",
+            "&::after": audioUrl ? {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              right: 0,
+              width: 0,
+              height: 0,
+              borderLeft: "20px solid transparent",
+              borderTop: "20px solid",
+              borderColor: "action.disabled",
+              opacity: 0.1,
+              pointerEvents: "none",
+            } : {},
           }}
         >
           {!audioUrl &&
             "Click here, use the button above, or drag and drop audio file(s) to load/concatenate them"}
         </Box>
         {audioUrl && (
-          <Box sx={{ mx: { xs: 1, sm: 2 } }}> {/* Add margin wrapper for waveform */}
+          <Box
+            sx={{ mx: { xs: 1, sm: 2 } }}
+          > {/* Add margin wrapper for waveform */}
             <Waveform
               audioUrl={audioUrl}
               shouldTruncate={shouldTruncateAudio}

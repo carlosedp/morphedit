@@ -27,7 +27,7 @@ import { parseWavCuePoints } from "./utils/audioProcessing";
 import {
   truncateAudioBuffer,
 } from "./utils/fileLengthUtils";
-import { MORPHAGENE_MAX_DURATION, REGION_COLORS, UI_COLORS, MARKER_ICONS, POSITION_UPDATE_INTERVAL, PLAYBACK_TIMING, WAVEFORM_RENDERING } from "./constants";
+import { MORPHAGENE_MAX_DURATION, REGION_COLORS, UI_COLORS, MARKER_ICONS, POSITION_UPDATE_INTERVAL, PLAYBACK_TIMING, WAVEFORM_RENDERING, ZOOM_LEVELS } from "./constants";
 import { waveformLogger } from "./utils/logger";
 import {
   audioBufferToWavFormat,
@@ -315,6 +315,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             // Allow very low zoom values for long audio files, but ensure minimum usability
             zoomToApply = Math.min(1000, Math.max(1, minPxPerSec));
             actions.setZoom(zoomToApply);
+            actions.setResetZoom(zoomToApply); // Store the resetZoom level for the slider
 
             console.log("Initial zoom calculated:", {
               duration,
@@ -580,11 +581,6 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       // Update current time when clicking on the waveform
       ws.on("click", () => {
         actions.setCurrentTime(ws.getCurrentTime());
-        // Deselect any selected splice marker when clicking on waveform
-        if (state.selectedSpliceMarker) {
-          actions.setSelectedSpliceMarker(null);
-          memoizedUpdateSpliceMarkerColors(null);
-        }
       });
 
       // Load audio - preprocess for truncation if needed
@@ -835,10 +831,15 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
     const handleZoom = useCallback(
       (value: number) => {
-        actions.setZoom(value);
-        zoom(wavesurferRef.current!, value);
+        // Apply zoom constraints - use the resetZoom as minimum and ZOOM_LEVELS.MAX as maximum
+        const minZoom = Math.max(ZOOM_LEVELS.MIN, state.resetZoom);
+        const maxZoom = ZOOM_LEVELS.MAX;
+        const constrainedValue = Math.min(maxZoom, Math.max(minZoom, value));
+
+        actions.setZoom(constrainedValue);
+        zoom(wavesurferRef.current!, constrainedValue);
       },
-      [actions, wavesurferRef],
+      [actions, wavesurferRef, state.resetZoom],
     );
 
     const handleZoomReset = useCallback(() => {
@@ -866,6 +867,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
       // Update state and apply zoom
       actions.setZoom(resetZoom);
+      actions.setResetZoom(resetZoom); // Update the resetZoom level for the slider
       wavesurferRef.current.zoom(resetZoom);
 
       // Force a complete redraw of regions after zoom to ensure splice markers are visible
@@ -1469,8 +1471,40 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       ],
     );
 
+    // Handle mouse wheel zoom with passive: false
+    useEffect(() => {
+      const handleWheelZoom = (event: WheelEvent) => {
+        // Always prevent page scrolling when mouse wheel is used over the waveform area
+        event.preventDefault();
+        event.stopPropagation();
+
+        // Calculate zoom step based on current zoom level for smoother experience
+        const currentZoom = state.zoom;
+        const zoomStep = Math.max(1, currentZoom * 0.1); // 10% of current zoom, minimum 1
+        const zoomDelta = event.deltaY > 0 ? -zoomStep : zoomStep; // Negative deltaY means zoom in
+        const newZoom = currentZoom + zoomDelta;
+
+        // Apply zoom with constraints
+        handleZoom(newZoom);
+      };
+
+      // Get the container element
+      const container = document.getElementById('waveform-container');
+      if (container) {
+        // Add event listener with passive: false to allow preventDefault
+        container.addEventListener('wheel', handleWheelZoom, { passive: false });
+
+        return () => {
+          container.removeEventListener('wheel', handleWheelZoom);
+        };
+      }
+    }, [state.zoom, handleZoom]);
+
     return (
-      <Container maxWidth="xl" sx={{ mt: 2, mb: 2 }}>
+      <Container
+        maxWidth="xl"
+        sx={{ mt: 2, mb: 2 }}
+      >
         {/* Playback controls */}
         <WaveformControls
           isPlaying={state.isPlaying}
@@ -1478,6 +1512,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           currentTime={state.currentTime}
           duration={state.duration}
           zoom={state.zoom}
+          resetZoom={state.resetZoom}
           skipIncrement={state.skipIncrement}
           spliceMarkersCount={spliceMarkersStore.length}
           regionInfo={regionInfo}

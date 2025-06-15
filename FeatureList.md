@@ -24,8 +24,8 @@
   - [ ]  Truncate lenght
 - [ ] Improve splice detection with maybe a different algorithm or more advanced settings
 - [ ] Add detection preset slots to save sensitivity, frame size, and overlap settings
-- [ ] Use mouse scroll to zoom in/out on the waveform
-- [ ] Add tooltip to append audio button
+- [x] Use mouse scroll to zoom in/out on the waveform
+- [x] Add tooltip to append audio button
 - [ ] Detect if audio has more than 300 splice points and show warning if user wants to truncate it or not. Make this number a constant.
 
 ## To Test

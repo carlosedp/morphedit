@@ -18,6 +18,7 @@ interface WaveformControlsProps {
   currentTime: number;
   duration: number;
   zoom: number;
+  resetZoom: number;
   skipIncrement: number;
   spliceMarkersCount: number;
   regionInfo: RegionInfo;
@@ -34,6 +35,7 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
   currentTime,
   duration,
   zoom,
+  resetZoom,
   skipIncrement,
   spliceMarkersCount,
   regionInfo,
@@ -119,7 +121,7 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           <Slider
             value={zoom}
             onChange={(_, value) => onZoom(value as number)}
-            min={ZOOM_LEVELS.MIN}
+            min={Math.max(ZOOM_LEVELS.MIN, resetZoom)}
             max={ZOOM_LEVELS.MAX}
             step={ZOOM_LEVELS.STEP}
             sx={{ width: { xs: 140, sm: 100 } }}

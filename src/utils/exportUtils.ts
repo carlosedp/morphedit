@@ -19,13 +19,6 @@ export const exportFormats: ExportFormat[] = [
     format: "float",
   },
   {
-    label: "48kHz 32-bit Float Stereo",
-    sampleRate: DEFAULT_SAMPLE_RATE,
-    bitDepth: 32,
-    channels: "stereo",
-    format: "float",
-  },
-  {
     label: "44.1kHz 32-bit Float Stereo",
     sampleRate: 44100,
     bitDepth: 32,

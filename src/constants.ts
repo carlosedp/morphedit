@@ -96,8 +96,8 @@ export const FILE_HANDLING = {
 
 // Zoom levels
 export const ZOOM_LEVELS = {
-  MIN: 1,
-  MAX: 3000,
+  MIN: 2,
+  MAX: 5000,
   STEP: 1
 } as const;
 
