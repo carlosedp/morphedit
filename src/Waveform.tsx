@@ -328,6 +328,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           // Skip this for cropped/faded URLs (processed audio) since markers are handled manually
           // For processed audio, we need to check if we're currently processing or if the URL has processing flags
           const isAudioProcessing = useAudioStore.getState().isProcessingAudio;
+          const isUndoing = useAudioStore.getState().isUndoing;
           const urlToCheck = state.currentAudioUrl || audioUrl;
           
           console.log("=== URL DEBUG ===");
@@ -335,11 +336,13 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           console.log("state.currentAudioUrl:", state.currentAudioUrl);
           console.log("urlToCheck:", urlToCheck);
           console.log("isAudioProcessing:", isAudioProcessing);
+          console.log("isUndoing:", isUndoing);
           
           const isProcessedAudio =
             urlToCheck.includes("#morphedit-cropped") ||
             urlToCheck.includes("#morphedit-faded") ||
-            isAudioProcessing; // Also treat as processed if we're currently processing
+            isAudioProcessing ||  // Also treat as processed if we're currently processing
+            isUndoing; // Also treat as processed if we're undoing to preserve restored markers
           const isConcatenatedAudio = urlToCheck.includes(
             "#morphedit-concatenated",
           );
@@ -348,6 +351,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           console.log("isProcessedAudio:", isProcessedAudio);
           console.log("isConcatenatedAudio:", isConcatenatedAudio);
           console.log("isAppendedAudio:", isAppendedAudio);
+          console.log("Undo operation in progress:", isUndoing);
           console.log("=== END URL DEBUG ===");
 
           // Use the checked URL for loading
@@ -393,15 +397,16 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               `Created ${currentSpliceMarkers.length} visual markers from store for concatenated/appended audio`,
             );
           }
-          // For processed audio (cropped/faded), create visual markers directly from store to ensure correct positioning
+          // For processed audio (cropped/faded) or undo operations, create visual markers directly from store to ensure correct positioning
           else if (isProcessedAudio && currentSpliceMarkers.length > 0) {
             console.log("=== PROCESSED AUDIO MARKER LOADING DEBUG ===");
             console.log("URL contains cropped:", urlToLoad.includes("#morphedit-cropped"));
             console.log("URL contains faded:", urlToLoad.includes("#morphedit-faded"));
+            console.log("Is undo operation:", isUndoing);
             console.log("Current store splice markers:", currentSpliceMarkers);
             console.log("Current store locked markers:", currentLockedMarkers);
             console.log(
-              "Creating visual markers from store for processed audio",
+              "Creating visual markers from store for processed audio or undo operation",
             );
 
             // Clear existing visual markers
@@ -412,22 +417,25 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             console.log("Clearing existing splice markers:", existingSpliceMarkers.length);
             existingSpliceMarkers.forEach((marker: Region) => marker.remove());
 
-            // Create visual markers from store (which has the correct adjusted times)
+            // Create visual markers from store (which has the correct adjusted times for crops or restored times for undo)
             currentSpliceMarkers.forEach((markerTime, index) => {
               const isLocked = isMarkerLocked(markerTime, currentLockedMarkers);
               console.log(`Creating visual marker ${index}: time=${markerTime}, locked=${isLocked}`);
+              const markerId = isUndoing ? 
+                `splice-marker-undo-${index}-${Date.now()}` : 
+                `splice-marker-processed-${index}-${Date.now()}`;
               regions.addRegion({
                 start: markerTime,
                 color: REGION_COLORS.SPLICE_MARKER,
                 drag: !isLocked, // Prevent dragging if marker is locked
                 resize: false,
-                id: `splice-marker-processed-${index}-${Date.now()}`,
+                id: markerId,
                 content: isLocked ? MARKER_ICONS.LOCKED : MARKER_ICONS.UNLOCKED, // Use lock icon for locked markers
               });
             });
 
             console.log(
-              `Created ${currentSpliceMarkers.length} visual markers from store for processed audio`,
+              `Created ${currentSpliceMarkers.length} visual markers from store for ${isUndoing ? 'undo operation' : 'processed audio'}`,
             );
             console.log("=== END PROCESSED AUDIO MARKER LOADING DEBUG ===");
           }

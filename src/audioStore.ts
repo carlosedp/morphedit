@@ -25,6 +25,9 @@ export interface AudioState {
   // Processing state to prevent buffer overrides
   isProcessingAudio: boolean;
   setIsProcessingAudio: (processing: boolean) => void;
+  // Undo state to prevent marker overrides during undo operations
+  isUndoing: boolean;
+  setIsUndoing: (undoing: boolean) => void;
   reset: () => void;
 }
 
@@ -62,6 +65,9 @@ export const useAudioStore = create<AudioState>(
     isProcessingAudio: false,
     setIsProcessingAudio: (processing) =>
       set({ isProcessingAudio: processing }),
+    // Undo state
+    isUndoing: false,
+    setIsUndoing: (undoing) => set({ isUndoing: undoing }),
     reset: () =>
       set({
         audioBuffer: null,
@@ -74,6 +80,7 @@ export const useAudioStore = create<AudioState>(
         previousLockedSpliceMarkers: [],
         canUndo: false,
         isProcessingAudio: false,
+        isUndoing: false,
       }),
   }),
 );
