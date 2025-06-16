@@ -330,14 +330,14 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           const isAudioProcessing = useAudioStore.getState().isProcessingAudio;
           const isUndoing = useAudioStore.getState().isUndoing;
           const urlToCheck = state.currentAudioUrl || audioUrl;
-          
+
           console.log("=== URL DEBUG ===");
           console.log("audioUrl prop:", audioUrl);
           console.log("state.currentAudioUrl:", state.currentAudioUrl);
           console.log("urlToCheck:", urlToCheck);
           console.log("isAudioProcessing:", isAudioProcessing);
           console.log("isUndoing:", isUndoing);
-          
+
           const isProcessedAudio =
             urlToCheck.includes("#morphedit-cropped") ||
             urlToCheck.includes("#morphedit-faded") ||
@@ -347,7 +347,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             "#morphedit-concatenated",
           );
           const isAppendedAudio = urlToCheck.includes("#morphedit-appended");
-          
+
           console.log("isProcessedAudio:", isProcessedAudio);
           console.log("isConcatenatedAudio:", isConcatenatedAudio);
           console.log("isAppendedAudio:", isAppendedAudio);
@@ -421,8 +421,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             currentSpliceMarkers.forEach((markerTime, index) => {
               const isLocked = isMarkerLocked(markerTime, currentLockedMarkers);
               console.log(`Creating visual marker ${index}: time=${markerTime}, locked=${isLocked}`);
-              const markerId = isUndoing ? 
-                `splice-marker-undo-${index}-${Date.now()}` : 
+              const markerId = isUndoing ?
+                `splice-marker-undo-${index}-${Date.now()}` :
                 `splice-marker-processed-${index}-${Date.now()}`;
               regions.addRegion({
                 start: markerTime,

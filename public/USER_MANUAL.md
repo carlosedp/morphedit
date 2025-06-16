@@ -15,8 +15,9 @@
 7. [Regions and Processing](#regions-and-processing)
 8. [Exporting Audio](#exporting-audio)
 9. [Keyboard Shortcuts](#keyboard-shortcuts)
-10. [Advanced Features](#advanced-features)
-11. [Troubleshooting](#troubleshooting)
+10. [Mobile and Responsive Design](#mobile-and-responsive-design)
+11. [Advanced Features](#advanced-features)
+12. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -40,6 +41,9 @@ Although primarily focused on Morphagene users, MorphEdit can also be used for g
 - **Concatenation Support**: Combine multiple audio files with preserved splice markers
 - **Undo Functionality**: Easily revert processing operations
 - **Keyboard Shortcuts**: Fast workflow with comprehensive keyboard support
+- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
+- **Mouse Wheel Zoom**: Smooth zooming with mouse wheel for precise navigation
+- **Advanced Fade Curves**: Multiple fade curve types (linear, exponential, logarithmic)
 
 ---
 
@@ -50,12 +54,15 @@ Although primarily focused on Morphagene users, MorphEdit can also be used for g
 - Modern web browser (Chrome, Firefox, Safari, Edge)
 - No installation required - runs entirely in the browser
 - Audio files in common formats (WAV, MP3, FLAC, etc.)
+- Responsive design supports desktop, tablet, and mobile devices
 
 ### Opening the Application
 
 1. Navigate to the MorphEdit URL in your web browser
 2. The application loads with an empty waveform display
 3. You can immediately start by loading an audio file
+
+**Mobile Users**: The interface automatically adapts to smaller screens with optimized touch controls and reorganized layouts for better usability on mobile devices.
 
 ---
 
@@ -160,6 +167,7 @@ When you already have audio loaded in MorphEdit, you can append additional audio
 ### Zoom Controls
 
 - **Zoom In/Out**: Use the zoom slider or keyboard shortcuts (=/-)
+- **Mouse Wheel Zoom**: Scroll mouse wheel over waveform to zoom in/out smoothly
 - **Zoom Reset**: Double-click zoom slider or use reset button to fit audio to window
 - **Auto-Zoom**: New audio files automatically zoom to fit the container
 
@@ -305,12 +313,25 @@ This feature allows you to quickly audition different segments of your audio by 
 2. **Adjust**: Drag handles to set fade duration (default: last 10% of audio)
 3. **Preview**: Red highlighted area shows fade-out region
 
+#### Fade Curve Types
+
+MorphEdit now supports different fade curve types for both fade-in and fade-out:
+
+1. **Linear**: Constant fade rate (default)
+2. **Exponential**: Smooth, gradual start - more natural sounding
+3. **Logarithmic**: Quick start, gentle end - more dramatic effect
+
+Each fade region (in/out) has its own curve selector dropdown next to the fade button.
+
+![alt text](img/fadecurves.png)
+
 #### Applying Fades
 
 1. **Multiple Fades**: Can apply both fade-in and fade-out simultaneously
-2. **Apply**: Click "Apply Fades" button
-3. **Linear Fade**: Uses linear gain reduction/increase
-4. **Zero-Crossing**: Fade boundaries snap to zero crossings
+2. **Curve Selection**: Choose different curve types for fade-in and fade-out independently
+3. **Apply**: Click "Apply Fades" button
+4. **Custom Curves**: Uses the selected curve type for gain reduction/increase
+5. **Zero-Crossing**: Fade boundaries snap to zero crossings
 
 ![alt text](img/fades.png)
 
@@ -348,6 +369,8 @@ With fades applied:
    - **22.05kHz 16-bit Mono**
 3. **Download**: File downloads with format-specific filename
 
+![alt text](img/exportformats.png)
+
 ### Export Features
 
 - **Cue Point Embedding**: Splice markers are saved as WAV cue points
@@ -377,6 +400,13 @@ With fades applied:
 | ----- | -------- | ---------------------------- |
 | **=** | Zoom In  | Increase waveform zoom level |
 | **-** | Zoom Out | Decrease waveform zoom level |
+
+### Mouse Controls
+
+| Action          | Description                              |
+| --------------- | ---------------------------------------- |
+| **Mouse Wheel** | Zoom in/out when scrolling over waveform |
+| **Click**       | Seek to position in waveform             |
 
 ### Splice Markers
 
@@ -430,6 +460,34 @@ With fades applied:
 | ------------------ | ------ | ------------------------------------ |
 | **Ctrl+Z / Cmd+Z** | Undo   | Undo last processing operation       |
 | **\\**             | Reset  | Clear all data and reset application |
+
+---
+
+## Mobile and Responsive Design
+
+### Mobile Interface Optimizations
+
+MorphEdit features a fully responsive design that adapts to different screen sizes:
+
+#### Mobile-Specific Features
+
+- **Touch-Optimized Controls**: Larger touch targets for buttons and sliders on mobile devices
+- **Reorganized Layout**: Interface elements stack vertically on smaller screens for better accessibility
+- **Adaptive Text Sizing**: Font sizes automatically adjust for optimal readability across devices
+- **Gesture Support**: Touch gestures for seeking and region adjustment
+- **Optimized Spacing**: Button and control spacing optimized for touch interaction
+
+#### Cross-Device Compatibility
+
+- **Desktop**: Full-featured interface with all keyboard shortcuts and mouse interactions
+- **Tablet**: Hybrid interface supporting both touch and keyboard input
+- **Mobile**: Streamlined interface prioritizing essential functions with touch-first design
+
+#### Performance Considerations
+
+- **Efficient Rendering**: Optimized waveform rendering for mobile GPUs
+- **Memory Management**: Careful resource management for mobile browsers
+- **Battery Optimization**: Efficient processing to minimize battery drain
 
 ---
 
