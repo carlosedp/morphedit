@@ -222,11 +222,11 @@ export const applyCrop = async (
   }
 
   if (!ws.getDuration() || ws.getDuration() === 0) {
-    console.log("Cannot apply crop: no audio loaded or duration is 0");
+    regionLogger.warn("Cannot apply crop: no audio loaded or duration is 0");
     return;
   }
 
-  console.log("Applying crop...");
+  regionLogger.debug("Applying crop...");
 
   const cropRegionData = regions
     .getRegions()

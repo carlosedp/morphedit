@@ -132,3 +132,31 @@ export const combineAndSortMarkers = (...markerArrays: number[][]): number[] => 
   const combined = markerArrays.flat();
   return sortMarkerTimes(combined);
 };
+
+/**
+ * Remove duplicates and sort marker times
+ */
+export const deduplicateAndSortMarkers = (markers: number[]): number[] => {
+  return [...new Set(markers)].sort((a, b) => a - b);
+};
+
+/**
+ * Filter markers to only include those within a time range
+ */
+export const filterMarkersInTimeRange = (
+  markers: number[],
+  startTime: number,
+  endTime: number
+): number[] => {
+  return markers.filter(marker => marker >= startTime && marker <= endTime);
+};
+
+/**
+ * Filter markers to only include those within max duration
+ */
+export const filterMarkersWithinDuration = (
+  markers: number[],
+  maxDuration: number
+): number[] => {
+  return markers.filter(marker => marker <= maxDuration);
+};

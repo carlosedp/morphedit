@@ -59,7 +59,7 @@ import {
   applyFades,
   getRegionInfo,
 } from "./utils/regionUtils";
-import { createGenericSpliceHandler } from "./utils/spliceMarkerHandlers";
+import { createGenericSpliceHandler, type SpliceMarkerHandlers } from "./utils/spliceMarkerHandlers";
 import { MAX_SPLICE_MARKERS } from "./constants";
 import {
   playPause,
@@ -85,7 +85,7 @@ interface WaveformProps {
   onProcessingComplete?: () => void;
 }
 
-export interface WaveformRef {
+export interface WaveformRef extends SpliceMarkerHandlers {
   handlePlayPause: () => void;
   handleCropRegion: () => void;
   handleLoop: () => void;
@@ -110,26 +110,6 @@ export interface WaveformRef {
   handleClearAllMarkers: () => void;
   handleTransientDetection: () => void;
   handleSnapToZeroCrossings: () => void;
-  handlePlaySplice1: () => void;
-  handlePlaySplice2: () => void;
-  handlePlaySplice3: () => void;
-  handlePlaySplice4: () => void;
-  handlePlaySplice5: () => void;
-  handlePlaySplice6: () => void;
-  handlePlaySplice7: () => void;
-  handlePlaySplice8: () => void;
-  handlePlaySplice9: () => void;
-  handlePlaySplice10: () => void;
-  handlePlaySplice11: () => void;
-  handlePlaySplice12: () => void;
-  handlePlaySplice13: () => void;
-  handlePlaySplice14: () => void;
-  handlePlaySplice15: () => void;
-  handlePlaySplice16: () => void;
-  handlePlaySplice17: () => void;
-  handlePlaySplice18: () => void;
-  handlePlaySplice19: () => void;
-  handlePlaySplice20: () => void;
 }
 
 const Waveform = forwardRef<WaveformRef, WaveformProps>(
@@ -1347,27 +1327,6 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     }, [spliceMarkersStore, wavesurferRef]);
 
     // Extract individual handlers for the interface
-    const handlePlaySplice1 = spliceHandlers.handlePlaySplice1;
-    const handlePlaySplice2 = spliceHandlers.handlePlaySplice2;
-    const handlePlaySplice3 = spliceHandlers.handlePlaySplice3;
-    const handlePlaySplice4 = spliceHandlers.handlePlaySplice4;
-    const handlePlaySplice5 = spliceHandlers.handlePlaySplice5;
-    const handlePlaySplice6 = spliceHandlers.handlePlaySplice6;
-    const handlePlaySplice7 = spliceHandlers.handlePlaySplice7;
-    const handlePlaySplice8 = spliceHandlers.handlePlaySplice8;
-    const handlePlaySplice9 = spliceHandlers.handlePlaySplice9;
-    const handlePlaySplice10 = spliceHandlers.handlePlaySplice10;
-    const handlePlaySplice11 = spliceHandlers.handlePlaySplice11;
-    const handlePlaySplice12 = spliceHandlers.handlePlaySplice12;
-    const handlePlaySplice13 = spliceHandlers.handlePlaySplice13;
-    const handlePlaySplice14 = spliceHandlers.handlePlaySplice14;
-    const handlePlaySplice15 = spliceHandlers.handlePlaySplice15;
-    const handlePlaySplice16 = spliceHandlers.handlePlaySplice16;
-    const handlePlaySplice17 = spliceHandlers.handlePlaySplice17;
-    const handlePlaySplice18 = spliceHandlers.handlePlaySplice18;
-    const handlePlaySplice19 = spliceHandlers.handlePlaySplice19;
-    const handlePlaySplice20 = spliceHandlers.handlePlaySplice20;
-
     // Memoized region info that updates when regions change
     const regionInfo = useMemo(() => {
       return getRegionInfo(regionsRef.current);
@@ -1402,26 +1361,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleClearAllMarkers,
         handleTransientDetection,
         handleSnapToZeroCrossings,
-        handlePlaySplice1,
-        handlePlaySplice2,
-        handlePlaySplice3,
-        handlePlaySplice4,
-        handlePlaySplice5,
-        handlePlaySplice6,
-        handlePlaySplice7,
-        handlePlaySplice8,
-        handlePlaySplice9,
-        handlePlaySplice10,
-        handlePlaySplice11,
-        handlePlaySplice12,
-        handlePlaySplice13,
-        handlePlaySplice14,
-        handlePlaySplice15,
-        handlePlaySplice16,
-        handlePlaySplice17,
-        handlePlaySplice18,
-        handlePlaySplice19,
-        handlePlaySplice20,
+        ...spliceHandlers,
       }),
       [
         handlePlayPause,
@@ -1447,26 +1387,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleClearAllMarkers,
         handleTransientDetection,
         handleSnapToZeroCrossings,
-        handlePlaySplice1,
-        handlePlaySplice2,
-        handlePlaySplice3,
-        handlePlaySplice4,
-        handlePlaySplice5,
-        handlePlaySplice6,
-        handlePlaySplice7,
-        handlePlaySplice8,
-        handlePlaySplice9,
-        handlePlaySplice10,
-        handlePlaySplice11,
-        handlePlaySplice12,
-        handlePlaySplice13,
-        handlePlaySplice14,
-        handlePlaySplice15,
-        handlePlaySplice16,
-        handlePlaySplice17,
-        handlePlaySplice18,
-        handlePlaySplice19,
-        handlePlaySplice20,
+        spliceHandlers,
         state.zoom,
       ],
     );
