@@ -58,7 +58,6 @@ export const FadeCurveSelector: React.FC<FadeCurveSelectorProps> = ({
             // alignItems: 'center'
           }}
         >
-          <ArrowDropDownIcon />
           <Typography
             variant="caption"
             sx={{
@@ -69,6 +68,7 @@ export const FadeCurveSelector: React.FC<FadeCurveSelectorProps> = ({
           >
             {selectedOption ? selectedOption.label.slice(0, 3) : 'Lin'}
           </Typography>
+          <ArrowDropDownIcon />
         </Button>
       </Tooltip>
 

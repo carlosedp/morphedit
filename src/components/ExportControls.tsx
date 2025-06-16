@@ -49,10 +49,10 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
           <Button
             size="small"
             onClick={(event) => onSetExportAnchorEl(event.currentTarget)}
-            sx={{ px: 1 }}
+            sx={{ fontSize: '0.6rem', px: 1 }}
           >
-            <ArrowDropDownIcon />
             {selectedExportFormat.shortLabel}
+            <ArrowDropDownIcon />
           </Button>
         </Tooltip>
       </ButtonGroup>
