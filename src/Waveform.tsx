@@ -35,6 +35,7 @@ import {
   PLAYBACK_TIMING,
   WAVEFORM_RENDERING,
   ZOOM_LEVELS,
+  MINIMAP_ENABLED,
 } from "./constants";
 import { waveformLogger } from "./utils/logger";
 import {
@@ -257,6 +258,14 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       // Expose regions plugin to global window for debug function
       (window as DebugWindow).morpheditRegions = regions;
 
+      const minimap = Minimap.create({
+        height: 20,
+        waveColor: theme.palette.primary.main,
+        progressColor: theme.palette.primary.light,
+        overlayColor: theme.palette.primary.dark,
+        dragToSeek: true,
+      })
+
       // Create wavesurfer instance
       const ws = WaveSurfer.create({
         container: "#waveform-container",
@@ -282,15 +291,13 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               return `${minutes}:${secs < 10 ? "0" : ""}${secs}.${millis}`;
             },
           }),
-          Minimap.create({
-            height: 20,
-            waveColor: theme.palette.primary.main,
-            progressColor: theme.palette.primary.light,
-            overlayColor: theme.palette.primary.dark,
-            dragToSeek: true,
-          }),
         ],
       });
+
+      if (MINIMAP_ENABLED) {
+        // Add minimap plugin if enabled
+        ws.registerPlugin(minimap);
+      }
 
       wavesurferRef.current = ws;
 
