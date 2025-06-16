@@ -9,6 +9,7 @@ import { getSpliceMarkerRegions } from "./regionHelpers";
 import { REGION_COLORS, REGION_POSITIONING } from "../constants";
 import { useAudioStore } from "../audioStore";
 import { findNearestZeroCrossing } from "./transientDetection";
+import { calculateFadeGain } from "./fadeCurves";
 
 // Type for region info display
 export interface RegionInfo {
@@ -497,6 +498,8 @@ export const applyFades = async (
   regions: RegionsPlugin,
   fadeInMode: boolean,
   fadeOutMode: boolean,
+  fadeInCurveType: string,
+  fadeOutCurveType: string,
   currentAudioUrl: string | null,
   spliceMarkersStore: number[],
   callbacks: {
@@ -611,7 +614,8 @@ export const applyFades = async (
       );
 
       for (let i = fadeInStartSample; i < fadeInEndSample; i++) {
-        const gain = (i - fadeInStartSample) / fadeInLength; // Linear fade from 0 to 1
+        const normalizedPosition = (i - fadeInStartSample) / fadeInLength; // Position from 0 to 1
+        const gain = calculateFadeGain(normalizedPosition, fadeInCurveType, false); // Fade-in
         newChannelData[i] *= gain;
       }
     }
@@ -638,7 +642,8 @@ export const applyFades = async (
       );
 
       for (let i = fadeOutStartSample; i < fadeOutEndSample; i++) {
-        const gain = (fadeOutEndSample - i) / fadeOutLength; // Linear fade from 1 to 0
+        const normalizedPosition = (i - fadeOutStartSample) / fadeOutLength; // Position from 0 to 1
+        const gain = calculateFadeGain(normalizedPosition, fadeOutCurveType, true); // Fade-out
         newChannelData[i] *= gain;
       }
     }

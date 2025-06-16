@@ -19,6 +19,7 @@
 - [x] Detect zero-crossing on splice points, crop regions, and fade in/out regions
 - [ ] Redo layout so controls are more intuitive
 - [ ] Replace truncation with a truncate button that truncates the audio to 174 seconds?
+- [ ] Have different fade curves for fade in and fade out (linear, exponential, etc.)
 - [ ] Settings menu for:
   - [ ]  Fade in/out curve type (linear, exponential, etc.)
   - [ ]  Truncate lenght

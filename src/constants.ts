@@ -58,6 +58,12 @@ export const SUPPORTED_AUDIO_EXTENSIONS = [
   ".aac",
 ] as const;
 
+export const FADE_CURVE_TYPES = {
+  LINEAR: "linear",
+  EXPONENTIAL: "exponential",
+  LOGARITHMIC: "logarithmic",
+} as const;
+
 export const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 
 // UI colors and styling

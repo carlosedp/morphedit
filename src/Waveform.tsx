@@ -349,8 +349,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             // Clear existing visual markers
             removeAllSpliceMarkersAndClearSelection(
               regions,
-              () => {},
-              () => {},
+              () => { },
+              () => { },
             );
 
             // Create visual markers from store
@@ -480,7 +480,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             currentStoredBuffer &&
             Math.abs(
               currentStoredBuffer.length / currentStoredBuffer.sampleRate -
-                wsDuration,
+              wsDuration,
             ) < WAVEFORM_RENDERING.BUFFER_DURATION_TOLERANCE;
 
           if (bufferAlreadyCorrect) {
@@ -521,9 +521,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
                   const audioContext = new (window.AudioContext ||
                     (
                       window as Window &
-                        typeof globalThis & {
-                          webkitAudioContext?: typeof AudioContext;
-                        }
+                      typeof globalThis & {
+                        webkitAudioContext?: typeof AudioContext;
+                      }
                     ).webkitAudioContext)();
                   return audioContext.decodeAudioData(arrayBuffer);
                 })
@@ -627,9 +627,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             const audioContext = new (window.AudioContext ||
               (
                 window as Window &
-                  typeof globalThis & {
-                    webkitAudioContext?: typeof AudioContext;
-                  }
+                typeof globalThis & {
+                  webkitAudioContext?: typeof AudioContext;
+                }
               ).webkitAudioContext)();
 
             const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -1177,6 +1177,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         regionsRef.current!,
         state.fadeInMode,
         state.fadeOutMode,
+        state.fadeInCurveType,
+        state.fadeOutCurveType,
         state.currentAudioUrl,
         spliceMarkersStore,
         {
@@ -1199,6 +1201,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     }, [
       state.fadeInMode,
       state.fadeOutMode,
+      state.fadeInCurveType,
+      state.fadeOutCurveType,
       state.currentAudioUrl,
       spliceMarkersStore,
       setPreviousAudioUrl,
@@ -1502,6 +1506,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               cropMode={state.cropMode}
               fadeInMode={state.fadeInMode}
               fadeOutMode={state.fadeOutMode}
+              fadeInCurveType={state.fadeInCurveType}
+              fadeOutCurveType={state.fadeOutCurveType}
               canUndo={canUndo}
               onCropRegion={handleCropRegion}
               onFadeInRegion={handleFadeInRegion}
@@ -1509,6 +1515,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               onApplyCrop={handleApplyCrop}
               onApplyFades={handleApplyFades}
               onUndo={handleUndo}
+              onSetFadeInCurveType={actions.setFadeInCurveType}
+              onSetFadeOutCurveType={actions.setFadeOutCurveType}
             />
           </Stack>
         </Stack>
@@ -1519,9 +1527,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           selectedSpliceMarkerLocked={
             state.selectedSpliceMarker
               ? isMarkerLocked(
-                  state.selectedSpliceMarker.start,
-                  lockedSpliceMarkersStore,
-                )
+                state.selectedSpliceMarker.start,
+                lockedSpliceMarkersStore,
+              )
               : false
           }
           numberOfSlices={state.numberOfSlices}
