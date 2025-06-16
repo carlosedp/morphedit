@@ -9,6 +9,7 @@ import ZoomResetIcon from "@mui/icons-material/ZoomOutMap";
 import RepeatIcon from "@mui/icons-material/Repeat";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
 import { formatTime } from "../utils/audioProcessing";
+import { TOOLTIP_DELAYS, ZOOM_LEVELS } from "../constants";
 import type { RegionInfo } from "../utils/regionUtils";
 
 interface WaveformControlsProps {
@@ -17,6 +18,7 @@ interface WaveformControlsProps {
   currentTime: number;
   duration: number;
   zoom: number;
+  resetZoom: number;
   skipIncrement: number;
   spliceMarkersCount: number;
   regionInfo: RegionInfo;
@@ -33,6 +35,7 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
   currentTime,
   duration,
   zoom,
+  resetZoom,
   skipIncrement,
   spliceMarkersCount,
   regionInfo,
@@ -65,7 +68,7 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           justifyContent: { xs: "center", md: "flex-start" },
         }}
       >
-        <Tooltip title="Play/Pause" enterDelay={500} leaveDelay={200}>
+        <Tooltip title="Play/Pause" enterDelay={TOOLTIP_DELAYS.ENTER} leaveDelay={TOOLTIP_DELAYS.LEAVE}>
           <IconButton
             onClick={onPlayPause}
             color="primary"
@@ -79,7 +82,7 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           </IconButton>
         </Tooltip>
 
-        <Tooltip title="Loop region" enterDelay={500} leaveDelay={200}>
+        <Tooltip title="Loop region" enterDelay={TOOLTIP_DELAYS.ENTER} leaveDelay={TOOLTIP_DELAYS.LEAVE}>
           <IconButton
             onClick={onLoop}
             color={isLooping ? "primary" : "default"}
@@ -91,7 +94,7 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           </IconButton>
         </Tooltip>
 
-        <Tooltip title="Rewind to start" enterDelay={500} leaveDelay={200}>
+        <Tooltip title="Rewind to start" enterDelay={TOOLTIP_DELAYS.ENTER} leaveDelay={TOOLTIP_DELAYS.LEAVE}>
           <IconButton
             onClick={onRewind}
             color="default"
@@ -118,15 +121,15 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           <Slider
             value={zoom}
             onChange={(_, value) => onZoom(value as number)}
-            min={1}
-            max={3000}
-            step={1}
+            min={Math.max(ZOOM_LEVELS.MIN, resetZoom)}
+            max={ZOOM_LEVELS.MAX}
+            step={ZOOM_LEVELS.STEP}
             sx={{ width: { xs: 140, sm: 100 } }}
             size="small"
           />
           <ZoomInIcon color="action" />
           <IconButton onClick={onZoomReset} size="small">
-            <Tooltip title="Zoom all" enterDelay={500} leaveDelay={200}>
+            <Tooltip title="Zoom all" enterDelay={TOOLTIP_DELAYS.ENTER} leaveDelay={TOOLTIP_DELAYS.LEAVE}>
               <ZoomResetIcon />
             </Tooltip>
           </IconButton>
