@@ -7,7 +7,9 @@ import { MAX_SPLICE_MARKERS } from "../constants";
 type ActionHandler = () => void;
 
 // Create a mapping object for actions to avoid large switch statements
-export const createActionHandlers = (waveformRef: React.RefObject<WaveformRef | null>) => {
+export const createActionHandlers = (
+  waveformRef: React.RefObject<WaveformRef | null>,
+) => {
   const handlers: Record<string, ActionHandler> = {
     // Playback controls
     playPause: () => waveformRef.current?.handlePlayPause(),
@@ -16,8 +18,10 @@ export const createActionHandlers = (waveformRef: React.RefObject<WaveformRef | 
     // Navigation
     skipForward: () => waveformRef.current?.handleSkipForward(),
     skipBackward: () => waveformRef.current?.handleSkipBackward(),
-    increaseSkipIncrement: () => waveformRef.current?.handleIncreaseSkipIncrement(),
-    decreaseSkipIncrement: () => waveformRef.current?.handleDecreaseSkipIncrement(),
+    increaseSkipIncrement: () =>
+      waveformRef.current?.handleIncreaseSkipIncrement(),
+    decreaseSkipIncrement: () =>
+      waveformRef.current?.handleDecreaseSkipIncrement(),
 
     // Zoom controls
     zoomIn: () => {
@@ -56,7 +60,9 @@ export const createActionHandlers = (waveformRef: React.RefObject<WaveformRef | 
     const handlerName = `handlePlaySplice${i}` as keyof WaveformRef;
 
     handlers[actionName] = () => {
-      const handler = waveformRef.current?.[handlerName] as (() => void) | undefined;
+      const handler = waveformRef.current?.[handlerName] as
+        | (() => void)
+        | undefined;
       handler?.();
     };
   }
@@ -65,7 +71,9 @@ export const createActionHandlers = (waveformRef: React.RefObject<WaveformRef | 
 };
 
 // Generic action dispatcher
-export const createActionDispatcher = (waveformRef: React.RefObject<WaveformRef | null>) => {
+export const createActionDispatcher = (
+  waveformRef: React.RefObject<WaveformRef | null>,
+) => {
   const handlers = createActionHandlers(waveformRef);
 
   return (action: string) => {

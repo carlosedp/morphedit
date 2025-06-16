@@ -6,21 +6,29 @@ export const copyAudioData = (
   destBuffer: AudioBuffer,
   sourceOffset: number = 0,
   destOffset: number = 0,
-  length?: number
+  length?: number,
 ): void => {
-  const copyLength = length ?? Math.min(
-    sourceBuffer.length - sourceOffset,
-    destBuffer.length - destOffset
-  );
+  const copyLength =
+    length ??
+    Math.min(
+      sourceBuffer.length - sourceOffset,
+      destBuffer.length - destOffset,
+    );
 
-  const numberOfChannels = Math.min(sourceBuffer.numberOfChannels, destBuffer.numberOfChannels);
+  const numberOfChannels = Math.min(
+    sourceBuffer.numberOfChannels,
+    destBuffer.numberOfChannels,
+  );
 
   for (let channel = 0; channel < numberOfChannels; channel++) {
     const sourceData = sourceBuffer.getChannelData(channel);
     const destData = destBuffer.getChannelData(channel);
 
     for (let i = 0; i < copyLength; i++) {
-      if (destOffset + i < destData.length && sourceOffset + i < sourceData.length) {
+      if (
+        destOffset + i < destData.length &&
+        sourceOffset + i < sourceData.length
+      ) {
         destData[destOffset + i] = sourceData[sourceOffset + i];
       }
     }
@@ -31,7 +39,7 @@ export const copyAudioData = (
 export const copyAudioToFloat32Array = (
   buffer: AudioBuffer,
   outputArray: Float32Array,
-  outputOffset: number = 0
+  outputOffset: number = 0,
 ): void => {
   const numberOfChannels = buffer.numberOfChannels;
   const frameCount = buffer.length;
@@ -40,7 +48,7 @@ export const copyAudioToFloat32Array = (
     const channelData = buffer.getChannelData(channel);
 
     for (let i = 0; i < frameCount; i++) {
-      const outputIndex = outputOffset + (i * numberOfChannels) + channel;
+      const outputIndex = outputOffset + i * numberOfChannels + channel;
       if (outputIndex < outputArray.length) {
         outputArray[outputIndex] = channelData[i];
       }
@@ -53,9 +61,13 @@ export const createSilentBuffer = (
   audioContext: AudioContext,
   numberOfChannels: number,
   length: number,
-  sampleRate: number
+  sampleRate: number,
 ): AudioBuffer => {
-  const buffer = audioContext.createBuffer(numberOfChannels, length, sampleRate);
+  const buffer = audioContext.createBuffer(
+    numberOfChannels,
+    length,
+    sampleRate,
+  );
 
   // Data is already initialized to zeros, so we don't need to explicitly set silence
   return buffer;
@@ -65,17 +77,21 @@ export const createSilentBuffer = (
 export const mixAudioBuffers = (
   audioContext: AudioContext,
   buffers: AudioBuffer[],
-  weights?: number[]
+  weights?: number[],
 ): AudioBuffer => {
   if (buffers.length === 0) {
-    throw new Error('Cannot mix empty buffer array');
+    throw new Error("Cannot mix empty buffer array");
   }
 
-  const maxLength = Math.max(...buffers.map(b => b.length));
-  const maxChannels = Math.max(...buffers.map(b => b.numberOfChannels));
+  const maxLength = Math.max(...buffers.map((b) => b.length));
+  const maxChannels = Math.max(...buffers.map((b) => b.numberOfChannels));
   const sampleRate = buffers[0].sampleRate;
 
-  const mixedBuffer = audioContext.createBuffer(maxChannels, maxLength, sampleRate);
+  const mixedBuffer = audioContext.createBuffer(
+    maxChannels,
+    maxLength,
+    sampleRate,
+  );
 
   for (let channel = 0; channel < maxChannels; channel++) {
     const mixedData = mixedBuffer.getChannelData(channel);

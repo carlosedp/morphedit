@@ -11,9 +11,24 @@ declare global {
           name: string;
           extensions: string[];
         }>;
-        properties?: Array<'openFile' | 'openDirectory' | 'multiSelections' | 'showHiddenFiles' | 'createDirectory' | 'promptToCreate' | 'noResolveAliases' | 'treatPackageAsDirectory'>;
-      }) => Promise<{ canceled: boolean, filePaths: string[] }>;
-      readFile: (filePath: string) => Promise<{ success: boolean, data?: number[], path?: string, name?: string, error?: string }>;
+        properties?: Array<
+          | "openFile"
+          | "openDirectory"
+          | "multiSelections"
+          | "showHiddenFiles"
+          | "createDirectory"
+          | "promptToCreate"
+          | "noResolveAliases"
+          | "treatPackageAsDirectory"
+        >;
+      }) => Promise<{ canceled: boolean; filePaths: string[] }>;
+      readFile: (filePath: string) => Promise<{
+        success: boolean;
+        data?: number[];
+        path?: string;
+        name?: string;
+        error?: string;
+      }>;
       isElectron: boolean;
       platform: string;
     };
@@ -60,14 +75,14 @@ import {
   MORPHAGENE_MAX_DURATION as CONST_MORPHAGENE_MAX_DURATION,
   FILE_HANDLING,
   UI_COLORS,
-  PLAYBACK_TIMING
+  PLAYBACK_TIMING,
 } from "./constants";
 import "./App.css";
 import { version } from "./Version.ts";
 import { theme } from "./theme";
 
 function App() {
-  const appLogger = createLogger('App');
+  const appLogger = createLogger("App");
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -248,8 +263,8 @@ function App() {
           `Concatenated ${pendingFiles.length} files`,
           {
             spliceMarkers: result.spliceMarkerPositions.length,
-            boundaryMarkers: result.boundaryMarkerPositions.length
-          }
+            boundaryMarkers: result.boundaryMarkerPositions.length,
+          },
         );
       }
 
@@ -473,7 +488,7 @@ function App() {
 
       if (totalDuration > CONST_MORPHAGENE_MAX_DURATION) {
         appLogger.warn(
-          `Concatenated audio duration (${totalDuration}s) exceeds Morphagene limit (${CONST_MORPHAGENE_MAX_DURATION}s)`
+          `Concatenated audio duration (${totalDuration}s) exceeds Morphagene limit (${CONST_MORPHAGENE_MAX_DURATION}s)`,
         );
 
         // Stop loading and show truncate dialog in append mode
@@ -524,7 +539,9 @@ function App() {
     // CRITICAL: Update the audio buffer in the store with the concatenated buffer
     // This ensures exports include the appended audio
     setAudioBuffer(result.concatenatedBuffer);
-    audioLogger.audioOperation("Updated audio buffer in store with concatenated buffer");
+    audioLogger.audioOperation(
+      "Updated audio buffer in store with concatenated buffer",
+    );
 
     // Add the boundary markers as locked (including the start of the appended audio)
     const currentLockedSpliceMarkers =
@@ -545,8 +562,8 @@ function App() {
       {
         newBoundaryMarkers: result.boundaryMarkerPositions.length,
         totalLockedMarkers: uniqueLockedMarkers.length,
-        totalSpliceMarkers: result.spliceMarkerPositions.length
-      }
+        totalSpliceMarkers: result.spliceMarkerPositions.length,
+      },
     );
 
     setPendingReplaceFiles([]);
@@ -654,7 +671,7 @@ function App() {
   // Replace the large switch statement with a simple dispatcher
   const handleShortcutAction = useMemo(
     () => createActionDispatcher(waveformRef),
-    [waveformRef]
+    [waveformRef],
   );
 
   useKeyboardShortcuts({
@@ -666,7 +683,9 @@ function App() {
     if (window.electronAPI) {
       if (window.electronAPI.onOpenAudioDialog) {
         window.electronAPI.onOpenAudioDialog(() => {
-          const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement | null;
+          const fileInput = document.querySelector(
+            'input[type="file"]',
+          ) as HTMLInputElement | null;
           if (fileInput) fileInput.click();
         });
       }
@@ -796,7 +815,9 @@ function App() {
             <KeyboardShortcutsHelp />
           </Stack>
         </Box>
-        <Box mb={2} sx={{ mx: { xs: 3, sm: 2 }, px: { xs: 2, sm: 0 } }}> {/* Add horizontal margin and padding */}
+        <Box mb={2} sx={{ mx: { xs: 3, sm: 2 }, px: { xs: 2, sm: 0 } }}>
+          {" "}
+          {/* Add horizontal margin and padding */}
           <Stack
             direction="row"
             // spacing={2}
@@ -831,10 +852,7 @@ function App() {
               />
             </Button>
             <Tooltip title="Append audio to existing file(s)">
-              <Box
-                component="span"
-                sx={{ flex: { xs: 1, sm: "none" } }}
-              >
+              <Box component="span" sx={{ flex: { xs: 1, sm: "none" } }}>
                 <Button
                   variant="outlined"
                   component="label"
@@ -864,10 +882,7 @@ function App() {
               </Box>
             </Tooltip>
             <Tooltip title="Unload current audio and clear all data">
-              <Box
-                component="span"
-                sx={{ flex: { xs: 1, sm: "none" } }}
-              >
+              <Box component="span" sx={{ flex: { xs: 1, sm: "none" } }}>
                 <Button
                   variant="outlined"
                   onClick={handleReset}
@@ -901,34 +916,36 @@ function App() {
             minHeight: audioUrl ? 150 : "auto", // Ensure enough height when audio is loaded
             "&:hover": !audioUrl
               ? {
-                backgroundColor: "action.hover",
-                borderColor: "primary.light",
-              }
+                  backgroundColor: "action.hover",
+                  borderColor: "primary.light",
+                }
               : {},
             // Add a subtle visual hint for mouse wheel zoom when audio is loaded
             position: "relative",
-            "&::after": audioUrl ? {
-              content: '""',
-              position: "absolute",
-              top: 0,
-              right: 0,
-              width: 0,
-              height: 0,
-              borderLeft: "20px solid transparent",
-              borderTop: "20px solid",
-              borderColor: "action.disabled",
-              opacity: 0.1,
-              pointerEvents: "none",
-            } : {},
+            "&::after": audioUrl
+              ? {
+                  content: '""',
+                  position: "absolute",
+                  top: 0,
+                  right: 0,
+                  width: 0,
+                  height: 0,
+                  borderLeft: "20px solid transparent",
+                  borderTop: "20px solid",
+                  borderColor: "action.disabled",
+                  opacity: 0.1,
+                  pointerEvents: "none",
+                }
+              : {},
           }}
         >
           {!audioUrl &&
             "Click here, use the button above, or drag and drop audio file(s) to load/concatenate them"}
         </Box>
         {audioUrl && (
-          <Box
-            sx={{ mx: { xs: 1, sm: 2 } }}
-          > {/* Add margin wrapper for waveform */}
+          <Box sx={{ mx: { xs: 1, sm: 2 } }}>
+            {" "}
+            {/* Add margin wrapper for waveform */}
             <Waveform
               audioUrl={audioUrl}
               shouldTruncate={shouldTruncateAudio}
@@ -939,7 +956,9 @@ function App() {
             />
           </Box>
         )}
-        <Box mt={4} sx={{ mx: { xs: 1, sm: 2 } }}> {/* Add horizontal margin to footer */}
+        <Box mt={4} sx={{ mx: { xs: 1, sm: 2 } }}>
+          {" "}
+          {/* Add horizontal margin to footer */}
           <Typography
             variant="caption"
             color="text.primary"

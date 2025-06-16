@@ -1,6 +1,6 @@
 // Debug utilities for standardized console output
 
-import { waveformLogger, regionLogger, audioLogger } from './logger';
+import { waveformLogger, regionLogger, audioLogger } from "./logger";
 
 // Map of debug categories to their respective loggers
 const DEBUG_LOGGERS = {
@@ -24,7 +24,7 @@ export const debugLog = (
   message: string,
   ...args: unknown[]
 ): void => {
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === "development") {
     const logger = DEBUG_LOGGERS[category];
     logger.debug(message, ...args);
   }
@@ -35,9 +35,9 @@ export const debugLog = (
  * This helps identify legacy console.log statements that need updating
  */
 export const shouldMigrateConsoleLog = (message: string): boolean => {
-  const debugKeywords = ['DEBUG', 'CROP', 'ready', 'Loading', 'Found'];
-  return debugKeywords.some(keyword =>
-    message.toUpperCase().includes(keyword.toUpperCase())
+  const debugKeywords = ["DEBUG", "CROP", "ready", "Loading", "Found"];
+  return debugKeywords.some((keyword) =>
+    message.toUpperCase().includes(keyword.toUpperCase()),
   );
 };
 
@@ -49,7 +49,7 @@ export class DebugTimer {
   private label: string;
   private category: DebugCategory;
 
-  constructor(label: string, category: DebugCategory = 'waveform') {
+  constructor(label: string, category: DebugCategory = "waveform") {
     this.label = label;
     this.category = category;
     this.startTime = performance.now();
@@ -58,7 +58,10 @@ export class DebugTimer {
 
   end(): number {
     const elapsed = performance.now() - this.startTime;
-    debugLog(this.category, `⏱️ Timer ended: ${this.label} took ${elapsed.toFixed(2)}ms`);
+    debugLog(
+      this.category,
+      `⏱️ Timer ended: ${this.label} took ${elapsed.toFixed(2)}ms`,
+    );
     return elapsed;
   }
 }

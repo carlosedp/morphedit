@@ -8,18 +8,18 @@ import { REGION_POSITIONING } from "../constants";
  * Get all splice marker regions from regions plugin
  */
 export const getSpliceMarkerRegions = (regions: RegionsPlugin): Region[] => {
-  return regions.getRegions().filter((r: Region) =>
-    r.id.startsWith("splice-marker-")
-  );
+  return regions
+    .getRegions()
+    .filter((r: Region) => r.id.startsWith("splice-marker-"));
 };
 
 /**
  * Get all non-splice marker regions from regions plugin
  */
 export const getNonSpliceMarkerRegions = (regions: RegionsPlugin): Region[] => {
-  return regions.getRegions().filter((r: Region) =>
-    !r.id.startsWith("splice-marker-")
-  );
+  return regions
+    .getRegions()
+    .filter((r: Region) => !r.id.startsWith("splice-marker-"));
 };
 
 /**
@@ -28,7 +28,7 @@ export const getNonSpliceMarkerRegions = (regions: RegionsPlugin): Region[] => {
 export const filterSpliceMarkersByLocked = (
   regions: Region[],
   lockedMarkers: number[],
-  includeLocked: boolean = false
+  includeLocked: boolean = false,
 ): Region[] => {
   return regions.filter((region: Region) => {
     const isLocked = isMarkerLocked(region.start, lockedMarkers);
@@ -41,7 +41,7 @@ export const filterSpliceMarkersByLocked = (
  */
 export const getUnlockedSpliceMarkers = (
   regions: RegionsPlugin,
-  lockedMarkers: number[]
+  lockedMarkers: number[],
 ): Region[] => {
   const spliceRegions = getSpliceMarkerRegions(regions);
   return filterSpliceMarkersByLocked(spliceRegions, lockedMarkers, false);
@@ -52,7 +52,7 @@ export const getUnlockedSpliceMarkers = (
  */
 export const getLockedSpliceMarkers = (
   regions: RegionsPlugin,
-  lockedMarkers: number[]
+  lockedMarkers: number[],
 ): Region[] => {
   const spliceRegions = getSpliceMarkerRegions(regions);
   return filterSpliceMarkersByLocked(spliceRegions, lockedMarkers, true);
@@ -70,7 +70,7 @@ export const removeRegions = (regions: Region[]): void => {
  */
 export const clearSelectionAndUpdateColors = (
   setSelectedSpliceMarker: (marker: Region | null) => void,
-  updateSpliceMarkerColors: (marker: Region | null) => void
+  updateSpliceMarkerColors: (marker: Region | null) => void,
 ): void => {
   setSelectedSpliceMarker(null);
   updateSpliceMarkerColors(null);
@@ -83,11 +83,14 @@ export const removeUnlockedMarkersAndClearSelection = (
   regions: RegionsPlugin,
   lockedMarkers: number[],
   setSelectedSpliceMarker: (marker: Region | null) => void,
-  updateSpliceMarkerColors: (marker: Region | null) => void
+  updateSpliceMarkerColors: (marker: Region | null) => void,
 ): Region[] => {
   const unlockedRegions = getUnlockedSpliceMarkers(regions, lockedMarkers);
   removeRegions(unlockedRegions);
-  clearSelectionAndUpdateColors(setSelectedSpliceMarker, updateSpliceMarkerColors);
+  clearSelectionAndUpdateColors(
+    setSelectedSpliceMarker,
+    updateSpliceMarkerColors,
+  );
   return unlockedRegions;
 };
 
@@ -97,11 +100,14 @@ export const removeUnlockedMarkersAndClearSelection = (
 export const removeAllSpliceMarkersAndClearSelection = (
   regions: RegionsPlugin,
   setSelectedSpliceMarker: (marker: Region | null) => void,
-  updateSpliceMarkerColors: (marker: Region | null) => void
+  updateSpliceMarkerColors: (marker: Region | null) => void,
 ): Region[] => {
   const spliceRegions = getSpliceMarkerRegions(regions);
   removeRegions(spliceRegions);
-  clearSelectionAndUpdateColors(setSelectedSpliceMarker, updateSpliceMarkerColors);
+  clearSelectionAndUpdateColors(
+    setSelectedSpliceMarker,
+    updateSpliceMarkerColors,
+  );
   return spliceRegions;
 };
 
@@ -111,10 +117,10 @@ export const removeAllSpliceMarkersAndClearSelection = (
 export const isMarkerTooCloseToExisting = (
   markerTime: number,
   existingMarkers: number[],
-  tolerance: number = REGION_POSITIONING.MARKER_PROXIMITY_THRESHOLD
+  tolerance: number = REGION_POSITIONING.MARKER_PROXIMITY_THRESHOLD,
 ): boolean => {
   return existingMarkers.some(
-    (existing) => Math.abs(existing - markerTime) < tolerance
+    (existing) => Math.abs(existing - markerTime) < tolerance,
   );
 };
 
@@ -128,7 +134,9 @@ export const sortMarkerTimes = (markers: number[]): number[] => {
 /**
  * Combine and sort multiple marker arrays
  */
-export const combineAndSortMarkers = (...markerArrays: number[][]): number[] => {
+export const combineAndSortMarkers = (
+  ...markerArrays: number[][]
+): number[] => {
   const combined = markerArrays.flat();
   return sortMarkerTimes(combined);
 };
@@ -146,9 +154,9 @@ export const deduplicateAndSortMarkers = (markers: number[]): number[] => {
 export const filterMarkersInTimeRange = (
   markers: number[],
   startTime: number,
-  endTime: number
+  endTime: number,
 ): number[] => {
-  return markers.filter(marker => marker >= startTime && marker <= endTime);
+  return markers.filter((marker) => marker >= startTime && marker <= endTime);
 };
 
 /**
@@ -156,7 +164,7 @@ export const filterMarkersInTimeRange = (
  */
 export const filterMarkersWithinDuration = (
   markers: number[],
-  maxDuration: number
+  maxDuration: number,
 ): number[] => {
-  return markers.filter(marker => marker <= maxDuration);
+  return markers.filter((marker) => marker <= maxDuration);
 };

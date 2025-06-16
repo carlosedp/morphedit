@@ -4,11 +4,16 @@ import type RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type { Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
 import { useAudioStore } from "../audioStore";
 import { isMarkerLocked } from "./spliceMarkerUtils";
-import { REGION_COLORS, TRANSIENT_DETECTION, MARKER_ICONS, MARKER_TOLERANCE } from "../constants";
+import {
+  REGION_COLORS,
+  TRANSIENT_DETECTION,
+  MARKER_ICONS,
+  MARKER_TOLERANCE,
+} from "../constants";
 import {
   removeUnlockedMarkersAndClearSelection,
   removeAllSpliceMarkersAndClearSelection,
-  clearSelectionAndUpdateColors
+  clearSelectionAndUpdateColors,
 } from "./regionHelpers";
 
 /**
@@ -128,7 +133,7 @@ export const applyTransientDetection = (
     regions,
     lockedMarkers,
     setSelectedSpliceMarker,
-    updateSpliceMarkerColors
+    updateSpliceMarkerColors,
   );
 
   console.log(
@@ -147,7 +152,8 @@ export const applyTransientDetection = (
   // Filter out transients that are too close to locked markers
   const filteredTransients = transients.filter((transientTime) => {
     const tooCloseToLocked = lockedMarkers.some(
-      (locked: number) => Math.abs(locked - transientTime) < TRANSIENT_DETECTION.MIN_INTERVAL, // 50ms tolerance
+      (locked: number) =>
+        Math.abs(locked - transientTime) < TRANSIENT_DETECTION.MIN_INTERVAL, // 50ms tolerance
     );
     return !tooCloseToLocked;
   });
@@ -176,7 +182,10 @@ export const applyTransientDetection = (
   );
   setSpliceMarkersStore(allMarkers);
 
-  clearSelectionAndUpdateColors(setSelectedSpliceMarker, updateSpliceMarkerColors);
+  clearSelectionAndUpdateColors(
+    setSelectedSpliceMarker,
+    updateSpliceMarkerColors,
+  );
 
   console.log(
     `Transient detection complete. Created ${filteredTransients.length} new markers, total: ${allMarkers.length} (${lockedMarkers.length} locked)`,
@@ -243,7 +252,11 @@ export const snapToZeroCrossings = (
   console.log("Snapping splice markers to zero crossings...");
 
   // Clear existing visual markers
-  removeAllSpliceMarkersAndClearSelection(regions, setSelectedSpliceMarker, updateSpliceMarkerColors);
+  removeAllSpliceMarkersAndClearSelection(
+    regions,
+    setSelectedSpliceMarker,
+    updateSpliceMarkerColors,
+  );
 
   // Find zero crossings for each marker
   const snappedMarkers = spliceMarkers.map((markerTime) =>
@@ -271,7 +284,10 @@ export const snapToZeroCrossings = (
 
   // Update store
   setSpliceMarkersStore(uniqueSnappedMarkers);
-  clearSelectionAndUpdateColors(setSelectedSpliceMarker, updateSpliceMarkerColors);
+  clearSelectionAndUpdateColors(
+    setSelectedSpliceMarker,
+    updateSpliceMarkerColors,
+  );
 
   console.log(
     `Snapped ${spliceMarkers.length} markers to ${uniqueSnappedMarkers.length} zero crossings`,

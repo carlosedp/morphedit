@@ -101,7 +101,8 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             >
               <AddIcon />
             </Button>
-          </Tooltip>          <Tooltip
+          </Tooltip>{" "}
+          <Tooltip
             title="Remove selected splice marker"
             enterDelay={TOOLTIP_DELAYS.ENTER}
             leaveDelay={TOOLTIP_DELAYS.LEAVE}
@@ -122,7 +123,6 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
               </Button>
             </Box>
           </Tooltip>
-
           <Tooltip
             title={
               selectedSpliceMarkerLocked

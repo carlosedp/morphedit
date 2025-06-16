@@ -24,10 +24,17 @@ import { Container, Stack } from "@mui/material";
 
 // Import separated utilities and components
 import { parseWavCuePoints } from "./utils/audioProcessing";
+import { truncateAudioBuffer } from "./utils/fileLengthUtils";
 import {
-  truncateAudioBuffer,
-} from "./utils/fileLengthUtils";
-import { MORPHAGENE_MAX_DURATION, REGION_COLORS, UI_COLORS, MARKER_ICONS, POSITION_UPDATE_INTERVAL, PLAYBACK_TIMING, WAVEFORM_RENDERING, ZOOM_LEVELS } from "./constants";
+  MORPHAGENE_MAX_DURATION,
+  REGION_COLORS,
+  UI_COLORS,
+  MARKER_ICONS,
+  POSITION_UPDATE_INTERVAL,
+  PLAYBACK_TIMING,
+  WAVEFORM_RENDERING,
+  ZOOM_LEVELS,
+} from "./constants";
 import { waveformLogger } from "./utils/logger";
 import {
   audioBufferToWavFormat,
@@ -59,7 +66,10 @@ import {
   applyFades,
   getRegionInfo,
 } from "./utils/regionUtils";
-import { createGenericSpliceHandler, type SpliceMarkerHandlers } from "./utils/spliceMarkerHandlers";
+import {
+  createGenericSpliceHandler,
+  type SpliceMarkerHandlers,
+} from "./utils/spliceMarkerHandlers";
 import { MAX_SPLICE_MARKERS } from "./constants";
 import {
   playPause,
@@ -337,7 +347,11 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             );
 
             // Clear existing visual markers
-            removeAllSpliceMarkersAndClearSelection(regions, () => { }, () => { });
+            removeAllSpliceMarkersAndClearSelection(
+              regions,
+              () => {},
+              () => {},
+            );
 
             // Create visual markers from store
             currentSpliceMarkers.forEach((markerTime, index) => {
@@ -466,7 +480,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             currentStoredBuffer &&
             Math.abs(
               currentStoredBuffer.length / currentStoredBuffer.sampleRate -
-              wsDuration,
+                wsDuration,
             ) < WAVEFORM_RENDERING.BUFFER_DURATION_TOLERANCE;
 
           if (bufferAlreadyCorrect) {
@@ -507,9 +521,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
                   const audioContext = new (window.AudioContext ||
                     (
                       window as Window &
-                      typeof globalThis & {
-                        webkitAudioContext?: typeof AudioContext;
-                      }
+                        typeof globalThis & {
+                          webkitAudioContext?: typeof AudioContext;
+                        }
                     ).webkitAudioContext)();
                   return audioContext.decodeAudioData(arrayBuffer);
                 })
@@ -613,9 +627,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             const audioContext = new (window.AudioContext ||
               (
                 window as Window &
-                typeof globalThis & {
-                  webkitAudioContext?: typeof AudioContext;
-                }
+                  typeof globalThis & {
+                    webkitAudioContext?: typeof AudioContext;
+                  }
               ).webkitAudioContext)();
 
             const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -1319,7 +1333,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handlers[`handlePlaySplice${i}`] = createGenericSpliceHandler(
           wavesurferRef,
           spliceMarkersStore,
-          i
+          i,
         );
       }
 
@@ -1410,22 +1424,21 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       };
 
       // Get the container element
-      const container = document.getElementById('waveform-container');
+      const container = document.getElementById("waveform-container");
       if (container) {
         // Add event listener with passive: false to allow preventDefault
-        container.addEventListener('wheel', handleWheelZoom, { passive: false });
+        container.addEventListener("wheel", handleWheelZoom, {
+          passive: false,
+        });
 
         return () => {
-          container.removeEventListener('wheel', handleWheelZoom);
+          container.removeEventListener("wheel", handleWheelZoom);
         };
       }
     }, [state.zoom, handleZoom]);
 
     return (
-      <Container
-        maxWidth="xl"
-        sx={{ mt: 2, mb: 2 }}
-      >
+      <Container maxWidth="xl" sx={{ mt: 2, mb: 2 }}>
         {/* Playback controls */}
         <WaveformControls
           isPlaying={state.isPlaying}
@@ -1506,9 +1519,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           selectedSpliceMarkerLocked={
             state.selectedSpliceMarker
               ? isMarkerLocked(
-                state.selectedSpliceMarker.start,
-                lockedSpliceMarkersStore,
-              )
+                  state.selectedSpliceMarker.start,
+                  lockedSpliceMarkersStore,
+                )
               : false
           }
           numberOfSlices={state.numberOfSlices}

@@ -40,11 +40,13 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
         flexWrap: "wrap",
         gap: { xs: 0.5, sm: 1 },
       }}
-    >      <Tooltip
-      title="Create crop/loop region"
-      enterDelay={TOOLTIP_DELAYS.ENTER}
-      leaveDelay={TOOLTIP_DELAYS.LEAVE}
     >
+      {" "}
+      <Tooltip
+        title="Create crop/loop region"
+        enterDelay={TOOLTIP_DELAYS.ENTER}
+        leaveDelay={TOOLTIP_DELAYS.LEAVE}
+      >
         <Button
           variant={cropMode ? "contained" : "outlined"}
           color="primary"
@@ -53,7 +55,8 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
         >
           Crop/Loop Region
         </Button>
-      </Tooltip>      <Tooltip
+      </Tooltip>{" "}
+      <Tooltip
         title="Create a fade-in region"
         enterDelay={TOOLTIP_DELAYS.ENTER}
         leaveDelay={TOOLTIP_DELAYS.LEAVE}
@@ -68,8 +71,11 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
           Fade In
         </Button>
       </Tooltip>
-
-      <Tooltip title="Create fade-out region" enterDelay={TOOLTIP_DELAYS.ENTER} leaveDelay={TOOLTIP_DELAYS.LEAVE}>
+      <Tooltip
+        title="Create fade-out region"
+        enterDelay={TOOLTIP_DELAYS.ENTER}
+        leaveDelay={TOOLTIP_DELAYS.LEAVE}
+      >
         <Button
           variant={fadeOutMode ? "contained" : "outlined"}
           color="primary"
@@ -80,7 +86,6 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
           Fade Out
         </Button>
       </Tooltip>
-
       <Tooltip
         title="Apply crop to current audio"
         enterDelay={TOOLTIP_DELAYS.ENTER}
@@ -98,7 +103,6 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
           </Button>
         </Box>
       </Tooltip>
-
       <Tooltip
         title="Apply fade regions to current audio"
         enterDelay={TOOLTIP_DELAYS.ENTER}
@@ -116,8 +120,11 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
           </Button>
         </Box>
       </Tooltip>
-
-      <Tooltip title="Undo last edit" enterDelay={TOOLTIP_DELAYS.ENTER} leaveDelay={TOOLTIP_DELAYS.LEAVE}>
+      <Tooltip
+        title="Undo last edit"
+        enterDelay={TOOLTIP_DELAYS.ENTER}
+        leaveDelay={TOOLTIP_DELAYS.LEAVE}
+      >
         <Box component="span">
           <Button
             variant="outlined"
