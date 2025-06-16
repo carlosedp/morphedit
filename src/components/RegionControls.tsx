@@ -185,7 +185,6 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
           </Tooltip>
         )}
 
-
         <Tooltip
           title="Apply fade regions to current audio"
           enterDelay={TOOLTIP_DELAYS.ENTER}

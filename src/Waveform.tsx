@@ -26,7 +26,7 @@ import { Container, Stack } from "@mui/material";
 import { parseWavCuePoints } from "./utils/audioProcessing";
 import { truncateAudioBuffer } from "./utils/fileLengthUtils";
 import {
-  MORPHAGENE_MAX_DURATION,
+  AUDIO_MAX_DURATION,
   REGION_COLORS,
   UI_COLORS,
   MARKER_ICONS,
@@ -39,7 +39,6 @@ import { waveformLogger } from "./utils/logger";
 import {
   audioBufferToWavFormat,
   downloadWav,
-  exportFormats,
   type ExportFormat,
 } from "./utils/exportUtils";
 import {
@@ -111,7 +110,8 @@ export interface WaveformRef extends SpliceMarkerHandlers {
   handleApplyCrop: () => void;
   handleApplyFades: () => void;
   handleUndo: () => void;
-  handleExportWav: () => void;
+  handleExport: () => void;
+  handleExportFormatChange: (format: ExportFormat) => void;
   handleAddSpliceMarker: () => void;
   handleRemoveSpliceMarker: () => void;
   handleToggleMarkerLock: () => void;
@@ -642,14 +642,14 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               "seconds",
             );
 
-            if (originalDuration > MORPHAGENE_MAX_DURATION) {
+            if (originalDuration > AUDIO_MAX_DURATION) {
               console.log(
                 "✂️ Audio exceeds max duration, creating truncated version",
               );
 
               // Filter cue points to only include those within the truncated range
               const filteredCuePoints = originalCuePoints.filter(
-                (cueTime) => cueTime <= MORPHAGENE_MAX_DURATION,
+                (cueTime) => cueTime <= AUDIO_MAX_DURATION,
               );
               console.log(
                 "🔍 Filtered cue points for truncated audio:",
@@ -659,7 +659,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               // Truncate the buffer
               const truncatedBuffer = truncateAudioBuffer(
                 audioBuffer,
-                MORPHAGENE_MAX_DURATION,
+                AUDIO_MAX_DURATION,
               );
               const truncatedDuration =
                 truncatedBuffer.length / truncatedBuffer.sampleRate;
@@ -669,7 +669,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               const { audioBufferToWavFormat } = await import(
                 "./utils/exportUtils"
               );
-              const { exportFormats } = await import("./utils/exportUtils");
+              const { EXPORT_FORMATS: exportFormats } = await import("./constants");
               const defaultFormat = exportFormats[0];
 
               const wavArrayBuffer = audioBufferToWavFormat(
@@ -1254,7 +1254,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     }, [state.skipIncrement, actions]);
 
     // Export handlers
-    const handleExportWav = useCallback(() => {
+    const handleExport = useCallback(() => {
       const audioBuffer = useAudioStore.getState().audioBuffer;
       const isProcessing = useAudioStore.getState().isProcessingAudio;
 
@@ -1281,52 +1281,24 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         "Export - Current WaveSurfer duration:",
         wavesurferRef.current?.getDuration() || "N/A",
       );
+      console.log("Export format:", state.selectedExportFormat);
       console.log("=====================================================");
 
-      // Use the default export format (48kHz 32-bit Float Stereo)
-      const defaultFormat = exportFormats[0]; // 48kHz 32-bit Float Stereo
       const wav = audioBufferToWavFormat(
         audioBuffer,
-        defaultFormat,
+        state.selectedExportFormat,
         spliceMarkersStore,
       );
-      downloadWav(wav, "morphedit-export.wav");
-    }, [spliceMarkersStore, wavesurferRef, state.currentAudioUrl]);
+      const filename = `morphedit-export-${state.selectedExportFormat.label.toLowerCase().replace(/[^a-z0-9]/g, "-")}.wav`;
+      downloadWav(wav, filename);
+    }, [spliceMarkersStore, wavesurferRef, state.currentAudioUrl, state.selectedExportFormat]);
 
-    const handleExportWavFormat = useCallback(
+    const handleExportFormatChange = useCallback(
       (format: ExportFormat) => {
-        const audioBuffer = useAudioStore.getState().audioBuffer;
-        if (!audioBuffer) {
-          console.log("No audio buffer found");
-          return;
-        }
-
-        console.log(
-          "Exporting WAV in format:",
-          format,
-          "with splice markers:",
-          spliceMarkersStore,
-        );
-        console.log(
-          "Export format - Audio buffer details:",
-          `Duration: ${audioBuffer.length / audioBuffer.sampleRate}s`,
-          `Length: ${audioBuffer.length} samples`,
-          `Sample rate: ${audioBuffer.sampleRate}Hz`,
-          `Channels: ${audioBuffer.numberOfChannels}`,
-        );
-
-        const wav = audioBufferToWavFormat(
-          audioBuffer,
-          format,
-          spliceMarkersStore,
-        );
-        const filename = `morphedit-export-${format.label.toLowerCase().replace(/[^a-z0-9]/g, "-")}.wav`;
-        downloadWav(wav, filename);
-
-        // Close the export menu
-        actions.setExportAnchorEl(null);
+        console.log("Changing export format to:", format);
+        actions.setSelectedExportFormat(format);
       },
-      [spliceMarkersStore, actions],
+      [actions],
     );
 
     // Splice playback handlers - dynamically generate handlers for all 20 splice markers
@@ -1370,7 +1342,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleApplyCrop,
         handleApplyFades,
         handleUndo,
-        handleExportWav,
+        handleExport,
+        handleExportFormatChange,
         handleAddSpliceMarker,
         handleRemoveSpliceMarker,
         handleToggleMarkerLock,
@@ -1396,7 +1369,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleApplyCrop,
         handleApplyFades,
         handleUndo,
-        handleExportWav,
+        handleExport,
+        handleExportFormatChange,
         handleAddSpliceMarker,
         handleRemoveSpliceMarker,
         handleToggleMarkerLock,
@@ -1484,8 +1458,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           >
             <ExportControls
               exportAnchorEl={state.exportAnchorEl}
-              onExportWav={handleExportWav}
-              onExportWavFormat={handleExportWavFormat}
+              selectedExportFormat={state.selectedExportFormat}
+              onExport={handleExport}
+              onExportFormatChange={handleExportFormatChange}
               onSetExportAnchorEl={actions.setExportAnchorEl}
             />
           </Stack>

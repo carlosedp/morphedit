@@ -4,6 +4,8 @@ import type { Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type WaveSurfer from "wavesurfer.js";
 import { FADE_CURVE_TYPES } from "../constants";
+import type { ExportFormat } from "../utils/exportUtils";
+import { EXPORT_FORMATS } from "../constants";
 
 export interface WaveformState {
   // Playback state
@@ -39,6 +41,7 @@ export interface WaveformState {
 
   // Export state
   exportAnchorEl: HTMLElement | null;
+  selectedExportFormat: ExportFormat;
 }
 
 export interface WaveformActions {
@@ -62,6 +65,7 @@ export interface WaveformActions {
   setSkipIncrement: (increment: number) => void;
   setCurrentAudioUrl: (url: string | null) => void;
   setExportAnchorEl: (element: HTMLElement | null) => void;
+  setSelectedExportFormat: (format: ExportFormat) => void;
 }
 
 export const useWaveformState = (
@@ -105,6 +109,9 @@ export const useWaveformState = (
   const [exportAnchorEl, setExportAnchorEl] = useState<HTMLElement | null>(
     null,
   );
+  const [selectedExportFormat, setSelectedExportFormat] = useState<ExportFormat>(
+    EXPORT_FORMATS[0], // Default to first format (48kHz 32-bit Float Stereo)
+  );
 
   const state: WaveformState = {
     isPlaying,
@@ -127,6 +134,7 @@ export const useWaveformState = (
     skipIncrement,
     currentAudioUrl,
     exportAnchorEl,
+    selectedExportFormat,
   };
 
   const actions: WaveformActions = useMemo(
@@ -151,6 +159,7 @@ export const useWaveformState = (
       setSkipIncrement,
       setCurrentAudioUrl,
       setExportAnchorEl,
+      setSelectedExportFormat,
     }),
     [
       setIsPlaying,
@@ -173,6 +182,7 @@ export const useWaveformState = (
       setSkipIncrement,
       setCurrentAudioUrl,
       setExportAnchorEl,
+      setSelectedExportFormat,
     ],
   );
 

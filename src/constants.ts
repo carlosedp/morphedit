@@ -1,8 +1,9 @@
+import { ExportFormat } from "./utils/exportUtils";
+
 // Shared constants to avoid magic numbers and duplicate values throughout the codebase
 
 // Audio processing constants
-export const MORPHAGENE_MAX_DURATION = 174; // seconds
-export const DEFAULT_SAMPLE_RATE = 48000; // Hz
+export const AUDIO_MAX_DURATION = 174; // seconds
 
 // UI timing constants
 export const DEBOUNCE_DELAY = 300; // ms
@@ -11,7 +12,7 @@ export const LOADING_DIALOG_DELAY = 500; // ms
 
 // Splice marker constants
 export const MAX_SPLICE_MARKERS = 20;
-export const MARKER_TOLERANCE = 0.001; // seconds for comparing marker positions
+export const MARKER_TOLERANCE = 0.01; // seconds for comparing marker positions
 
 // Region colors (hex with alpha)
 export const REGION_COLORS = {
@@ -29,34 +30,57 @@ export const MARKER_ICONS = {
   SELECTED: "🔵",
 } as const;
 
-// Keyboard shortcuts (for documentation and potential future use)
-export const SHORTCUT_KEYS = {
-  PLAY_PAUSE: " ",
-  CROP_REGION: "c",
-  RESET: "\\",
-  LOOP: "l",
-  ZOOM_IN: "=",
-  ZOOM_OUT: "-",
-  FADE_IN: "[",
-  FADE_OUT: "]",
-  UNDO: "z",
-  ADD_MARKER: "j",
-  REMOVE_MARKER: "k",
-  LOCK_MARKER: "m",
-  AUTO_SLICE: "s",
-  HALF_MARKERS: "h",
-  CLEAR_MARKERS: "x",
-} as const;
-
-// File validation
-export const SUPPORTED_AUDIO_EXTENSIONS = [
-  ".wav",
-  ".mp3",
-  ".flac",
-  ".ogg",
-  ".m4a",
-  ".aac",
-] as const;
+// Available export formats
+export const EXPORT_FORMATS: ExportFormat[] = [
+  {
+    label: "48kHz 32-bit Float Stereo",
+    shortLabel: "48kHz/32-bit",
+    sampleRate: 48000,
+    bitDepth: 32,
+    channels: "stereo",
+    format: "float",
+  },
+  {
+    label: "44.1kHz 32-bit Float Stereo",
+    shortLabel: "44.1kHz/32-bit",
+    sampleRate: 44100,
+    bitDepth: 32,
+    channels: "stereo",
+    format: "float",
+  },
+  {
+    label: "48kHz 16-bit Stereo",
+    shortLabel: "48kHz/16-bit",
+    sampleRate: 48000,
+    bitDepth: 16,
+    channels: "stereo",
+    format: "int",
+  },
+  {
+    label: "44.1kHz 16-bit Stereo",
+    shortLabel: "44.1kHz/16-bit",
+    sampleRate: 44100,
+    bitDepth: 16,
+    channels: "stereo",
+    format: "int",
+  },
+  {
+    label: "44.1kHz 16-bit Mono",
+    shortLabel: "44.1kHz/16-bit Mono",
+    sampleRate: 44100,
+    bitDepth: 16,
+    channels: "mono",
+    format: "int",
+  },
+  {
+    label: "22.05kHz 16-bit Mono",
+    shortLabel: "22.05kHz/16-bit Mono",
+    sampleRate: 22050,
+    bitDepth: 16,
+    channels: "mono",
+    format: "int",
+  },
+];
 
 export const FADE_CURVE_TYPES = {
   LINEAR: "linear",
