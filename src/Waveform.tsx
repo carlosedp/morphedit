@@ -15,6 +15,7 @@ import WaveSurfer from "wavesurfer.js";
 import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type { Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
 import TimelinePlugin from "wavesurfer.js/dist/plugins/timeline.esm.js";
+import Minimap from "wavesurfer.js/dist/plugins/minimap.esm.js";
 import Hover from "wavesurfer.js/dist/plugins/hover.esm.js";
 
 import { useAudioStore } from "./audioStore";
@@ -260,7 +261,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       const ws = WaveSurfer.create({
         container: "#waveform-container",
         waveColor: theme.palette.primary.main,
-        progressColor: "white",
+        // Use the primary main color but lightened for better contrast
+        progressColor: theme.palette.primary.light,
         cursorColor: theme.palette.primary.main,
         cursorWidth: WAVEFORM_RENDERING.CURSOR_WIDTH,
         minPxPerSec: 20, // Ensure waveform fills container initially
@@ -279,6 +281,13 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               const millis = Math.floor((seconds % 1) * 1000);
               return `${minutes}:${secs < 10 ? "0" : ""}${secs}.${millis}`;
             },
+          }),
+          Minimap.create({
+            height: 20,
+            waveColor: theme.palette.primary.main,
+            progressColor: theme.palette.primary.light,
+            overlayColor: theme.palette.primary.dark,
+            dragToSeek: true,
           }),
         ],
       });
