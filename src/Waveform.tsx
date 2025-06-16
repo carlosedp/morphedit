@@ -291,13 +291,6 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               return `${minutes}:${secs < 10 ? "0" : ""}${secs}.${millis}`;
             },
           }),
-          Minimap.create({
-            height: 20,
-            waveColor: theme.palette.primary.main,
-            progressColor: theme.palette.primary.light,
-            overlayColor: theme.palette.primary.dark,
-            dragToSeek: true,
-          }),
         ],
       });
 
