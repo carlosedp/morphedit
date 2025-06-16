@@ -6,11 +6,7 @@ import TimelinePlugin from "wavesurfer.js/dist/plugins/timeline.esm.js";
 import Minimap from "wavesurfer.js/dist/plugins/minimap.esm.js";
 import Hover from "wavesurfer.js/dist/plugins/hover.esm.js";
 
-import {
-  UI_COLORS,
-  WAVEFORM_RENDERING,
-  MINIMAP_ENABLED,
-} from "../constants";
+import { UI_COLORS, WAVEFORM_RENDERING, MINIMAP_ENABLED } from "../constants";
 
 interface DebugWindow extends Window {
   morpheditRegions?: RegionsPlugin;

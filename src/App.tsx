@@ -916,26 +916,26 @@ function App() {
             minHeight: audioUrl ? 150 : "auto", // Ensure enough height when audio is loaded
             "&:hover": !audioUrl
               ? {
-                backgroundColor: "action.hover",
-                borderColor: "primary.light",
-              }
+                  backgroundColor: "action.hover",
+                  borderColor: "primary.light",
+                }
               : {},
             // Add a subtle visual hint for mouse wheel zoom when audio is loaded
             position: "relative",
             "&::after": audioUrl
               ? {
-                content: '""',
-                position: "absolute",
-                top: 0,
-                right: 0,
-                width: 0,
-                height: 0,
-                borderLeft: "20px solid transparent",
-                borderTop: "20px solid",
-                borderColor: "action.disabled",
-                opacity: 0.1,
-                pointerEvents: "none",
-              }
+                  content: '""',
+                  position: "absolute",
+                  top: 0,
+                  right: 0,
+                  width: 0,
+                  height: 0,
+                  borderLeft: "20px solid transparent",
+                  borderTop: "20px solid",
+                  borderColor: "action.disabled",
+                  opacity: 0.1,
+                  pointerEvents: "none",
+                }
               : {},
           }}
         >

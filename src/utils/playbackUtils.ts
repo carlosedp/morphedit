@@ -224,7 +224,10 @@ export const undo = async (
   console.log("Current markers in store:", store.spliceMarkers);
   console.log("Current locked markers in store:", store.lockedSpliceMarkers);
   console.log("Previous markers to restore:", previousSpliceMarkers);
-  console.log("Previous locked markers to restore:", previousLockedSpliceMarkers);
+  console.log(
+    "Previous locked markers to restore:",
+    previousLockedSpliceMarkers,
+  );
   console.log("=== END UNDO MARKER DEBUG ===");
 
   // Set undo flag to prevent the ready event from overriding our restored markers
@@ -232,12 +235,18 @@ export const undo = async (
 
   // Restore splice markers BEFORE loading the audio so the ready event sees them
   if (callbacks.setSpliceMarkersStore) {
-    console.log("Restoring splice markers to previous state BEFORE load:", previousSpliceMarkers);
+    console.log(
+      "Restoring splice markers to previous state BEFORE load:",
+      previousSpliceMarkers,
+    );
     callbacks.setSpliceMarkersStore([...previousSpliceMarkers]);
   }
-  
+
   if (callbacks.setLockedSpliceMarkersStore) {
-    console.log("Restoring locked splice markers to previous state BEFORE load:", previousLockedSpliceMarkers);
+    console.log(
+      "Restoring locked splice markers to previous state BEFORE load:",
+      previousLockedSpliceMarkers,
+    );
     callbacks.setLockedSpliceMarkersStore([...previousLockedSpliceMarkers]);
   }
 

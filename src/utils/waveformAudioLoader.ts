@@ -3,8 +3,7 @@ import WaveSurfer from "wavesurfer.js";
 import { parseWavCuePoints } from "../utils/audioProcessing";
 import { truncateAudioBuffer } from "../utils/fileLengthUtils.ts";
 
-
-import {AUDIO_MAX_DURATION} from "../constants";
+import { AUDIO_MAX_DURATION } from "../constants";
 
 // Helper function to handle audio loading and preprocessing
 export async function loadAudioIntoWaveform(
@@ -13,7 +12,7 @@ export async function loadAudioIntoWaveform(
   shouldTruncate: boolean,
   state: { currentAudioUrl: string | null },
   actions: { setCurrentAudioUrl: (url: string | null) => void },
-  setAudioBuffer: (buffer: AudioBuffer) => void
+  setAudioBuffer: (buffer: AudioBuffer) => void,
 ): Promise<void> {
   // Strip URL fragments early to ensure all operations use clean URLs
   let urlToLoad = audioUrl.split("#")[0];
@@ -39,7 +38,9 @@ export async function loadAudioIntoWaveform(
       // Parse cue points from original file BEFORE truncation
       let originalCuePoints: number[] = [];
       try {
-        console.log("🔍 Parsing cue points from original file before truncation...");
+        console.log(
+          "🔍 Parsing cue points from original file before truncation...",
+        );
         originalCuePoints = await parseWavCuePoints(urlToLoad);
         console.log("🔍 Found cue points in original file:", originalCuePoints);
       } catch (error) {
@@ -53,9 +54,9 @@ export async function loadAudioIntoWaveform(
       const audioContext = new (window.AudioContext ||
         (
           window as Window &
-          typeof globalThis & {
-            webkitAudioContext?: typeof AudioContext;
-          }
+            typeof globalThis & {
+              webkitAudioContext?: typeof AudioContext;
+            }
         ).webkitAudioContext)();
 
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -64,17 +65,26 @@ export async function loadAudioIntoWaveform(
       console.log("Original audio duration:", originalDuration, "seconds");
 
       if (originalDuration > AUDIO_MAX_DURATION) {
-        console.log("✂️ Audio exceeds max duration, creating truncated version");
+        console.log(
+          "✂️ Audio exceeds max duration, creating truncated version",
+        );
 
         // Filter cue points to only include those within the truncated range
         const filteredCuePoints = originalCuePoints.filter(
           (cueTime) => cueTime <= AUDIO_MAX_DURATION,
         );
-        console.log("🔍 Filtered cue points for truncated audio:", filteredCuePoints);
+        console.log(
+          "🔍 Filtered cue points for truncated audio:",
+          filteredCuePoints,
+        );
 
         // Truncate the buffer
-        const truncatedBuffer = truncateAudioBuffer(audioBuffer, AUDIO_MAX_DURATION);
-        const truncatedDuration = truncatedBuffer.length / truncatedBuffer.sampleRate;
+        const truncatedBuffer = truncateAudioBuffer(
+          audioBuffer,
+          AUDIO_MAX_DURATION,
+        );
+        const truncatedDuration =
+          truncatedBuffer.length / truncatedBuffer.sampleRate;
         console.log("Truncated duration:", truncatedDuration, "seconds");
 
         // Convert to WAV blob

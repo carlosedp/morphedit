@@ -13,7 +13,10 @@ import { useTheme } from "@mui/material/styles";
 
 import type { Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
 
-import { createWaveSurferInstance, calculateInitialZoom } from "./utils/waveformInitialization";
+import {
+  createWaveSurferInstance,
+  calculateInitialZoom,
+} from "./utils/waveformInitialization";
 import { loadAudioIntoWaveform } from "./utils/waveformAudioLoader";
 
 import { useAudioStore } from "./audioStore";
@@ -291,7 +294,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           const isProcessedAudio =
             urlToCheck.includes("#morphedit-cropped") ||
             urlToCheck.includes("#morphedit-faded") ||
-            isAudioProcessing ||  // Also treat as processed if we're currently processing
+            isAudioProcessing || // Also treat as processed if we're currently processing
             isUndoing; // Also treat as processed if we're undoing to preserve restored markers
           const isConcatenatedAudio = urlToCheck.includes(
             "#morphedit-concatenated",
@@ -326,8 +329,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             // Clear existing visual markers
             removeAllSpliceMarkersAndClearSelection(
               regions,
-              () => { },
-              () => { },
+              () => {},
+              () => {},
             );
 
             // Create visual markers from store
@@ -350,8 +353,14 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           // For processed audio (cropped/faded) or undo operations, create visual markers directly from store to ensure correct positioning
           else if (isProcessedAudio && currentSpliceMarkers.length > 0) {
             console.log("=== PROCESSED AUDIO MARKER LOADING DEBUG ===");
-            console.log("URL contains cropped:", urlToLoad.includes("#morphedit-cropped"));
-            console.log("URL contains faded:", urlToLoad.includes("#morphedit-faded"));
+            console.log(
+              "URL contains cropped:",
+              urlToLoad.includes("#morphedit-cropped"),
+            );
+            console.log(
+              "URL contains faded:",
+              urlToLoad.includes("#morphedit-faded"),
+            );
             console.log("Is undo operation:", isUndoing);
             console.log("Current store splice markers:", currentSpliceMarkers);
             console.log("Current store locked markers:", currentLockedMarkers);
@@ -364,16 +373,21 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             const existingSpliceMarkers = allRegions.filter((r: Region) =>
               r.id.startsWith("splice-marker-"),
             );
-            console.log("Clearing existing splice markers:", existingSpliceMarkers.length);
+            console.log(
+              "Clearing existing splice markers:",
+              existingSpliceMarkers.length,
+            );
             existingSpliceMarkers.forEach((marker: Region) => marker.remove());
 
             // Create visual markers from store (which has the correct adjusted times for crops or restored times for undo)
             currentSpliceMarkers.forEach((markerTime, index) => {
               const isLocked = isMarkerLocked(markerTime, currentLockedMarkers);
-              console.log(`Creating visual marker ${index}: time=${markerTime}, locked=${isLocked}`);
-              const markerId = isUndoing ?
-                `splice-marker-undo-${index}-${Date.now()}` :
-                `splice-marker-processed-${index}-${Date.now()}`;
+              console.log(
+                `Creating visual marker ${index}: time=${markerTime}, locked=${isLocked}`,
+              );
+              const markerId = isUndoing
+                ? `splice-marker-undo-${index}-${Date.now()}`
+                : `splice-marker-processed-${index}-${Date.now()}`;
               regions.addRegion({
                 start: markerTime,
                 color: REGION_COLORS.SPLICE_MARKER,
@@ -385,7 +399,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             });
 
             console.log(
-              `Created ${currentSpliceMarkers.length} visual markers from store for ${isUndoing ? 'undo operation' : 'processed audio'}`,
+              `Created ${currentSpliceMarkers.length} visual markers from store for ${isUndoing ? "undo operation" : "processed audio"}`,
             );
             console.log("=== END PROCESSED AUDIO MARKER LOADING DEBUG ===");
           }
@@ -469,7 +483,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             currentStoredBuffer &&
             Math.abs(
               currentStoredBuffer.length / currentStoredBuffer.sampleRate -
-              wsDuration,
+                wsDuration,
             ) < WAVEFORM_RENDERING.BUFFER_DURATION_TOLERANCE;
 
           if (bufferAlreadyCorrect) {
@@ -510,9 +524,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
                   const audioContext = new (window.AudioContext ||
                     (
                       window as Window &
-                      typeof globalThis & {
-                        webkitAudioContext?: typeof AudioContext;
-                      }
+                        typeof globalThis & {
+                          webkitAudioContext?: typeof AudioContext;
+                        }
                     ).webkitAudioContext)();
                   return audioContext.decodeAudioData(arrayBuffer);
                 })
@@ -568,7 +582,14 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
       // Load audio using extracted helper function
       (async () => {
-        await loadAudioIntoWaveform(ws, audioUrl, shouldTruncate, state, actions, setAudioBuffer);
+        await loadAudioIntoWaveform(
+          ws,
+          audioUrl,
+          shouldTruncate,
+          state,
+          actions,
+          setAudioBuffer,
+        );
       })();
 
       // Set up region event listeners
@@ -1149,7 +1170,12 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       );
       const filename = `morphedit-export-${state.selectedExportFormat.label.toLowerCase().replace(/[^a-z0-9]/g, "-")}.wav`;
       downloadWav(wav, filename);
-    }, [spliceMarkersStore, wavesurferRef, state.currentAudioUrl, state.selectedExportFormat]);
+    }, [
+      spliceMarkersStore,
+      wavesurferRef,
+      state.currentAudioUrl,
+      state.selectedExportFormat,
+    ]);
 
     const handleExportFormatChange = useCallback(
       (format: ExportFormat) => {
@@ -1360,9 +1386,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           selectedSpliceMarkerLocked={
             state.selectedSpliceMarker
               ? isMarkerLocked(
-                state.selectedSpliceMarker.start,
-                lockedSpliceMarkersStore,
-              )
+                  state.selectedSpliceMarker.start,
+                  lockedSpliceMarkersStore,
+                )
               : false
           }
           numberOfSlices={state.numberOfSlices}
