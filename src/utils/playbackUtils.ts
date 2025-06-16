@@ -3,6 +3,7 @@ import type { Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type WaveSurfer from "wavesurfer.js";
 import { SKIP_INCREMENTS } from "../constants";
+import { useAudioStore } from "../audioStore";
 
 // Store the current splice stop listener to clean it up when needed
 let currentSpliceStopListener: ((time: number) => void) | null = null;
@@ -201,6 +202,8 @@ export const undo = async (
     setCropRegion: (region: Region | null) => void;
     setFadeInMode: (mode: boolean) => void;
     setFadeOutMode: (mode: boolean) => void;
+    setSpliceMarkersStore?: (markers: number[]) => void;
+    setLockedSpliceMarkersStore?: (markers: number[]) => void;
   },
 ): Promise<void> => {
   if (!ws || !canUndo || !previousAudioUrl) {
@@ -212,15 +215,35 @@ export const undo = async (
 
   console.log("Undoing to previous audio URL:", previousAudioUrl);
 
+  // Get the previous splice markers from the store before clearing them
+  const store = useAudioStore.getState();
+  const previousSpliceMarkers = store.previousSpliceMarkers;
+  const previousLockedSpliceMarkers = store.previousLockedSpliceMarkers;
+
   // Load the previous audio URL
   try {
     await ws.load(previousAudioUrl);
     console.log("Undo successful");
+    
+    // Restore splice markers if callbacks are provided and we have previous markers
+    if (callbacks.setSpliceMarkersStore && previousSpliceMarkers.length > 0) {
+      console.log("Restoring splice markers to previous state:", previousSpliceMarkers);
+      callbacks.setSpliceMarkersStore([...previousSpliceMarkers]);
+    }
+    
+    if (callbacks.setLockedSpliceMarkersStore && previousLockedSpliceMarkers.length > 0) {
+      console.log("Restoring locked splice markers to previous state:", previousLockedSpliceMarkers);
+      callbacks.setLockedSpliceMarkersStore([...previousLockedSpliceMarkers]);
+    }
+
     // Update the current audio URL to the restored version
     callbacks.setCurrentAudioUrl(previousAudioUrl);
     // Clear undo state after restoring
     callbacks.setPreviousAudioUrl(null);
     callbacks.setCanUndo(false);
+    // Clear the previous markers from the store
+    store.setPreviousSpliceMarkers([]);
+    store.setPreviousLockedSpliceMarkers([]);
     // Clear any active regions
     callbacks.setCropMode(false);
     callbacks.setCropRegion(null);

@@ -165,6 +165,12 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     const setPreviousAudioUrl = useAudioStore(
       (s: AudioState) => s.setPreviousAudioUrl,
     );
+    const setPreviousSpliceMarkers = useAudioStore(
+      (s: AudioState) => s.setPreviousSpliceMarkers,
+    );
+    const setPreviousLockedSpliceMarkers = useAudioStore(
+      (s: AudioState) => s.setPreviousLockedSpliceMarkers,
+    );
     const setCanUndo = useAudioStore((s: AudioState) => s.setCanUndo);
     const previousAudioUrl = useAudioStore(
       (s: AudioState) => s.previousAudioUrl,
@@ -320,15 +326,32 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
           // Parse WAV file for existing cue points and load them as splice markers
           // Skip this for cropped/faded URLs (processed audio) since markers are handled manually
-          // Use audioUrl (the new URL) instead of state.currentAudioUrl (the old URL) for appended/concatenated audio
-          const urlToLoad = audioUrl;
+          // For processed audio, we need to check if we're currently processing or if the URL has processing flags
+          const isAudioProcessing = useAudioStore.getState().isProcessingAudio;
+          const urlToCheck = state.currentAudioUrl || audioUrl;
+          
+          console.log("=== URL DEBUG ===");
+          console.log("audioUrl prop:", audioUrl);
+          console.log("state.currentAudioUrl:", state.currentAudioUrl);
+          console.log("urlToCheck:", urlToCheck);
+          console.log("isAudioProcessing:", isAudioProcessing);
+          
           const isProcessedAudio =
-            urlToLoad.includes("#morphedit-cropped") ||
-            urlToLoad.includes("#morphedit-faded");
-          const isConcatenatedAudio = urlToLoad.includes(
+            urlToCheck.includes("#morphedit-cropped") ||
+            urlToCheck.includes("#morphedit-faded") ||
+            isAudioProcessing; // Also treat as processed if we're currently processing
+          const isConcatenatedAudio = urlToCheck.includes(
             "#morphedit-concatenated",
           );
-          const isAppendedAudio = urlToLoad.includes("#morphedit-appended");
+          const isAppendedAudio = urlToCheck.includes("#morphedit-appended");
+          
+          console.log("isProcessedAudio:", isProcessedAudio);
+          console.log("isConcatenatedAudio:", isConcatenatedAudio);
+          console.log("isAppendedAudio:", isAppendedAudio);
+          console.log("=== END URL DEBUG ===");
+
+          // Use the checked URL for loading
+          const urlToLoad = urlToCheck;
 
           // Get current store state directly (not from React hook closure)
           const currentStoreState = useAudioStore.getState();
@@ -372,6 +395,11 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           }
           // For processed audio (cropped/faded), create visual markers directly from store to ensure correct positioning
           else if (isProcessedAudio && currentSpliceMarkers.length > 0) {
+            console.log("=== PROCESSED AUDIO MARKER LOADING DEBUG ===");
+            console.log("URL contains cropped:", urlToLoad.includes("#morphedit-cropped"));
+            console.log("URL contains faded:", urlToLoad.includes("#morphedit-faded"));
+            console.log("Current store splice markers:", currentSpliceMarkers);
+            console.log("Current store locked markers:", currentLockedMarkers);
             console.log(
               "Creating visual markers from store for processed audio",
             );
@@ -381,11 +409,13 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             const existingSpliceMarkers = allRegions.filter((r: Region) =>
               r.id.startsWith("splice-marker-"),
             );
+            console.log("Clearing existing splice markers:", existingSpliceMarkers.length);
             existingSpliceMarkers.forEach((marker: Region) => marker.remove());
 
             // Create visual markers from store (which has the correct adjusted times)
             currentSpliceMarkers.forEach((markerTime, index) => {
               const isLocked = isMarkerLocked(markerTime, currentLockedMarkers);
+              console.log(`Creating visual marker ${index}: time=${markerTime}, locked=${isLocked}`);
               regions.addRegion({
                 start: markerTime,
                 color: REGION_COLORS.SPLICE_MARKER,
@@ -399,6 +429,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             console.log(
               `Created ${currentSpliceMarkers.length} visual markers from store for processed audio`,
             );
+            console.log("=== END PROCESSED AUDIO MARKER LOADING DEBUG ===");
           }
           // Load cue points from WAV files (for regular unprocessed audio)
           else {
@@ -1141,6 +1172,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           setFadeOutMode: actions.setFadeOutMode,
           setSpliceMarkersStore,
           setLockedSpliceMarkersStore,
+          setPreviousSpliceMarkers,
+          setPreviousLockedSpliceMarkers,
           setZoom: actions.setZoom,
         },
       );
@@ -1154,6 +1187,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       state.currentAudioUrl,
       spliceMarkersStore,
       setPreviousAudioUrl,
+      setPreviousSpliceMarkers,
+      setPreviousLockedSpliceMarkers,
       setCanUndo,
       setAudioBuffer,
       actions,
@@ -1181,6 +1216,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         state.fadeOutCurveType,
         state.currentAudioUrl,
         spliceMarkersStore,
+        lockedSpliceMarkersStore,
         {
           setPreviousAudioUrl,
           setCanUndo,
@@ -1191,6 +1227,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           setCropMode: actions.setCropMode,
           setCropRegion: actions.setCropRegion,
           setSpliceMarkersStore,
+          setPreviousSpliceMarkers,
+          setPreviousLockedSpliceMarkers,
           setZoom: actions.setZoom,
         },
       );
@@ -1205,7 +1243,10 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       state.fadeOutCurveType,
       state.currentAudioUrl,
       spliceMarkersStore,
+      lockedSpliceMarkersStore,
       setPreviousAudioUrl,
+      setPreviousSpliceMarkers,
+      setPreviousLockedSpliceMarkers,
       setCanUndo,
       setAudioBuffer,
       actions,
@@ -1225,6 +1266,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         setCropRegion: actions.setCropRegion,
         setFadeInMode: actions.setFadeInMode,
         setFadeOutMode: actions.setFadeOutMode,
+        setSpliceMarkersStore,
+        setLockedSpliceMarkersStore,
       });
     }, [
       canUndo,
@@ -1233,6 +1276,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       setCanUndo,
       actions,
       wavesurferRef,
+      setSpliceMarkersStore,
+      setLockedSpliceMarkersStore,
     ]);
 
     const handleSkipForward = useCallback(() => {

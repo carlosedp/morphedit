@@ -4,7 +4,8 @@ import {
   truncateAudioBuffer,
   MORPHAGENE_MAX_DURATION,
 } from "./fileLengthUtils";
-import { audioBufferToWavFormat, exportFormats } from "./exportUtils";
+import { audioBufferToWavFormat } from "./exportUtils";
+import { EXPORT_FORMATS } from "../constants";
 
 /**
  * Pre-process audio URL for truncation if needed
@@ -58,7 +59,7 @@ export const preprocessAudioForTruncation = async (
     console.log("Truncated audio duration:", truncatedDuration, "seconds");
 
     // Convert to WAV blob
-    const defaultFormat = exportFormats[0]; // Use default export format
+    const defaultFormat = EXPORT_FORMATS[0]; // Use default export format
     const wavArrayBuffer = audioBufferToWavFormat(
       truncatedBuffer,
       defaultFormat,

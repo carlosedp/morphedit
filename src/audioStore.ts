@@ -16,6 +16,10 @@ export interface AudioState {
   // Undo functionality
   previousAudioUrl: string | null;
   setPreviousAudioUrl: (url: string | null) => void;
+  previousSpliceMarkers: number[];
+  setPreviousSpliceMarkers: (markers: number[]) => void;
+  previousLockedSpliceMarkers: number[];
+  setPreviousLockedSpliceMarkers: (markers: number[]) => void;
   canUndo: boolean;
   setCanUndo: (canUndo: boolean) => void;
   // Processing state to prevent buffer overrides
@@ -48,6 +52,10 @@ export const useAudioStore = create<AudioState>(
     // Undo functionality
     previousAudioUrl: null,
     setPreviousAudioUrl: (url) => set({ previousAudioUrl: url }),
+    previousSpliceMarkers: [],
+    setPreviousSpliceMarkers: (markers) => set({ previousSpliceMarkers: markers }),
+    previousLockedSpliceMarkers: [],
+    setPreviousLockedSpliceMarkers: (markers) => set({ previousLockedSpliceMarkers: markers }),
     canUndo: false,
     setCanUndo: (canUndo) => set({ canUndo }),
     // Processing state
@@ -62,6 +70,8 @@ export const useAudioStore = create<AudioState>(
         spliceMarkers: [],
         lockedSpliceMarkers: [],
         previousAudioUrl: null,
+        previousSpliceMarkers: [],
+        previousLockedSpliceMarkers: [],
         canUndo: false,
         isProcessingAudio: false,
       }),

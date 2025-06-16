@@ -212,6 +212,8 @@ export const applyCrop = async (
     setFadeOutMode: (mode: boolean) => void;
     setSpliceMarkersStore: (markers: number[]) => void;
     setLockedSpliceMarkersStore: (markers: number[]) => void;
+    setPreviousSpliceMarkers: (markers: number[]) => void;
+    setPreviousLockedSpliceMarkers: (markers: number[]) => void;
     setZoom?: (zoom: number) => void;
   },
 ): Promise<void> => {
@@ -342,6 +344,17 @@ export const applyCrop = async (
     (markerTime) => markerTime - adjustedStartTime,
   );
 
+  console.log("=== CROP MARKER ADJUSTMENT DEBUG ===");
+  console.log("Original crop region:", cropRegionData.start, "to", cropRegionData.end);
+  console.log("Zero-crossing adjusted crop region:", adjustedStartTime, "to", adjustedEndTime);
+  console.log("Original splice markers:", spliceMarkersStore);
+  console.log("Filtered splice markers (within crop):", filteredSpliceMarkers);
+  console.log("Adjusted splice markers (relative to crop start):", adjustedSpliceMarkers);
+  console.log("Original locked markers:", lockedSpliceMarkersStore);
+  console.log("Filtered locked markers (within crop):", filteredLockedSpliceMarkers);
+  console.log("Adjusted locked markers (relative to crop start):", adjustedLockedSpliceMarkers);
+  console.log("=== END CROP MARKER DEBUG ===");
+
   console.log(
     `Crop markers: ${spliceMarkersStore.length} -> ${filteredSpliceMarkers.length} (filtered) -> ${adjustedSpliceMarkers.length} (adjusted)`,
   );
@@ -379,8 +392,10 @@ export const applyCrop = async (
     `Updated locked splice markers store: ${adjustedLockedSpliceMarkers.length} locked markers for cropped audio`,
   );
 
-  // Save current audio URL for undo before loading new one
+  // Save current audio URL and splice markers for undo before loading new one
   callbacks.setPreviousAudioUrl(currentAudioUrl);
+  callbacks.setPreviousSpliceMarkers([...spliceMarkersStore]);
+  callbacks.setPreviousLockedSpliceMarkers([...lockedSpliceMarkersStore]);
   callbacks.setCanUndo(true);
 
   // Load the new cropped audio
@@ -502,6 +517,7 @@ export const applyFades = async (
   fadeOutCurveType: string,
   currentAudioUrl: string | null,
   spliceMarkersStore: number[],
+  lockedSpliceMarkersStore: number[],
   callbacks: {
     setPreviousAudioUrl: (url: string | null) => void;
     setCanUndo: (canUndo: boolean) => void;
@@ -512,6 +528,8 @@ export const applyFades = async (
     setCropMode: (mode: boolean) => void;
     setCropRegion: (region: Region | null) => void;
     setSpliceMarkersStore: (markers: number[]) => void;
+    setPreviousSpliceMarkers: (markers: number[]) => void;
+    setPreviousLockedSpliceMarkers: (markers: number[]) => void;
     setZoom?: (zoom: number) => void;
   },
 ): Promise<void> => {
@@ -659,8 +677,10 @@ export const applyFades = async (
   console.log("Loading new faded URL:", newUrl);
   console.log("Saving for undo - currentAudioUrl:", currentAudioUrl);
 
-  // Save current audio URL for undo before loading new one
+  // Save current audio URL and splice markers for undo before loading new one
   callbacks.setPreviousAudioUrl(currentAudioUrl);
+  callbacks.setPreviousSpliceMarkers([...spliceMarkersStore]);
+  callbacks.setPreviousLockedSpliceMarkers([...lockedSpliceMarkersStore]);
   callbacks.setCanUndo(true);
 
   // Load the new faded audio
