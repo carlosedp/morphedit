@@ -1,59 +1,11 @@
-// Export format configuration and handlers
-import { DEFAULT_SAMPLE_RATE } from "../constants";
-
 export interface ExportFormat {
   label: string;
+  shortLabel: string;
   sampleRate: number;
   bitDepth: 16 | 32;
   channels: "stereo" | "mono";
   format: "int" | "float";
 }
-
-// Available export formats
-export const exportFormats: ExportFormat[] = [
-  {
-    label: "48kHz 32-bit Float Stereo",
-    sampleRate: DEFAULT_SAMPLE_RATE,
-    bitDepth: 32,
-    channels: "stereo",
-    format: "float",
-  },
-  {
-    label: "44.1kHz 32-bit Float Stereo",
-    sampleRate: 44100,
-    bitDepth: 32,
-    channels: "stereo",
-    format: "float",
-  },
-  {
-    label: "48kHz 16-bit Stereo",
-    sampleRate: DEFAULT_SAMPLE_RATE,
-    bitDepth: 16,
-    channels: "stereo",
-    format: "int",
-  },
-  {
-    label: "44.1kHz 16-bit Stereo",
-    sampleRate: 44100,
-    bitDepth: 16,
-    channels: "stereo",
-    format: "int",
-  },
-  {
-    label: "44.1kHz 16-bit Mono",
-    sampleRate: 44100,
-    bitDepth: 16,
-    channels: "mono",
-    format: "int",
-  },
-  {
-    label: "22.05kHz 16-bit Mono",
-    sampleRate: 22050,
-    bitDepth: 16,
-    channels: "mono",
-    format: "int",
-  },
-];
 
 // Helper function to convert AudioBuffer to WAV with specific format options
 export const audioBufferToWavFormat = (

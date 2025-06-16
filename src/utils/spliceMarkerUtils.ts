@@ -6,7 +6,13 @@ import { useAudioStore } from "../audioStore";
 import { findNearestZeroCrossing } from "./transientDetection";
 import { getAudioBuffer, getLockedSpliceMarkers } from "./storeHelpers";
 import { spliceLogger } from "./logger";
-import { MARKER_TOLERANCE, REGION_COLORS, MARKER_ICONS, UI_COLORS, REGION_POSITIONING } from "../constants";
+import {
+  MARKER_TOLERANCE,
+  REGION_COLORS,
+  MARKER_ICONS,
+  UI_COLORS,
+  REGION_POSITIONING,
+} from "../constants";
 import {
   getSpliceMarkerRegions,
   getUnlockedSpliceMarkers,
@@ -14,7 +20,7 @@ import {
   clearSelectionAndUpdateColors,
   removeUnlockedMarkersAndClearSelection,
   isMarkerTooCloseToExisting,
-  combineAndSortMarkers
+  combineAndSortMarkers,
 } from "./regionHelpers";
 import "../App.css";
 
@@ -23,7 +29,9 @@ export const isMarkerLocked = (
   markerTime: number,
   lockedMarkers: number[],
 ): boolean => {
-  return lockedMarkers.some((locked) => Math.abs(locked - markerTime) < MARKER_TOLERANCE);
+  return lockedMarkers.some(
+    (locked) => Math.abs(locked - markerTime) < MARKER_TOLERANCE,
+  );
 };
 
 export const toggleMarkerLock = (
@@ -43,7 +51,7 @@ export const toggleMarkerLock = (
     spliceLogger.markerOperation(
       "Marker unlocked",
       1,
-      `at ${markerTime.toFixed(3)}s`
+      `at ${markerTime.toFixed(3)}s`,
     );
 
     // Update drag properties and icons of all markers
@@ -58,7 +66,7 @@ export const toggleMarkerLock = (
     spliceLogger.markerOperation(
       "Marker locked",
       1,
-      `at ${markerTime.toFixed(3)}s`
+      `at ${markerTime.toFixed(3)}s`,
     );
 
     // Update drag properties and icons of all markers
@@ -131,7 +139,11 @@ export const addSpliceMarker = (
     console.log("No audio buffer available, using original time");
   }
 
-  spliceLogger.markerOperation("Adding splice marker", 1, `at time: ${adjustedTime}`);
+  spliceLogger.markerOperation(
+    "Adding splice marker",
+    1,
+    `at time: ${adjustedTime}`,
+  );
 
   // Create a zero-width region for the splice marker
   regions.addRegion({
@@ -179,7 +191,10 @@ export const removeSpliceMarker = (
     // Remove from regions
     selectedSpliceMarker.remove();
 
-    clearSelectionAndUpdateColors(setSelectedSpliceMarker, updateSpliceMarkerColors);
+    clearSelectionAndUpdateColors(
+      setSelectedSpliceMarker,
+      updateSpliceMarkerColors,
+    );
 
     // Update store
     const updatedMarkers = spliceMarkersStore.filter(
@@ -229,7 +244,10 @@ export const removeSpliceMarker = (
     // Remove from regions
     closestMarker.remove();
 
-    clearSelectionAndUpdateColors(setSelectedSpliceMarker, updateSpliceMarkerColors);
+    clearSelectionAndUpdateColors(
+      setSelectedSpliceMarker,
+      updateSpliceMarkerColors,
+    );
 
     // Update store
     const updatedMarkers = spliceMarkersStore.filter(
@@ -267,7 +285,7 @@ export const autoSlice = (
   spliceLogger.markerOperation(
     `Creating ${numberOfSlices} equally distributed splice markers`,
     lockedMarkers.length,
-    "locked preserved"
+    "locked preserved",
   );
 
   // Clear existing unlocked splice markers first
@@ -275,7 +293,7 @@ export const autoSlice = (
     regions,
     lockedMarkers,
     setSelectedSpliceMarker,
-    updateSpliceMarkerColors
+    updateSpliceMarkerColors,
   );
 
   console.log(
@@ -304,7 +322,13 @@ export const autoSlice = (
     const markerTime = i * sliceInterval;
 
     // Skip if there's already a locked marker very close to this position
-    if (isMarkerTooCloseToExisting(markerTime, lockedMarkers, REGION_POSITIONING.MARKER_PROXIMITY_THRESHOLD)) {
+    if (
+      isMarkerTooCloseToExisting(
+        markerTime,
+        lockedMarkers,
+        REGION_POSITIONING.MARKER_PROXIMITY_THRESHOLD,
+      )
+    ) {
       console.log(
         `Skipping auto marker at ${markerTime.toFixed(
           3,
@@ -340,7 +364,10 @@ export const autoSlice = (
   // Update store with new splice marker times (including locked ones)
   setSpliceMarkersStore(newSpliceMarkers.sort((a, b) => a - b));
 
-  clearSelectionAndUpdateColors(setSelectedSpliceMarker, updateSpliceMarkerColors);
+  clearSelectionAndUpdateColors(
+    setSelectedSpliceMarker,
+    updateSpliceMarkerColors,
+  );
 
   console.log(
     `Auto-slice complete. Created ${
@@ -382,7 +409,10 @@ export const halfMarkers = (
 
     // Update store: keep locked markers, remove the unlocked one
     setSpliceMarkersStore(lockedMarkers.slice());
-    clearSelectionAndUpdateColors(setSelectedSpliceMarker, updateSpliceMarkerColors);
+    clearSelectionAndUpdateColors(
+      setSelectedSpliceMarker,
+      updateSpliceMarkerColors,
+    );
     console.log("Single unlocked splice marker removed");
     return;
   }
@@ -414,10 +444,16 @@ export const halfMarkers = (
   removeRegions(markersToRemove);
 
   // Update store with remaining markers (locked + remaining unlocked)
-  const allRemainingMarkers = combineAndSortMarkers(lockedMarkers, remainingUnlockedMarkerTimes);
+  const allRemainingMarkers = combineAndSortMarkers(
+    lockedMarkers,
+    remainingUnlockedMarkerTimes,
+  );
   setSpliceMarkersStore(allRemainingMarkers);
 
-  clearSelectionAndUpdateColors(setSelectedSpliceMarker, updateSpliceMarkerColors);
+  clearSelectionAndUpdateColors(
+    setSelectedSpliceMarker,
+    updateSpliceMarkerColors,
+  );
 
   console.log(
     `Half markers complete. Removed ${markersToRemove.length} unlocked markers, ${allRemainingMarkers.length} total remaining (${lockedMarkers.length} locked + ${remainingUnlockedMarkerTimes.length} unlocked)`,
@@ -437,7 +473,7 @@ export const clearAllMarkers = (
     regions,
     lockedMarkers,
     setSelectedSpliceMarker,
-    updateSpliceMarkerColors
+    updateSpliceMarkerColors,
   );
 
   if (unlockedRegions.length === 0) {
@@ -511,7 +547,8 @@ export const updateSpliceMarkerColors = (
       // Unselected markers (both locked and unlocked): use same default cyan color
       // Only the icon will differ between locked (🔒) and unlocked (🔶) markers
       region.element.style.borderLeft = `2px solid ${REGION_COLORS.SPLICE_MARKER}`;
-      region.element.style.backgroundColor = UI_COLORS.DEFAULT_MARKER_BACKGROUND;
+      region.element.style.backgroundColor =
+        UI_COLORS.DEFAULT_MARKER_BACKGROUND;
       region.element.style.boxShadow = `none`; // Remove any existing glow
     }
   });

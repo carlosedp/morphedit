@@ -1,26 +1,26 @@
-const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron');
-const path = require('path');
-const fs = require('fs');
+const { app, BrowserWindow, Menu, ipcMain, dialog } = require("electron");
+const path = require("path");
+const fs = require("fs");
 
 function createWindow() {
   const win = new BrowserWindow({
     width: 1200,
     height: 1220,
-    icon: path.join(__dirname, 'public', 'icon.png'),
+    icon: path.join(__dirname, "public", "icon.png"),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       webSecurity: false, // Allow file drops and local file access
-      preload: path.join(__dirname, 'preload.js'), // Add preload for IPC
+      preload: path.join(__dirname, "preload.js"), // Add preload for IPC
       enableRemoteModule: false,
       allowRunningInsecureContent: false,
     },
   });
 
-  win.loadFile(path.join(__dirname, 'dist', 'index.html'));
+  win.loadFile(path.join(__dirname, "dist", "index.html"));
 
   // Enable drag and drop for files at the window level
-  win.webContents.on('dom-ready', () => {
+  win.webContents.on("dom-ready", () => {
     // Allow file drops by preventing default behavior and enabling file drops
     win.webContents.executeJavaScript(`
       console.log('Setting up Electron file drop handlers...');
@@ -53,11 +53,11 @@ function createWindow() {
   });
 
   // Enable drag and drop for files
-  win.webContents.on('will-navigate', (event, navigationUrl) => {
+  win.webContents.on("will-navigate", (event, navigationUrl) => {
     const parsedUrl = new URL(navigationUrl);
 
     // Allow navigation to blob URLs and data URLs (for audio processing)
-    if (parsedUrl.protocol === 'blob:' || parsedUrl.protocol === 'data:') {
+    if (parsedUrl.protocol === "blob:" || parsedUrl.protocol === "data:") {
       return;
     }
 
@@ -66,117 +66,128 @@ function createWindow() {
   });
 
   // Handle file drops
-  win.webContents.on('before-input-event', (event, input) => {
+  win.webContents.on("before-input-event", (event, input) => {
     // Allow all keyboard inputs
   });
 
   // Handle new windows opened by target="_blank" links
   win.webContents.setWindowOpenHandler(({ url }) => {
     return {
-      action: 'allow',
+      action: "allow",
       overrideBrowserWindowOptions: {
         width: 1000,
         height: 1000,
         webPreferences: {
           nodeIntegration: false,
-          contextIsolation: true
-        }
-      }
+          contextIsolation: true,
+        },
+      },
     };
   });
 
   // Create application menu with File > Open Audio
   const menu = Menu.buildFromTemplate([
     {
-      label: 'File',
+      label: "File",
       submenu: [
         {
-          label: 'Open Audio',
-          accelerator: 'CmdOrCtrl+O',
+          label: "Open Audio",
+          accelerator: "CmdOrCtrl+O",
           click: () => {
-            win.webContents.send('open-audio-dialog');
+            win.webContents.send("open-audio-dialog");
           },
         },
         {
-          label: 'Append Audio',
-          accelerator: 'CmdOrCtrl+Shift+O',
+          label: "Append Audio",
+          accelerator: "CmdOrCtrl+Shift+O",
           click: () => {
-            win.webContents.send('append-audio-dialog');
+            win.webContents.send("append-audio-dialog");
           },
         },
-        { type: 'separator' },
-        { role: 'quit' },
+        { type: "separator" },
+        { role: "quit" },
       ],
     },
     {
-      label: 'About',
+      label: "About",
       submenu: [
         // Open local manual from manual.html
         {
-          label: 'Open Manual',
+          label: "Open Manual",
           click: () => {
             const manualWindow = new BrowserWindow({
               width: 1000,
               height: 1000,
               webPreferences: {
                 nodeIntegration: false,
-                contextIsolation: true
-              }
+                contextIsolation: true,
+              },
             });
-            manualWindow.loadFile(path.join(__dirname, 'public', 'manual.html'));
-          }
+            manualWindow.loadFile(
+              path.join(__dirname, "public", "manual.html"),
+            );
+          },
         },
         {
-          label: 'Open project GitHub', click: () => {
-            require('electron').shell.openExternal('https://github.com/carlosedp/morphedit');
-          }
+          label: "Open project GitHub",
+          click: () => {
+            require("electron").shell.openExternal(
+              "https://github.com/carlosedp/morphedit",
+            );
+          },
         },
         {
-          label: 'Open bug report', click: () => {
-            require('electron').shell.openExternal('https://github.com/carlosedp/morphedit/issues');
-          }
+          label: "Open bug report",
+          click: () => {
+            require("electron").shell.openExternal(
+              "https://github.com/carlosedp/morphedit/issues",
+            );
+          },
         },
-        { type: 'separator' },
-        { role: 'toggleDevTools' }, // For development purposes
+        { type: "separator" },
+        { role: "toggleDevTools" }, // For development purposes
         {
-          label: 'About Audio Player',
+          label: "About Audio Player",
           click: () => {
             // You can implement a dialog or a new window to show about information
-            console.log('About Audio Player clicked');
+            console.log("About Audio Player clicked");
           },
         },
       ],
-    }
+    },
   ]);
   Menu.setApplicationMenu(menu);
 
   // IPC handlers for file operations
-  ipcMain.handle('show-open-dialog', async (event, options) => {
+  ipcMain.handle("show-open-dialog", async (event, options) => {
     const result = await dialog.showOpenDialog(win, {
       filters: [
-        { name: 'Audio Files', extensions: ['mp3', 'wav', 'flac', 'm4a', 'aac', 'ogg', 'wma'] },
-        { name: 'All Files', extensions: ['*'] }
+        {
+          name: "Audio Files",
+          extensions: ["mp3", "wav", "flac", "m4a", "aac", "ogg", "wma"],
+        },
+        { name: "All Files", extensions: ["*"] },
       ],
-      properties: ['openFile', 'multiSelections'],
-      ...options
+      properties: ["openFile", "multiSelections"],
+      ...options,
     });
 
     return result;
   });
 
-  ipcMain.handle('read-file', async (event, filePath) => {
+  ipcMain.handle("read-file", async (event, filePath) => {
     try {
       const data = await fs.promises.readFile(filePath);
       return {
         success: true,
         data: Array.from(data),
         path: filePath,
-        name: path.basename(filePath)
+        name: path.basename(filePath),
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   });
@@ -188,18 +199,18 @@ app.whenReady().then(() => {
   const mainWindow = createWindow();
 
   // Clean up IPC handlers when app is quitting
-  app.on('before-quit', () => {
+  app.on("before-quit", () => {
     ipcMain.removeAllListeners();
   });
 });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
     app.quit();
   }
 });
 
-app.on('activate', () => {
+app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   }

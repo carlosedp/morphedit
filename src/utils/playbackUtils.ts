@@ -3,6 +3,7 @@ import type { Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type WaveSurfer from "wavesurfer.js";
 import { SKIP_INCREMENTS } from "../constants";
+import { useAudioStore } from "../audioStore";
 
 // Store the current splice stop listener to clean it up when needed
 let currentSpliceStopListener: ((time: number) => void) | null = null;
@@ -167,9 +168,12 @@ export const skipBackward = (ws: WaveSurfer, skipIncrement: number) => {
 };
 
 export const increaseSkipIncrement = (skipIncrement: number): number => {
-  if (skipIncrement < SKIP_INCREMENTS.SMALL_THRESHOLD) return skipIncrement + SKIP_INCREMENTS.SMALL_INCREMENT;
-  if (skipIncrement < SKIP_INCREMENTS.LARGE_THRESHOLD) return skipIncrement + SKIP_INCREMENTS.MEDIUM_INCREMENT;
-  if (skipIncrement < 10) return skipIncrement + SKIP_INCREMENTS.LARGE_INCREMENT; // 1s increments for medium values
+  if (skipIncrement < SKIP_INCREMENTS.SMALL_THRESHOLD)
+    return skipIncrement + SKIP_INCREMENTS.SMALL_INCREMENT;
+  if (skipIncrement < SKIP_INCREMENTS.LARGE_THRESHOLD)
+    return skipIncrement + SKIP_INCREMENTS.MEDIUM_INCREMENT;
+  if (skipIncrement < 10)
+    return skipIncrement + SKIP_INCREMENTS.LARGE_INCREMENT; // 1s increments for medium values
   if (skipIncrement < 60) return skipIncrement + 10; // 10s increments for large values
   return skipIncrement + 30; // 30s increments for very large values
 };
@@ -177,9 +181,12 @@ export const increaseSkipIncrement = (skipIncrement: number): number => {
 export const decreaseSkipIncrement = (skipIncrement: number): number => {
   if (skipIncrement > 60) return skipIncrement - 30; // 30s decrements for very large values
   if (skipIncrement > 10) return skipIncrement - 10; // 10s decrements for large values
-  if (skipIncrement > SKIP_INCREMENTS.LARGE_THRESHOLD) return skipIncrement - SKIP_INCREMENTS.LARGE_INCREMENT;
-  if (skipIncrement > SKIP_INCREMENTS.SMALL_THRESHOLD) return skipIncrement - SKIP_INCREMENTS.MEDIUM_INCREMENT;
-  if (skipIncrement > SKIP_INCREMENTS.SMALL_INCREMENT) return skipIncrement - SKIP_INCREMENTS.SMALL_INCREMENT;
+  if (skipIncrement > SKIP_INCREMENTS.LARGE_THRESHOLD)
+    return skipIncrement - SKIP_INCREMENTS.LARGE_INCREMENT;
+  if (skipIncrement > SKIP_INCREMENTS.SMALL_THRESHOLD)
+    return skipIncrement - SKIP_INCREMENTS.MEDIUM_INCREMENT;
+  if (skipIncrement > SKIP_INCREMENTS.SMALL_INCREMENT)
+    return skipIncrement - SKIP_INCREMENTS.SMALL_INCREMENT;
   return SKIP_INCREMENTS.MINIMUM_VALUE; // Minimum value
 };
 
@@ -195,6 +202,8 @@ export const undo = async (
     setCropRegion: (region: Region | null) => void;
     setFadeInMode: (mode: boolean) => void;
     setFadeOutMode: (mode: boolean) => void;
+    setSpliceMarkersStore?: (markers: number[]) => void;
+    setLockedSpliceMarkersStore?: (markers: number[]) => void;
   },
 ): Promise<void> => {
   if (!ws || !canUndo || !previousAudioUrl) {
@@ -206,15 +215,47 @@ export const undo = async (
 
   console.log("Undoing to previous audio URL:", previousAudioUrl);
 
+  // Get the previous splice markers from the store before clearing them
+  const store = useAudioStore.getState();
+  const previousSpliceMarkers = store.previousSpliceMarkers;
+  const previousLockedSpliceMarkers = store.previousLockedSpliceMarkers;
+
+  console.log("=== UNDO MARKER DEBUG ===");
+  console.log("Current markers in store:", store.spliceMarkers);
+  console.log("Current locked markers in store:", store.lockedSpliceMarkers);
+  console.log("Previous markers to restore:", previousSpliceMarkers);
+  console.log("Previous locked markers to restore:", previousLockedSpliceMarkers);
+  console.log("=== END UNDO MARKER DEBUG ===");
+
+  // Set undo flag to prevent the ready event from overriding our restored markers
+  store.setIsUndoing(true);
+
+  // Restore splice markers BEFORE loading the audio so the ready event sees them
+  if (callbacks.setSpliceMarkersStore) {
+    console.log("Restoring splice markers to previous state BEFORE load:", previousSpliceMarkers);
+    callbacks.setSpliceMarkersStore([...previousSpliceMarkers]);
+  }
+  
+  if (callbacks.setLockedSpliceMarkersStore) {
+    console.log("Restoring locked splice markers to previous state BEFORE load:", previousLockedSpliceMarkers);
+    callbacks.setLockedSpliceMarkersStore([...previousLockedSpliceMarkers]);
+  }
+
   // Load the previous audio URL
   try {
     await ws.load(previousAudioUrl);
     console.log("Undo successful");
+
     // Update the current audio URL to the restored version
     callbacks.setCurrentAudioUrl(previousAudioUrl);
     // Clear undo state after restoring
     callbacks.setPreviousAudioUrl(null);
     callbacks.setCanUndo(false);
+    // Clear the previous markers from the store
+    store.setPreviousSpliceMarkers([]);
+    store.setPreviousLockedSpliceMarkers([]);
+    // Clear undo flag
+    store.setIsUndoing(false);
     // Clear any active regions
     callbacks.setCropMode(false);
     callbacks.setCropRegion(null);
@@ -222,5 +263,7 @@ export const undo = async (
     callbacks.setFadeOutMode(false);
   } catch (error) {
     console.error("Error during undo:", error);
+    // Clear undo flag even on error
+    store.setIsUndoing(false);
   }
 };

@@ -68,7 +68,11 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           justifyContent: { xs: "center", md: "flex-start" },
         }}
       >
-        <Tooltip title="Play/Pause" enterDelay={TOOLTIP_DELAYS.ENTER} leaveDelay={TOOLTIP_DELAYS.LEAVE}>
+        <Tooltip
+          title="Play/Pause"
+          enterDelay={TOOLTIP_DELAYS.ENTER}
+          leaveDelay={TOOLTIP_DELAYS.LEAVE}
+        >
           <IconButton
             onClick={onPlayPause}
             color="primary"
@@ -82,7 +86,11 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           </IconButton>
         </Tooltip>
 
-        <Tooltip title="Loop region" enterDelay={TOOLTIP_DELAYS.ENTER} leaveDelay={TOOLTIP_DELAYS.LEAVE}>
+        <Tooltip
+          title="Loop region"
+          enterDelay={TOOLTIP_DELAYS.ENTER}
+          leaveDelay={TOOLTIP_DELAYS.LEAVE}
+        >
           <IconButton
             onClick={onLoop}
             color={isLooping ? "primary" : "default"}
@@ -94,7 +102,11 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           </IconButton>
         </Tooltip>
 
-        <Tooltip title="Rewind to start" enterDelay={TOOLTIP_DELAYS.ENTER} leaveDelay={TOOLTIP_DELAYS.LEAVE}>
+        <Tooltip
+          title="Rewind to start"
+          enterDelay={TOOLTIP_DELAYS.ENTER}
+          leaveDelay={TOOLTIP_DELAYS.LEAVE}
+        >
           <IconButton
             onClick={onRewind}
             color="default"
@@ -129,7 +141,11 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           />
           <ZoomInIcon color="action" />
           <IconButton onClick={onZoomReset} size="small">
-            <Tooltip title="Zoom all" enterDelay={TOOLTIP_DELAYS.ENTER} leaveDelay={TOOLTIP_DELAYS.LEAVE}>
+            <Tooltip
+              title="Zoom all"
+              enterDelay={TOOLTIP_DELAYS.ENTER}
+              leaveDelay={TOOLTIP_DELAYS.LEAVE}
+            >
               <ZoomResetIcon />
             </Tooltip>
           </IconButton>
@@ -185,39 +201,39 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
         {(regionInfo.cropRegion ||
           regionInfo.fadeInRegion ||
           regionInfo.fadeOutRegion) && (
-            <Stack
-              direction="row"
-              spacing={2}
-              alignItems="center"
-              sx={{
-                mt: 0.5,
-                flexWrap: "wrap",
-                justifyContent: { xs: "center", md: "flex-end" },
-              }}
-            >
-              {regionInfo.cropRegion && (
-                <Typography variant="caption" color="warning.main">
-                  Crop: {formatTime(regionInfo.cropRegion.start)} -{" "}
-                  {formatTime(regionInfo.cropRegion.end)} (Δ
-                  {formatTime(regionInfo.cropRegion.duration)})
-                </Typography>
-              )}
-              {regionInfo.fadeInRegion && (
-                <Typography variant="caption" color="success.main">
-                  Fade In: {formatTime(regionInfo.fadeInRegion.start)} -{" "}
-                  {formatTime(regionInfo.fadeInRegion.end)} (Δ
-                  {formatTime(regionInfo.fadeInRegion.duration)})
-                </Typography>
-              )}
-              {regionInfo.fadeOutRegion && (
-                <Typography variant="caption" color="error.main">
-                  Fade Out: {formatTime(regionInfo.fadeOutRegion.start)} -{" "}
-                  {formatTime(regionInfo.fadeOutRegion.end)} (Δ
-                  {formatTime(regionInfo.fadeOutRegion.duration)})
-                </Typography>
-              )}
-            </Stack>
-          )}
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            sx={{
+              mt: 0.5,
+              flexWrap: "wrap",
+              justifyContent: { xs: "center", md: "flex-end" },
+            }}
+          >
+            {regionInfo.cropRegion && (
+              <Typography variant="caption" color="warning.main">
+                Crop: {formatTime(regionInfo.cropRegion.start)} -{" "}
+                {formatTime(regionInfo.cropRegion.end)} (Δ
+                {formatTime(regionInfo.cropRegion.duration)})
+              </Typography>
+            )}
+            {regionInfo.fadeInRegion && (
+              <Typography variant="caption" color="success.main">
+                Fade In: {formatTime(regionInfo.fadeInRegion.start)} -{" "}
+                {formatTime(regionInfo.fadeInRegion.end)} (Δ
+                {formatTime(regionInfo.fadeInRegion.duration)})
+              </Typography>
+            )}
+            {regionInfo.fadeOutRegion && (
+              <Typography variant="caption" color="error.main">
+                Fade Out: {formatTime(regionInfo.fadeOutRegion.start)} -{" "}
+                {formatTime(regionInfo.fadeOutRegion.end)} (Δ
+                {formatTime(regionInfo.fadeOutRegion.duration)})
+              </Typography>
+            )}
+          </Stack>
+        )}
       </Stack>
     </Stack>
   );

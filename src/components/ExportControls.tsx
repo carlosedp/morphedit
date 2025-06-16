@@ -1,40 +1,48 @@
 // Export controls component
 import React from "react";
-import { Button, ButtonGroup, Menu, MenuItem, Tooltip } from "@mui/material";
+import { Button, ButtonGroup, Menu, MenuItem, Tooltip, Typography } from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import { exportFormats, type ExportFormat } from "../utils/exportUtils";
+import { type ExportFormat } from "../utils/exportUtils";
+import { EXPORT_FORMATS } from "../constants";
 import { TOOLTIP_DELAYS } from "../constants";
 
 interface ExportControlsProps {
   exportAnchorEl: HTMLElement | null;
-  onExportWav: () => void;
-  onExportWavFormat: (format: ExportFormat) => void;
+  selectedExportFormat: ExportFormat;
+  onExport: () => void;
+  onExportFormatChange: (format: ExportFormat) => void;
   onSetExportAnchorEl: (element: HTMLElement | null) => void;
 }
 
 export const ExportControls: React.FC<ExportControlsProps> = ({
   exportAnchorEl,
-  onExportWav,
-  onExportWavFormat,
+  selectedExportFormat,
+  onExport,
+  onExportFormatChange,
   onSetExportAnchorEl,
 }) => {
   const exportMenuOpen = Boolean(exportAnchorEl);
+
+  const handleFormatSelect = (format: ExportFormat) => {
+    onExportFormatChange(format);
+    onSetExportAnchorEl(null);
+  };
 
   return (
     <>
       <ButtonGroup variant="outlined" sx={{ ml: 2 }}>
         <Tooltip
-          title="Export audio for MakeNoise Morphagene (48Khz/32-bit Float Stereo)"
+          title={`Export audio as ${selectedExportFormat.label}`}
           enterDelay={TOOLTIP_DELAYS.ENTER}
           leaveDelay={TOOLTIP_DELAYS.LEAVE}
         >
-          <Button onClick={onExportWav} startIcon={<DownloadIcon />}>
+          <Button onClick={onExport} startIcon={<DownloadIcon />} sx={{ minWidth: 140 }}>
             Export WAV
           </Button>
         </Tooltip>
         <Tooltip
-          title="Export audio for other formats"
+          title="Select export format"
           enterDelay={TOOLTIP_DELAYS.ENTER}
           leaveDelay={TOOLTIP_DELAYS.LEAVE}
         >
@@ -44,6 +52,7 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
             sx={{ px: 1 }}
           >
             <ArrowDropDownIcon />
+            {selectedExportFormat.shortLabel}
           </Button>
         </Tooltip>
       </ButtonGroup>
@@ -56,13 +65,21 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
           "aria-labelledby": "export-split-button",
         }}
       >
-        {exportFormats.map((format, index) => (
+        {EXPORT_FORMATS.map((format, index) => (
           <MenuItem
             key={index}
-            onClick={() => onExportWavFormat(format)}
+            selected={format === selectedExportFormat}
+            onClick={() => handleFormatSelect(format)}
             sx={{ minWidth: 250 }}
           >
-            {format.label}
+            <Typography variant="body2">
+              <strong>{format.label}</strong>
+              {format === selectedExportFormat && (
+                <Typography component="span" color="primary" sx={{ ml: 1 }}>
+                  ✓
+                </Typography>
+              )}
+            </Typography>
           </MenuItem>
         ))}
       </Menu>

@@ -3,6 +3,9 @@ import { useState, useRef, useMemo } from "react";
 import type { Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type WaveSurfer from "wavesurfer.js";
+import { FADE_CURVE_TYPES } from "../constants";
+import type { ExportFormat } from "../utils/exportUtils";
+import { EXPORT_FORMATS } from "../constants";
 
 export interface WaveformState {
   // Playback state
@@ -16,6 +19,8 @@ export interface WaveformState {
   cropRegion: Region | null;
   fadeInMode: boolean;
   fadeOutMode: boolean;
+  fadeInCurveType: string;
+  fadeOutCurveType: string;
 
   // Splice marker state
   selectedSpliceMarker: Region | null;
@@ -36,6 +41,7 @@ export interface WaveformState {
 
   // Export state
   exportAnchorEl: HTMLElement | null;
+  selectedExportFormat: ExportFormat;
 }
 
 export interface WaveformActions {
@@ -47,6 +53,8 @@ export interface WaveformActions {
   setCropRegion: (region: Region | null) => void;
   setFadeInMode: (mode: boolean) => void;
   setFadeOutMode: (mode: boolean) => void;
+  setFadeInCurveType: (curveType: string) => void;
+  setFadeOutCurveType: (curveType: string) => void;
   setSelectedSpliceMarker: (marker: Region | null) => void;
   setNumberOfSlices: (slices: number) => void;
   setTransientSensitivity: (sensitivity: number) => void;
@@ -57,6 +65,7 @@ export interface WaveformActions {
   setSkipIncrement: (increment: number) => void;
   setCurrentAudioUrl: (url: string | null) => void;
   setExportAnchorEl: (element: HTMLElement | null) => void;
+  setSelectedExportFormat: (format: ExportFormat) => void;
 }
 
 export const useWaveformState = (
@@ -73,6 +82,8 @@ export const useWaveformState = (
   const [cropRegion, setCropRegion] = useState<Region | null>(null);
   const [fadeInMode, setFadeInMode] = useState(false);
   const [fadeOutMode, setFadeOutMode] = useState(false);
+  const [fadeInCurveType, setFadeInCurveType] = useState<string>(FADE_CURVE_TYPES.LINEAR);
+  const [fadeOutCurveType, setFadeOutCurveType] = useState<string>(FADE_CURVE_TYPES.LINEAR);
 
   // Splice marker state
   const [selectedSpliceMarker, setSelectedSpliceMarker] =
@@ -98,6 +109,9 @@ export const useWaveformState = (
   const [exportAnchorEl, setExportAnchorEl] = useState<HTMLElement | null>(
     null,
   );
+  const [selectedExportFormat, setSelectedExportFormat] = useState<ExportFormat>(
+    EXPORT_FORMATS[0], // Default to first format (48kHz 32-bit Float Stereo)
+  );
 
   const state: WaveformState = {
     isPlaying,
@@ -108,6 +122,8 @@ export const useWaveformState = (
     cropRegion,
     fadeInMode,
     fadeOutMode,
+    fadeInCurveType,
+    fadeOutCurveType,
     selectedSpliceMarker,
     numberOfSlices,
     transientSensitivity,
@@ -118,6 +134,7 @@ export const useWaveformState = (
     skipIncrement,
     currentAudioUrl,
     exportAnchorEl,
+    selectedExportFormat,
   };
 
   const actions: WaveformActions = useMemo(
@@ -130,6 +147,8 @@ export const useWaveformState = (
       setCropRegion,
       setFadeInMode,
       setFadeOutMode,
+      setFadeInCurveType,
+      setFadeOutCurveType,
       setSelectedSpliceMarker,
       setNumberOfSlices,
       setTransientSensitivity,
@@ -140,6 +159,7 @@ export const useWaveformState = (
       setSkipIncrement,
       setCurrentAudioUrl,
       setExportAnchorEl,
+      setSelectedExportFormat,
     }),
     [
       setIsPlaying,
@@ -150,6 +170,8 @@ export const useWaveformState = (
       setCropRegion,
       setFadeInMode,
       setFadeOutMode,
+      setFadeInCurveType,
+      setFadeOutCurveType,
       setSelectedSpliceMarker,
       setNumberOfSlices,
       setTransientSensitivity,
@@ -160,6 +182,7 @@ export const useWaveformState = (
       setSkipIncrement,
       setCurrentAudioUrl,
       setExportAnchorEl,
+      setSelectedExportFormat,
     ],
   );
 

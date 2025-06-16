@@ -142,7 +142,7 @@ export const concatenateAudioFiles = async (
       }
       concatenationLogger.markerOperation(
         `Added existing cue points from file ${i}`,
-        fileCuePoints.cuePoints.length
+        fileCuePoints.cuePoints.length,
       );
     }
 
@@ -368,7 +368,13 @@ export const appendAudioToExisting = async (
     existingBuffer.length,
     totalLength - currentOffset,
   );
-  copyAudioData(existingBuffer, concatenatedBuffer, 0, currentOffset, existingCopyLength);
+  copyAudioData(
+    existingBuffer,
+    concatenatedBuffer,
+    0,
+    currentOffset,
+    existingCopyLength,
+  );
   currentOffset += existingCopyLength;
 
   // Copy new audio files
@@ -385,11 +391,12 @@ export const appendAudioToExisting = async (
   }
 
   // Remove duplicate markers and sort
-  const uniqueSortedMarkers = deduplicateAndSortMarkers(spliceMarkerPositions)
-    .filter((marker) => {
-      const maxTime = concatenatedBuffer.length / concatenatedBuffer.sampleRate;
-      return marker >= 0 && marker < maxTime;
-    });
+  const uniqueSortedMarkers = deduplicateAndSortMarkers(
+    spliceMarkerPositions,
+  ).filter((marker) => {
+    const maxTime = concatenatedBuffer.length / concatenatedBuffer.sampleRate;
+    return marker >= 0 && marker < maxTime;
+  });
 
   const totalDuration =
     concatenatedBuffer.length / concatenatedBuffer.sampleRate;
@@ -415,16 +422,20 @@ export const truncateConcatenationResult = async (
   result: ConcatenationResult,
   maxDuration: number,
 ): Promise<ConcatenationResult> => {
-  const { concatenatedBuffer, spliceMarkerPositions, boundaryMarkerPositions } = result;
+  const { concatenatedBuffer, spliceMarkerPositions, boundaryMarkerPositions } =
+    result;
 
-  const originalDuration = concatenatedBuffer.length / concatenatedBuffer.sampleRate;
+  const originalDuration =
+    concatenatedBuffer.length / concatenatedBuffer.sampleRate;
 
   if (originalDuration <= maxDuration) {
     // No truncation needed
     return result;
   }
 
-  concatenationLogger.debug(`Truncating concatenated audio from ${originalDuration}s to ${maxDuration}s`);
+  concatenationLogger.debug(
+    `Truncating concatenated audio from ${originalDuration}s to ${maxDuration}s`,
+  );
 
   // Calculate truncated buffer length
   const sampleRate = concatenatedBuffer.sampleRate;
@@ -433,9 +444,12 @@ export const truncateConcatenationResult = async (
 
   // Create truncated buffer
   const audioContext = new (window.AudioContext ||
-    (window as Window & typeof globalThis & {
-      webkitAudioContext?: typeof AudioContext;
-    }).webkitAudioContext)();
+    (
+      window as Window &
+        typeof globalThis & {
+          webkitAudioContext?: typeof AudioContext;
+        }
+    ).webkitAudioContext)();
   const truncatedBuffer = audioContext.createBuffer(
     numberOfChannels,
     truncatedLength,
@@ -456,7 +470,7 @@ export const truncateConcatenationResult = async (
   concatenationLogger.markerOperation(
     "Filtered markers after truncation",
     truncatedSpliceMarkers.length,
-    `(from ${spliceMarkerPositions.length})`
+    `(from ${spliceMarkerPositions.length})`,
   );
 
   return {

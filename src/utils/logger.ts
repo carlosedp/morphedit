@@ -1,6 +1,6 @@
 // Logging utilities for consistent debug output
 
-const LOG_PREFIX = 'MorphEdit';
+const LOG_PREFIX = "MorphEdit";
 
 // Create consistent log messages with context
 export const createLogger = (context: string) => {
@@ -22,28 +22,32 @@ export const createLogger = (context: string) => {
 
     // Specialized logging for audio operations
     audioOperation: (operation: string, details?: Record<string, unknown>) => {
-      const detailsStr = details ? JSON.stringify(details, null, 2) : '';
-      console.log(`${prefix} 🎵 ${operation}${detailsStr ? `\n${detailsStr}` : ''}`);
+      const detailsStr = details ? JSON.stringify(details, null, 2) : "";
+      console.log(
+        `${prefix} 🎵 ${operation}${detailsStr ? `\n${detailsStr}` : ""}`,
+      );
     },
 
     // Specialized logging for marker operations
     markerOperation: (operation: string, count: number, type?: string) => {
-      const typeStr = type ? ` ${type}` : '';
+      const typeStr = type ? ` ${type}` : "";
       console.log(`${prefix} 🔶 ${operation}:${typeStr} ${count} markers`);
     },
 
     // Specialized logging for processing states
     processingState: (state: string, isStart: boolean = true) => {
-      const emoji = isStart ? '🔄' : '✅';
-      console.log(`${prefix} ${emoji} ${state} ${isStart ? 'started' : 'completed'}`);
-    }
+      const emoji = isStart ? "🔄" : "✅";
+      console.log(
+        `${prefix} ${emoji} ${state} ${isStart ? "started" : "completed"}`,
+      );
+    },
   };
 };
 
 // Pre-created loggers for common contexts
-export const waveformLogger = createLogger('Waveform');
-export const spliceLogger = createLogger('SpliceMarkers');
-export const audioLogger = createLogger('AudioProcessing');
-export const regionLogger = createLogger('Regions');
-export const exportLogger = createLogger('Export');
-export const concatenationLogger = createLogger('Concatenation');
+export const waveformLogger = createLogger("Waveform");
+export const spliceLogger = createLogger("SpliceMarkers");
+export const audioLogger = createLogger("AudioProcessing");
+export const regionLogger = createLogger("Regions");
+export const exportLogger = createLogger("Export");
+export const concatenationLogger = createLogger("Concatenation");
