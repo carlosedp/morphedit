@@ -53,7 +53,8 @@
     "files": [
       "dist/**/*",
       "electron-main.cjs",
-      "package.json"
+      "package.json",
+      "preload.js"
     ],
     "directories": {
       "buildResources": "public"
