@@ -17,7 +17,8 @@
 - [x] Export audio with splice points
 - [x] Transient detection with sensitivity setting and advanced controls (frame size & overlap)
 - [x] Detect zero-crossing on splice points, crop regions, and fade in/out regions
-- [ ] Redo layout so controls are more intuitive
+- [x] Add mobile layout
+- [x] Redo layout so controls are more intuitive
 - [x] Have different fade curves for fade in and fade out (linear, exponential, etc.)
 - [ ] Settings menu for:
   - [ ]  Fade in/out curve type (linear, exponential, etc.)
@@ -28,10 +29,11 @@
 - [x] Use mouse scroll to zoom in/out on the waveform
 - [x] Add tooltip to append audio button
 - [ ] Detect if audio has more than 300 splice points and show warning if user wants to truncate it or not. Make this number a constant.
-
-## To Test
-
-- [ ] Check if splice points are detected correctly when audio is truncated
+- [ ] BPM detection and display it in the info panel
+- [ ] Multi-level undo/redo functionality
+- [ ] Time stretching and pitch shifting
+- [ ] Audio effects (normalization, add/remove gain)
+- [ ] Crossfade between splice points with defined length and curve type
 
 ## Bugs
 

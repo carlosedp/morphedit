@@ -14,6 +14,9 @@ export const LOADING_DIALOG_DELAY = 500; // ms
 export const MAX_SPLICE_MARKERS = 20;
 export const MARKER_TOLERANCE = 0.01; // seconds for comparing marker positions
 
+// Enable or disable minimap in the waveform view
+export const MINIMAP_ENABLED = true;
+
 // Region colors (hex with alpha)
 export const REGION_COLORS = {
   SPLICE_MARKER: "rgba(0, 255, 255, 0.8)",
