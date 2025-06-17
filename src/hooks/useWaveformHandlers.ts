@@ -25,6 +25,7 @@ import {
   applyCrop,
   applyFades,
 } from "../utils/regionUtils";
+import { applyNormalization } from "../utils/audioNormalization";
 import {
   addSpliceMarker,
   removeSpliceMarker,
@@ -388,6 +389,47 @@ export const useWaveformHandlers = ({
     setSpliceMarkersStore,
   ]);
 
+  const handleNormalize = useCallback(async () => {
+    if (onProcessingStart) {
+      onProcessingStart("Normalizing audio to -1dB...");
+    }
+
+    await applyNormalization(
+      wavesurferRef.current!,
+      -1, // Target -1dB peak
+      state.currentAudioUrl,
+      spliceMarkersStore,
+      lockedSpliceMarkersStore,
+      {
+        setPreviousAudioUrl,
+        setCanUndo,
+        setAudioBuffer,
+        setCurrentAudioUrl: actions.setCurrentAudioUrl,
+        setSpliceMarkersStore,
+        setPreviousSpliceMarkers,
+        setPreviousLockedSpliceMarkers,
+      }
+    );
+
+    if (onProcessingComplete) {
+      onProcessingComplete();
+    }
+  }, [
+    state.currentAudioUrl,
+    spliceMarkersStore,
+    lockedSpliceMarkersStore,
+    setPreviousAudioUrl,
+    setPreviousSpliceMarkers,
+    setPreviousLockedSpliceMarkers,
+    setCanUndo,
+    setAudioBuffer,
+    actions.setCurrentAudioUrl,
+    setSpliceMarkersStore,
+    wavesurferRef,
+    onProcessingStart,
+    onProcessingComplete,
+  ]);
+
   const handleUndo = useCallback(async () => {
     await undo(wavesurferRef.current!, canUndo, previousAudioUrl, {
       setCurrentAudioUrl: actions.setCurrentAudioUrl,
@@ -670,6 +712,7 @@ export const useWaveformHandlers = ({
     handleFadeOutRegion,
     handleApplyCrop,
     handleApplyFades,
+    handleNormalize,
     handleUndo,
 
     // Splice marker handlers

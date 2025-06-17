@@ -32,7 +32,7 @@
 - [ ] BPM detection and display it in the info panel
 - [ ] Multi-level undo/redo functionality
 - [ ] Time stretching and pitch shifting
-- [ ] Audio effects (normalization, add/remove gain)
+- [x] Audio effects (normalization, add/remove gain)
 - [ ] Crossfade between splice points with defined length and curve type
 
 ## Bugs

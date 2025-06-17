@@ -80,6 +80,7 @@ export interface WaveformRef extends SpliceMarkerHandlers {
   handleFadeOutRegion: () => void;
   handleApplyCrop: () => void;
   handleApplyFades: () => void;
+  handleNormalize: () => void;
   handleUndo: () => void;
   handleExport: () => void;
   handleExportFormatChange: (format: ExportFormat) => void;
@@ -672,6 +673,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     const handleFadeOutRegion = handlers.handleFadeOutRegion;
     const handleApplyCrop = handlers.handleApplyCrop;
     const handleApplyFades = handlers.handleApplyFades;
+    const handleNormalize = handlers.handleNormalize;
     const handleUndo = handlers.handleUndo;
 
     // Splice marker handlers
@@ -728,6 +730,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleFadeOutRegion,
         handleApplyCrop,
         handleApplyFades,
+        handleNormalize,
         handleUndo,
         handleExport,
         handleExportFormatChange,
@@ -755,6 +758,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleFadeOutRegion,
         handleApplyCrop,
         handleApplyFades,
+        handleNormalize,
         handleUndo,
         handleExport,
         handleExportFormatChange,
@@ -831,7 +835,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         {/* Export and Region controls */}
         <Stack
           direction="row"
-          alignItems="center"
+          alignItems="left"
           sx={{
             mt: 2,
             width: "100%",
@@ -855,6 +859,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               onExport={handleExport}
               onExportFormatChange={handleExportFormatChange}
               onSetExportAnchorEl={actions.setExportAnchorEl}
+              onNormalize={handleNormalize}
             />
           </Stack>
 
