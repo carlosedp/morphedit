@@ -25,6 +25,10 @@ jobs:
         run: |
           # Get the tag name and remove the 'v' prefix if present
           FULL_VERSION=${GITHUB_REF#refs/tags/}
+          # If version only contains major and minor (e.g., v1.2), append ".0" to make it a valid semver
+          if [[ $FULL_VERSION =~ ^v?[0-9]+\.[0-9]+$ ]]; then
+            FULL_VERSION="${FULL_VERSION}.0"
+          fi
           VERSION_WITHOUT_V=${FULL_VERSION#v}
           echo "full_version=$FULL_VERSION" >> $GITHUB_OUTPUT
           echo "version_without_v=$VERSION_WITHOUT_V" >> $GITHUB_OUTPUT
@@ -39,9 +43,9 @@ jobs:
 
       - name: Update version in Version.ts
         run: |
-          # Update the version in src/Version.ts (keep the 'v' prefix)
-          sed -i 's/export const version = ".*";/export const version = "${{ steps.get_version.outputs.full_version }}";/' src/Version.ts
-          echo "Updated version in src/Version.ts to ${{ steps.get_version.outputs.full_version }}"
+          # Update the version in src/Version.ts
+          sed -i 's/export const version = ".*";/export const version = "${{ steps.get_version.outputs.version_without_v }}";/' src/Version.ts
+          echo "Updated version in src/Version.ts to ${{ steps.get_version.outputs.version_without_v }}"
 
       - name: Update version in package.json
         run: |
