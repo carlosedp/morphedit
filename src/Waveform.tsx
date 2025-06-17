@@ -820,6 +820,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           skipIncrement={state.skipIncrement}
           spliceMarkersCount={spliceMarkersStore.length}
           regionInfo={regionInfo}
+          selectedSpliceMarkerTime={state.selectedSpliceMarker?.start ?? null}
           onPlayPause={handlePlayPause}
           onLoop={handleLoop}
           onRewind={handleRewind}

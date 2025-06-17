@@ -8,8 +8,8 @@ import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import ZoomResetIcon from "@mui/icons-material/ZoomOutMap";
 import RepeatIcon from "@mui/icons-material/Repeat";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
-import { formatTime } from "../utils/audioProcessing";
-import { TOOLTIP_DELAYS, ZOOM_LEVELS } from "../constants";
+import { formatTime, formatSeconds } from "../utils/audioProcessing";
+import { TOOLTIP_DELAYS, ZOOM_LEVELS, MARKER_ICONS } from "../constants";
 import type { RegionInfo } from "../utils/regionUtils";
 
 interface WaveformControlsProps {
@@ -22,6 +22,7 @@ interface WaveformControlsProps {
   skipIncrement: number;
   spliceMarkersCount: number;
   regionInfo: RegionInfo;
+  selectedSpliceMarkerTime: number | null;
   onPlayPause: () => void;
   onLoop: () => void;
   onRewind: () => void;
@@ -39,6 +40,7 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
   skipIncrement,
   spliceMarkersCount,
   regionInfo,
+  selectedSpliceMarkerTime,
   onPlayPause,
   onLoop,
   onRewind,
@@ -193,9 +195,24 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
             variant="body2"
             sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
           >
-            | Arrow Skip: {skipIncrement}s
+            | Arrow Skip: {formatSeconds(skipIncrement)}s
           </Typography>
         </Stack>
+
+        {/* Selected splice marker time */}
+        {selectedSpliceMarkerTime !== null && (
+          <Typography
+            variant="caption"
+            color="primary"
+            sx={{
+              mt: 0.5,
+              fontSize: { xs: "0.75rem", sm: "0.8rem" },
+              fontWeight: 500,
+            }}
+          >
+            {MARKER_ICONS.SELECTED} Splice Marker: {formatTime(selectedSpliceMarkerTime)}
+          </Typography>
+        )}
 
         {/* Region information */}
         {(regionInfo.cropRegion ||
