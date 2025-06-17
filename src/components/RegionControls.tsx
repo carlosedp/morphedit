@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Box, Button, ButtonGroup, Stack, Tooltip } from "@mui/material";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TrendingDownIcon from "@mui/icons-material/TrendingDown";
+import CutIcon from "@mui/icons-material/ContentCut";
 import UndoIcon from "@mui/icons-material/Undo";
 import { TOOLTIP_DELAYS } from "../constants";
 import { FadeCurveSelector } from "./FadeCurveSelector";
@@ -73,6 +74,7 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
             variant={cropMode ? "contained" : "outlined"}
             color="primary"
             onClick={onCropRegion}
+            startIcon={<CutIcon />}
           >
             Crop/Loop Region
           </Button>

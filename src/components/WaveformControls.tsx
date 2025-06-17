@@ -200,7 +200,7 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
               color="primary"
               sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
             >
-              | Splice markers: {spliceMarkersCount}
+              | ✂️ Splice markers: {spliceMarkersCount}
             </Typography>
           )}
         </Stack>
