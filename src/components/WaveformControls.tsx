@@ -180,12 +180,6 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           >
             🕒 {formatTime(currentTime)} / {formatTime(duration)}
           </Typography>
-          <Typography
-            variant="body2"
-            sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
-          >
-            | Skip: {skipIncrement}s
-          </Typography>
           {spliceMarkersCount > 0 && (
             <Typography
               variant="body2"
@@ -195,45 +189,51 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
               | Splice markers: {spliceMarkersCount}
             </Typography>
           )}
+          <Typography
+            variant="body2"
+            sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
+          >
+            | Arrow Skip: {skipIncrement}s
+          </Typography>
         </Stack>
 
         {/* Region information */}
         {(regionInfo.cropRegion ||
           regionInfo.fadeInRegion ||
           regionInfo.fadeOutRegion) && (
-          <Stack
-            direction="row"
-            spacing={2}
-            alignItems="center"
-            sx={{
-              mt: 0.5,
-              flexWrap: "wrap",
-              justifyContent: { xs: "center", md: "flex-end" },
-            }}
-          >
-            {regionInfo.cropRegion && (
-              <Typography variant="caption" color="warning.main">
-                Crop: {formatTime(regionInfo.cropRegion.start)} -{" "}
-                {formatTime(regionInfo.cropRegion.end)} (Δ
-                {formatTime(regionInfo.cropRegion.duration)})
-              </Typography>
-            )}
-            {regionInfo.fadeInRegion && (
-              <Typography variant="caption" color="success.main">
-                Fade In: {formatTime(regionInfo.fadeInRegion.start)} -{" "}
-                {formatTime(regionInfo.fadeInRegion.end)} (Δ
-                {formatTime(regionInfo.fadeInRegion.duration)})
-              </Typography>
-            )}
-            {regionInfo.fadeOutRegion && (
-              <Typography variant="caption" color="error.main">
-                Fade Out: {formatTime(regionInfo.fadeOutRegion.start)} -{" "}
-                {formatTime(regionInfo.fadeOutRegion.end)} (Δ
-                {formatTime(regionInfo.fadeOutRegion.duration)})
-              </Typography>
-            )}
-          </Stack>
-        )}
+            <Stack
+              direction="row"
+              spacing={2}
+              alignItems="center"
+              sx={{
+                mt: 0.5,
+                flexWrap: "wrap",
+                justifyContent: { xs: "center", md: "flex-end" },
+              }}
+            >
+              {regionInfo.cropRegion && (
+                <Typography variant="caption" color="warning.main">
+                  Crop: {formatTime(regionInfo.cropRegion.start)} -{" "}
+                  {formatTime(regionInfo.cropRegion.end)} (Δ
+                  {formatTime(regionInfo.cropRegion.duration)})
+                </Typography>
+              )}
+              {regionInfo.fadeInRegion && (
+                <Typography variant="caption" color="success.main">
+                  Fade In: {formatTime(regionInfo.fadeInRegion.start)} -{" "}
+                  {formatTime(regionInfo.fadeInRegion.end)} (Δ
+                  {formatTime(regionInfo.fadeInRegion.duration)})
+                </Typography>
+              )}
+              {regionInfo.fadeOutRegion && (
+                <Typography variant="caption" color="error.main">
+                  Fade Out: {formatTime(regionInfo.fadeOutRegion.start)} -{" "}
+                  {formatTime(regionInfo.fadeOutRegion.end)} (Δ
+                  {formatTime(regionInfo.fadeOutRegion.duration)})
+                </Typography>
+              )}
+            </Stack>
+          )}
       </Stack>
     </Stack>
   );
