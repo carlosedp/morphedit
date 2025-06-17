@@ -56,9 +56,11 @@ export const useAudioStore = create<AudioState>(
     previousAudioUrl: null,
     setPreviousAudioUrl: (url) => set({ previousAudioUrl: url }),
     previousSpliceMarkers: [],
-    setPreviousSpliceMarkers: (markers) => set({ previousSpliceMarkers: markers }),
+    setPreviousSpliceMarkers: (markers) =>
+      set({ previousSpliceMarkers: markers }),
     previousLockedSpliceMarkers: [],
-    setPreviousLockedSpliceMarkers: (markers) => set({ previousLockedSpliceMarkers: markers }),
+    setPreviousLockedSpliceMarkers: (markers) =>
+      set({ previousLockedSpliceMarkers: markers }),
     canUndo: false,
     setCanUndo: (canUndo) => set({ canUndo }),
     // Processing state

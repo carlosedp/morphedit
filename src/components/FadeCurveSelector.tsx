@@ -1,12 +1,6 @@
 // Fade curve selector dropdown button component
 import React from "react";
-import {
-  Button,
-  Menu,
-  MenuItem,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Button, Menu, MenuItem, Tooltip, Typography } from "@mui/material";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { getFadeCurveOptions } from "../utils/fadeCurves";
 import { TOOLTIP_DELAYS } from "../constants";
@@ -29,7 +23,9 @@ export const FadeCurveSelector: React.FC<FadeCurveSelectorProps> = ({
   onSetAnchorEl,
 }) => {
   const curveOptions = getFadeCurveOptions();
-  const selectedOption = curveOptions.find(option => option.value === selectedCurve);
+  const selectedOption = curveOptions.find(
+    (option) => option.value === selectedCurve,
+  );
   const menuOpen = Boolean(anchorEl);
 
   const handleCurveSelect = (curveType: string) => {
@@ -61,12 +57,12 @@ export const FadeCurveSelector: React.FC<FadeCurveSelectorProps> = ({
           <Typography
             variant="caption"
             sx={{
-              fontSize: '0.6rem',
+              fontSize: "0.6rem",
               lineHeight: 1,
-              textAlign: 'center'
+              textAlign: "center",
             }}
           >
-            {selectedOption ? selectedOption.label.slice(0, 3) : 'Lin'}
+            {selectedOption ? selectedOption.label.slice(0, 3) : "Lin"}
           </Typography>
           <ArrowDropDownIcon />
         </Button>

@@ -82,8 +82,12 @@ export const useWaveformState = (
   const [cropRegion, setCropRegion] = useState<Region | null>(null);
   const [fadeInMode, setFadeInMode] = useState(false);
   const [fadeOutMode, setFadeOutMode] = useState(false);
-  const [fadeInCurveType, setFadeInCurveType] = useState<string>(FADE_CURVE_TYPES.LINEAR);
-  const [fadeOutCurveType, setFadeOutCurveType] = useState<string>(FADE_CURVE_TYPES.LINEAR);
+  const [fadeInCurveType, setFadeInCurveType] = useState<string>(
+    FADE_CURVE_TYPES.LINEAR,
+  );
+  const [fadeOutCurveType, setFadeOutCurveType] = useState<string>(
+    FADE_CURVE_TYPES.LINEAR,
+  );
 
   // Splice marker state
   const [selectedSpliceMarker, setSelectedSpliceMarker] =
@@ -109,9 +113,10 @@ export const useWaveformState = (
   const [exportAnchorEl, setExportAnchorEl] = useState<HTMLElement | null>(
     null,
   );
-  const [selectedExportFormat, setSelectedExportFormat] = useState<ExportFormat>(
-    EXPORT_FORMATS[0], // Default to first format (48kHz 32-bit Float Stereo)
-  );
+  const [selectedExportFormat, setSelectedExportFormat] =
+    useState<ExportFormat>(
+      EXPORT_FORMATS[0], // Default to first format (48kHz 32-bit Float Stereo)
+    );
 
   const state: WaveformState = {
     isPlaying,

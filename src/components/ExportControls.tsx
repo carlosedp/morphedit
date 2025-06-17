@@ -1,6 +1,13 @@
 // Export controls component
 import React from "react";
-import { Button, ButtonGroup, Menu, MenuItem, Tooltip, Typography } from "@mui/material";
+import {
+  Button,
+  ButtonGroup,
+  Menu,
+  MenuItem,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { type ExportFormat } from "../utils/exportUtils";
@@ -37,7 +44,11 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
           enterDelay={TOOLTIP_DELAYS.ENTER}
           leaveDelay={TOOLTIP_DELAYS.LEAVE}
         >
-          <Button onClick={onExport} startIcon={<DownloadIcon />} sx={{ minWidth: 140 }}>
+          <Button
+            onClick={onExport}
+            startIcon={<DownloadIcon />}
+            sx={{ minWidth: 140 }}
+          >
             Export WAV
           </Button>
         </Tooltip>
@@ -49,7 +60,7 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
           <Button
             size="small"
             onClick={(event) => onSetExportAnchorEl(event.currentTarget)}
-            sx={{ fontSize: '0.6rem', px: 1 }}
+            sx={{ fontSize: "0.6rem", px: 1 }}
           >
             {selectedExportFormat.shortLabel}
             <ArrowDropDownIcon />

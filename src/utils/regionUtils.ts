@@ -345,14 +345,33 @@ export const applyCrop = async (
   );
 
   console.log("=== CROP MARKER ADJUSTMENT DEBUG ===");
-  console.log("Original crop region:", cropRegionData.start, "to", cropRegionData.end);
-  console.log("Zero-crossing adjusted crop region:", adjustedStartTime, "to", adjustedEndTime);
+  console.log(
+    "Original crop region:",
+    cropRegionData.start,
+    "to",
+    cropRegionData.end,
+  );
+  console.log(
+    "Zero-crossing adjusted crop region:",
+    adjustedStartTime,
+    "to",
+    adjustedEndTime,
+  );
   console.log("Original splice markers:", spliceMarkersStore);
   console.log("Filtered splice markers (within crop):", filteredSpliceMarkers);
-  console.log("Adjusted splice markers (relative to crop start):", adjustedSpliceMarkers);
+  console.log(
+    "Adjusted splice markers (relative to crop start):",
+    adjustedSpliceMarkers,
+  );
   console.log("Original locked markers:", lockedSpliceMarkersStore);
-  console.log("Filtered locked markers (within crop):", filteredLockedSpliceMarkers);
-  console.log("Adjusted locked markers (relative to crop start):", adjustedLockedSpliceMarkers);
+  console.log(
+    "Filtered locked markers (within crop):",
+    filteredLockedSpliceMarkers,
+  );
+  console.log(
+    "Adjusted locked markers (relative to crop start):",
+    adjustedLockedSpliceMarkers,
+  );
   console.log("=== END CROP MARKER DEBUG ===");
 
   console.log(
@@ -633,7 +652,11 @@ export const applyFades = async (
 
       for (let i = fadeInStartSample; i < fadeInEndSample; i++) {
         const normalizedPosition = (i - fadeInStartSample) / fadeInLength; // Position from 0 to 1
-        const gain = calculateFadeGain(normalizedPosition, fadeInCurveType, false); // Fade-in
+        const gain = calculateFadeGain(
+          normalizedPosition,
+          fadeInCurveType,
+          false,
+        ); // Fade-in
         newChannelData[i] *= gain;
       }
     }
@@ -661,7 +684,11 @@ export const applyFades = async (
 
       for (let i = fadeOutStartSample; i < fadeOutEndSample; i++) {
         const normalizedPosition = (i - fadeOutStartSample) / fadeOutLength; // Position from 0 to 1
-        const gain = calculateFadeGain(normalizedPosition, fadeOutCurveType, true); // Fade-out
+        const gain = calculateFadeGain(
+          normalizedPosition,
+          fadeOutCurveType,
+          true,
+        ); // Fade-out
         newChannelData[i] *= gain;
       }
     }
