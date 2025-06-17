@@ -1,40 +1,4 @@
-declare global {
-  interface Window {
-    electronAPI?: {
-      onOpenAudioDialog: (callback: () => void) => void;
-      onAppendAudioDialog: (callback: () => void) => void;
-      showOpenDialog: (options?: {
-        title?: string;
-        defaultPath?: string;
-        buttonLabel?: string;
-        filters?: Array<{
-          name: string;
-          extensions: string[];
-        }>;
-        properties?: Array<
-          | "openFile"
-          | "openDirectory"
-          | "multiSelections"
-          | "showHiddenFiles"
-          | "createDirectory"
-          | "promptToCreate"
-          | "noResolveAliases"
-          | "treatPackageAsDirectory"
-        >;
-      }) => Promise<{ canceled: boolean; filePaths: string[] }>;
-      readFile: (filePath: string) => Promise<{
-        success: boolean;
-        data?: number[];
-        path?: string;
-        name?: string;
-        error?: string;
-      }>;
-      isElectron: boolean;
-      platform: string;
-    };
-  }
-}
-
+import "./ElectronApp.ts"
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   Container,
@@ -916,26 +880,26 @@ function App() {
             minHeight: audioUrl ? 150 : "auto", // Ensure enough height when audio is loaded
             "&:hover": !audioUrl
               ? {
-                  backgroundColor: "action.hover",
-                  borderColor: "primary.light",
-                }
+                backgroundColor: "action.hover",
+                borderColor: "primary.light",
+              }
               : {},
             // Add a subtle visual hint for mouse wheel zoom when audio is loaded
             position: "relative",
             "&::after": audioUrl
               ? {
-                  content: '""',
-                  position: "absolute",
-                  top: 0,
-                  right: 0,
-                  width: 0,
-                  height: 0,
-                  borderLeft: "20px solid transparent",
-                  borderTop: "20px solid",
-                  borderColor: "action.disabled",
-                  opacity: 0.1,
-                  pointerEvents: "none",
-                }
+                content: '""',
+                position: "absolute",
+                top: 0,
+                right: 0,
+                width: 0,
+                height: 0,
+                borderLeft: "20px solid transparent",
+                borderTop: "20px solid",
+                borderColor: "action.disabled",
+                opacity: 0.1,
+                pointerEvents: "none",
+              }
               : {},
           }}
         >
