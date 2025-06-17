@@ -146,13 +146,12 @@ function createWindow() {
         },
         { type: "separator" },
         { role: "toggleDevTools" }, // For development purposes
-        {
-          label: "About Audio Player",
-          click: () => {
-            // You can implement a dialog or a new window to show about information
-            console.log("About Audio Player clicked");
-          },
-        },
+        // {
+        //   label: "About MorphEdit",
+        //   click: () => {
+        //     console.log("Opening About window...");
+        //   },
+        // },
       ],
     },
   ]);
