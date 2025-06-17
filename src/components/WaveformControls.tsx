@@ -9,6 +9,7 @@ import ZoomResetIcon from "@mui/icons-material/ZoomOutMap";
 import RepeatIcon from "@mui/icons-material/Repeat";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
 import { formatTime, formatSeconds } from "../utils/audioProcessing";
+import { formatBPM } from "../utils/bpmDetection";
 import { TOOLTIP_DELAYS, ZOOM_LEVELS, MARKER_ICONS } from "../constants";
 import type { RegionInfo } from "../utils/regionUtils";
 
@@ -17,6 +18,7 @@ interface WaveformControlsProps {
   isLooping: boolean;
   currentTime: number;
   duration: number;
+  bpm: number | null;
   zoom: number;
   resetZoom: number;
   skipIncrement: number;
@@ -35,6 +37,7 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
   isLooping,
   currentTime,
   duration,
+  bpm,
   zoom,
   resetZoom,
   skipIncrement,
@@ -182,6 +185,15 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           >
             🕒 {formatTime(currentTime)} / {formatTime(duration)}
           </Typography>
+          {bpm && (
+            <Typography
+              variant="body2"
+              color="primary"
+              sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
+            >
+              | 🎵 {formatBPM(bpm)}
+            </Typography>
+          )}
           {spliceMarkersCount > 0 && (
             <Typography
               variant="body2"
@@ -191,67 +203,72 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
               | Splice markers: {spliceMarkersCount}
             </Typography>
           )}
-          <Typography
-            variant="body2"
-            sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
-          >
-            | Arrow Skip: {formatSeconds(skipIncrement)}s
-          </Typography>
         </Stack>
 
-        {/* Selected splice marker time */}
-        {selectedSpliceMarkerTime !== null && (
-          <Typography
-            variant="caption"
-            color="primary"
+        {/* Arrow Skip info on second line */}
+        <Typography
+          variant="body2"
+          sx={{
+            fontSize: { xs: "0.8rem", sm: "0.875rem" },
+            mt: 0.5
+          }}
+        >
+          ⌨️ Arrow Skip: {formatSeconds(skipIncrement)}s
+        </Typography>
+      </Stack>
+
+      {/* Selected splice marker time */}
+      {selectedSpliceMarkerTime !== null && (
+        <Typography
+          variant="caption"
+          color="primary"
+          sx={{
+            mt: 0.5,
+            fontSize: { xs: "0.75rem", sm: "0.8rem" },
+            fontWeight: 500,
+          }}
+        >
+          {MARKER_ICONS.SELECTED} Splice Marker: {formatTime(selectedSpliceMarkerTime)}
+        </Typography>
+      )}
+
+      {/* Region information */}
+      {(regionInfo.cropRegion ||
+        regionInfo.fadeInRegion ||
+        regionInfo.fadeOutRegion) && (
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
             sx={{
               mt: 0.5,
-              fontSize: { xs: "0.75rem", sm: "0.8rem" },
-              fontWeight: 500,
+              flexWrap: "wrap",
+              justifyContent: { xs: "center", md: "flex-end" },
             }}
           >
-            {MARKER_ICONS.SELECTED} Splice Marker: {formatTime(selectedSpliceMarkerTime)}
-          </Typography>
+            {regionInfo.cropRegion && (
+              <Typography variant="caption" color="warning.main">
+                Crop: {formatTime(regionInfo.cropRegion.start)} -{" "}
+                {formatTime(regionInfo.cropRegion.end)} (Δ
+                {formatTime(regionInfo.cropRegion.duration)})
+              </Typography>
+            )}
+            {regionInfo.fadeInRegion && (
+              <Typography variant="caption" color="success.main">
+                Fade In: {formatTime(regionInfo.fadeInRegion.start)} -{" "}
+                {formatTime(regionInfo.fadeInRegion.end)} (Δ
+                {formatTime(regionInfo.fadeInRegion.duration)})
+              </Typography>
+            )}
+            {regionInfo.fadeOutRegion && (
+              <Typography variant="caption" color="error.main">
+                Fade Out: {formatTime(regionInfo.fadeOutRegion.start)} -{" "}
+                {formatTime(regionInfo.fadeOutRegion.end)} (Δ
+                {formatTime(regionInfo.fadeOutRegion.duration)})
+              </Typography>
+            )}
+          </Stack>
         )}
-
-        {/* Region information */}
-        {(regionInfo.cropRegion ||
-          regionInfo.fadeInRegion ||
-          regionInfo.fadeOutRegion) && (
-            <Stack
-              direction="row"
-              spacing={2}
-              alignItems="center"
-              sx={{
-                mt: 0.5,
-                flexWrap: "wrap",
-                justifyContent: { xs: "center", md: "flex-end" },
-              }}
-            >
-              {regionInfo.cropRegion && (
-                <Typography variant="caption" color="warning.main">
-                  Crop: {formatTime(regionInfo.cropRegion.start)} -{" "}
-                  {formatTime(regionInfo.cropRegion.end)} (Δ
-                  {formatTime(regionInfo.cropRegion.duration)})
-                </Typography>
-              )}
-              {regionInfo.fadeInRegion && (
-                <Typography variant="caption" color="success.main">
-                  Fade In: {formatTime(regionInfo.fadeInRegion.start)} -{" "}
-                  {formatTime(regionInfo.fadeInRegion.end)} (Δ
-                  {formatTime(regionInfo.fadeInRegion.duration)})
-                </Typography>
-              )}
-              {regionInfo.fadeOutRegion && (
-                <Typography variant="caption" color="error.main">
-                  Fade Out: {formatTime(regionInfo.fadeOutRegion.start)} -{" "}
-                  {formatTime(regionInfo.fadeOutRegion.end)} (Δ
-                  {formatTime(regionInfo.fadeOutRegion.duration)})
-                </Typography>
-              )}
-            </Stack>
-          )}
-      </Stack>
     </Stack>
   );
 };

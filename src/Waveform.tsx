@@ -36,6 +36,7 @@ import {
 } from "./constants";
 import { waveformLogger } from "./utils/logger";
 import { type ExportFormat } from "./utils/exportUtils";
+import { detectBPMWithTimeout } from "./utils/bpmDetection";
 import {
   updateSpliceMarkerColors,
   loadExistingCuePoints,
@@ -120,6 +121,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
     // Audio store hooks
     const setAudioBuffer = useAudioStore((s: AudioState) => s.setAudioBuffer);
+    const setBpm = useAudioStore((s: AudioState) => s.setBpm);
     const setMarkers = useAudioStore((s: AudioState) => s.setMarkers);
     const setRegions = useAudioStore((s: AudioState) => s.setRegions);
     const setSpliceMarkersStore = useAudioStore(
@@ -128,6 +130,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     const spliceMarkersStore = useAudioStore(
       (s: AudioState) => s.spliceMarkers,
     );
+    const bpm = useAudioStore((s: AudioState) => s.bpm);
     const lockedSpliceMarkersStore = useAudioStore(
       (s: AudioState) => s.lockedSpliceMarkers,
     );
@@ -176,6 +179,23 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       },
       [theme, regionsRef],
     );
+
+    // Helper function to detect BPM from audio buffer
+    const detectAndSetBPM = useCallback(async (audioBuffer: AudioBuffer) => {
+      try {
+        waveformLogger.debug("Starting BPM detection for audio buffer");
+        const detectedBpm = await detectBPMWithTimeout(audioBuffer, 20000); // 20 second timeout
+        setBpm(detectedBpm);
+        if (detectedBpm) {
+          waveformLogger.debug(`BPM detected: ${detectedBpm}`);
+        } else {
+          waveformLogger.warn("BPM detection failed or returned no result");
+        }
+      } catch (error) {
+        waveformLogger.error("Error during BPM detection:", error);
+        setBpm(null);
+      }
+    }, [setBpm]);
 
     // Extract handlers using the custom hook
     const handlers = useWaveformHandlers({
@@ -480,6 +500,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               "seconds",
             );
             setAudioBuffer(backend.buffer);
+            // Detect BPM in the background
+            detectAndSetBPM(backend.buffer);
           } else {
             console.log(
               "No backend buffer available, attempting manual decode",
@@ -507,6 +529,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
                     "seconds",
                   );
                   setAudioBuffer(decodedBuffer);
+                  // Detect BPM in the background
+                  detectAndSetBPM(decodedBuffer);
                 })
                 .catch((error) => {
                   console.error("Error decoding audio:", error);
@@ -819,6 +843,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           isLooping={state.isLooping}
           currentTime={state.currentTime}
           duration={state.duration}
+          bpm={bpm}
           zoom={state.zoom}
           resetZoom={state.resetZoom}
           skipIncrement={state.skipIncrement}
