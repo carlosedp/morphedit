@@ -12,8 +12,8 @@
     "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\"",
     "preview": "vite preview",
     "electron:dev": "vite build && electron .",
-    "electron:pack": "electron-builder --dir",
-    "electron:dist": "electron-builder"
+    "electron:pack": "npm run build && electron-builder --dir",
+    "electron:dist": "npm run build && electron-builder"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
