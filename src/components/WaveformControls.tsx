@@ -53,12 +53,12 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
   return (
     <Stack
       direction="row"
-      alignItems="center"
       sx={{
         mt: 2,
         width: "100%",
         flexDirection: { xs: "column", md: "row" },
         gap: { xs: 2, md: 0 },
+        alignItems: { xs: "stretch", md: "flex-start" },
       }}
     >
       {/* Left column - Controls */}
@@ -157,19 +157,20 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
         </Stack>
       </Stack>
 
-      {/* Right column - Times and info */}
+      {/* Info Bar - Right column */}
       <Stack
         direction="column"
-        spacing={0}
+        spacing={0.5}
         alignItems="flex-end"
         sx={{
           flex: 1,
           justifyContent: "flex-end",
           alignItems: { xs: "center", md: "flex-end" },
           textAlign: { xs: "center", md: "right" },
+          minWidth: { xs: "100%", md: "auto" },
         }}
       >
-        {/* Main audio time */}
+        {/* Permanent info line - Duration, Position, BPM, Splice Markers */}
         <Stack
           direction="row"
           spacing={1}
@@ -194,81 +195,72 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
               | 🎵 {formatBPM(bpm)}
             </Typography>
           )}
-          {spliceMarkersCount > 0 && (
-            <Typography
-              variant="body2"
-              color="primary"
-              sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
-            >
-              | ✂️ Splice markers: {spliceMarkersCount}
-            </Typography>
-          )}
+          <Typography
+            variant="body2"
+            color="primary"
+            sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
+          >
+            | ✂️ Splice markers: {spliceMarkersCount}
+          </Typography>
         </Stack>
 
-        {/* Arrow Skip info on second line */}
+        {/* Selected splice marker time - Second line */}
+        {selectedSpliceMarkerTime !== null && (
+          <Typography
+            variant="caption"
+            color="primary"
+            sx={{
+              fontSize: { xs: "0.75rem", sm: "0.8rem" },
+              fontWeight: 500,
+            }}
+          >
+            {MARKER_ICONS.SELECTED} Selected Marker: {formatTime(selectedSpliceMarkerTime)}
+          </Typography>
+        )}
+
+        {/* Region information - One per line */}
+        {regionInfo.cropRegion && (
+          <Typography
+            variant="caption"
+            color="warning.main"
+            sx={{ fontSize: { xs: "0.75rem", sm: "0.8rem" } }}
+          >
+            Crop Region: {formatTime(regionInfo.cropRegion.start)} - {formatTime(regionInfo.cropRegion.end)}
+          </Typography>
+        )}
+
+        {regionInfo.fadeInRegion && (
+          <Typography
+            variant="caption"
+            color="success.main"
+            sx={{ fontSize: { xs: "0.75rem", sm: "0.8rem" } }}
+          >
+            Fade-In: {formatTime(regionInfo.fadeInRegion.start)} - {formatTime(regionInfo.fadeInRegion.end)}
+          </Typography>
+        )}
+
+        {regionInfo.fadeOutRegion && (
+          <Typography
+            variant="caption"
+            color="error.main"
+            sx={{ fontSize: { xs: "0.75rem", sm: "0.8rem" } }}
+          >
+            Fade-Out: {formatTime(regionInfo.fadeOutRegion.start)} - {formatTime(regionInfo.fadeOutRegion.end)}
+          </Typography>
+        )}
+
+        {/* Arrow Skip info - Always shown at bottom */}
         <Typography
-          variant="body2"
+          variant="caption"
+          color="text.secondary"
           sx={{
-            fontSize: { xs: "0.8rem", sm: "0.875rem" },
-            mt: 0.5
+            fontSize: { xs: "0.7rem", sm: "0.75rem" },
+            fontStyle: "italic",
           }}
         >
           ⌨️ Arrow Skip: {formatSeconds(skipIncrement)}s
         </Typography>
       </Stack>
-
-      {/* Selected splice marker time */}
-      {selectedSpliceMarkerTime !== null && (
-        <Typography
-          variant="caption"
-          color="primary"
-          sx={{
-            mt: 0.5,
-            fontSize: { xs: "0.75rem", sm: "0.8rem" },
-            fontWeight: 500,
-          }}
-        >
-          {MARKER_ICONS.SELECTED} Splice Marker: {formatTime(selectedSpliceMarkerTime)}
-        </Typography>
-      )}
-
-      {/* Region information */}
-      {(regionInfo.cropRegion ||
-        regionInfo.fadeInRegion ||
-        regionInfo.fadeOutRegion) && (
-          <Stack
-            direction="row"
-            spacing={2}
-            alignItems="center"
-            sx={{
-              mt: 0.5,
-              flexWrap: "wrap",
-              justifyContent: { xs: "center", md: "flex-end" },
-            }}
-          >
-            {regionInfo.cropRegion && (
-              <Typography variant="caption" color="warning.main">
-                Crop: {formatTime(regionInfo.cropRegion.start)} -{" "}
-                {formatTime(regionInfo.cropRegion.end)} (Δ
-                {formatTime(regionInfo.cropRegion.duration)})
-              </Typography>
-            )}
-            {regionInfo.fadeInRegion && (
-              <Typography variant="caption" color="success.main">
-                Fade In: {formatTime(regionInfo.fadeInRegion.start)} -{" "}
-                {formatTime(regionInfo.fadeInRegion.end)} (Δ
-                {formatTime(regionInfo.fadeInRegion.duration)})
-              </Typography>
-            )}
-            {regionInfo.fadeOutRegion && (
-              <Typography variant="caption" color="error.main">
-                Fade Out: {formatTime(regionInfo.fadeOutRegion.start)} -{" "}
-                {formatTime(regionInfo.fadeOutRegion.end)} (Δ
-                {formatTime(regionInfo.fadeOutRegion.duration)})
-              </Typography>
-            )}
-          </Stack>
-        )}
     </Stack>
   );
 };
