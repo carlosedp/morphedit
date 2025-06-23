@@ -28,8 +28,8 @@
 - [ ] Add detection preset slots to save sensitivity, frame size, and overlap settings
 - [x] Use mouse scroll to zoom in/out on the waveform
 - [x] Add tooltip to append audio button
-- [ ] Detect if audio has more than 300 splice points and show warning if user wants to truncate it or not. Make this number a constant.
-- [ ] BPM detection and display it in the info panel
+- [x] Detect if audio has more than 300 splice points and show warning if user wants to truncate it or not. Make this number a constant.
+- [x] BPM detection and display it in the info panel
 - [ ] Multi-level undo/redo functionality
 - [ ] Time stretching and pitch shifting
 - [x] Audio effects (normalization, add/remove gain)

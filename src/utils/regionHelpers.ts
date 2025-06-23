@@ -2,7 +2,7 @@
 import type { Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 import { isMarkerLocked } from "./spliceMarkerUtils";
-import { REGION_POSITIONING } from "../constants";
+import { REGION_POSITIONING, MAX_TOTAL_SPLICE_POINTS } from "../constants";
 
 /**
  * Get all splice marker regions from regions plugin
@@ -28,7 +28,7 @@ export const getNonSpliceMarkerRegions = (regions: RegionsPlugin): Region[] => {
 export const filterSpliceMarkersByLocked = (
   regions: Region[],
   lockedMarkers: number[],
-  includeLocked: boolean = false,
+  includeLocked: boolean = false
 ): Region[] => {
   return regions.filter((region: Region) => {
     const isLocked = isMarkerLocked(region.start, lockedMarkers);
@@ -41,7 +41,7 @@ export const filterSpliceMarkersByLocked = (
  */
 export const getUnlockedSpliceMarkers = (
   regions: RegionsPlugin,
-  lockedMarkers: number[],
+  lockedMarkers: number[]
 ): Region[] => {
   const spliceRegions = getSpliceMarkerRegions(regions);
   return filterSpliceMarkersByLocked(spliceRegions, lockedMarkers, false);
@@ -52,7 +52,7 @@ export const getUnlockedSpliceMarkers = (
  */
 export const getLockedSpliceMarkers = (
   regions: RegionsPlugin,
-  lockedMarkers: number[],
+  lockedMarkers: number[]
 ): Region[] => {
   const spliceRegions = getSpliceMarkerRegions(regions);
   return filterSpliceMarkersByLocked(spliceRegions, lockedMarkers, true);
@@ -70,7 +70,7 @@ export const removeRegions = (regions: Region[]): void => {
  */
 export const clearSelectionAndUpdateColors = (
   setSelectedSpliceMarker: (marker: Region | null) => void,
-  updateSpliceMarkerColors: (marker: Region | null) => void,
+  updateSpliceMarkerColors: (marker: Region | null) => void
 ): void => {
   setSelectedSpliceMarker(null);
   updateSpliceMarkerColors(null);
@@ -83,13 +83,13 @@ export const removeUnlockedMarkersAndClearSelection = (
   regions: RegionsPlugin,
   lockedMarkers: number[],
   setSelectedSpliceMarker: (marker: Region | null) => void,
-  updateSpliceMarkerColors: (marker: Region | null) => void,
+  updateSpliceMarkerColors: (marker: Region | null) => void
 ): Region[] => {
   const unlockedRegions = getUnlockedSpliceMarkers(regions, lockedMarkers);
   removeRegions(unlockedRegions);
   clearSelectionAndUpdateColors(
     setSelectedSpliceMarker,
-    updateSpliceMarkerColors,
+    updateSpliceMarkerColors
   );
   return unlockedRegions;
 };
@@ -100,13 +100,13 @@ export const removeUnlockedMarkersAndClearSelection = (
 export const removeAllSpliceMarkersAndClearSelection = (
   regions: RegionsPlugin,
   setSelectedSpliceMarker: (marker: Region | null) => void,
-  updateSpliceMarkerColors: (marker: Region | null) => void,
+  updateSpliceMarkerColors: (marker: Region | null) => void
 ): Region[] => {
   const spliceRegions = getSpliceMarkerRegions(regions);
   removeRegions(spliceRegions);
   clearSelectionAndUpdateColors(
     setSelectedSpliceMarker,
-    updateSpliceMarkerColors,
+    updateSpliceMarkerColors
   );
   return spliceRegions;
 };
@@ -117,10 +117,10 @@ export const removeAllSpliceMarkersAndClearSelection = (
 export const isMarkerTooCloseToExisting = (
   markerTime: number,
   existingMarkers: number[],
-  tolerance: number = REGION_POSITIONING.MARKER_PROXIMITY_THRESHOLD,
+  tolerance: number = REGION_POSITIONING.MARKER_PROXIMITY_THRESHOLD
 ): boolean => {
   return existingMarkers.some(
-    (existing) => Math.abs(existing - markerTime) < tolerance,
+    (existing) => Math.abs(existing - markerTime) < tolerance
   );
 };
 
@@ -154,7 +154,7 @@ export const deduplicateAndSortMarkers = (markers: number[]): number[] => {
 export const filterMarkersInTimeRange = (
   markers: number[],
   startTime: number,
-  endTime: number,
+  endTime: number
 ): number[] => {
   return markers.filter((marker) => marker >= startTime && marker <= endTime);
 };
@@ -164,7 +164,73 @@ export const filterMarkersInTimeRange = (
  */
 export const filterMarkersWithinDuration = (
   markers: number[],
-  maxDuration: number,
+  maxDuration: number
 ): number[] => {
   return markers.filter((marker) => marker <= maxDuration);
+};
+
+/**
+ * Limit splice markers to maximum allowed count for device compatibility.
+ * Preserves locked markers and keeps the most evenly distributed markers when limiting.
+ */
+export const limitSpliceMarkers = (
+  markers: number[],
+  lockedMarkers: number[],
+  maxCount: number = MAX_TOTAL_SPLICE_POINTS
+): { limitedMarkers: number[]; wasLimited: boolean } => {
+  if (markers.length <= maxCount) {
+    return { limitedMarkers: markers, wasLimited: false };
+  }
+
+  console.log(
+    `Limiting splice markers from ${markers.length} to ${maxCount} for device compatibility`
+  );
+
+  // Sort markers chronologically
+  const sortedMarkers = [...markers].sort((a, b) => a - b);
+
+  // Separate locked and unlocked markers
+  const locked = sortedMarkers.filter((marker) =>
+    isMarkerLocked(marker, lockedMarkers)
+  );
+  const unlocked = sortedMarkers.filter(
+    (marker) => !isMarkerLocked(marker, lockedMarkers)
+  );
+
+  // If locked markers already exceed limit, just use the first N locked markers
+  if (locked.length >= maxCount) {
+    console.warn(
+      `Too many locked markers (${locked.length}). Using first ${maxCount} locked markers only.`
+    );
+    return { limitedMarkers: locked.slice(0, maxCount), wasLimited: true };
+  }
+
+  // Calculate how many unlocked markers we can keep
+  const remainingSlots = maxCount - locked.length;
+
+  if (unlocked.length <= remainingSlots) {
+    // All markers fit
+    return { limitedMarkers: sortedMarkers, wasLimited: false };
+  }
+
+  // Need to reduce unlocked markers - distribute them evenly
+  const selectedUnlocked: number[] = [];
+  if (remainingSlots > 0) {
+    const step = unlocked.length / remainingSlots;
+    for (let i = 0; i < remainingSlots; i++) {
+      const index = Math.round(i * step);
+      if (index < unlocked.length) {
+        selectedUnlocked.push(unlocked[index]);
+      }
+    }
+  }
+
+  // Combine and sort final markers
+  const limitedMarkers = [...locked, ...selectedUnlocked].sort((a, b) => a - b);
+
+  console.log(
+    `Limited markers: ${locked.length} locked + ${selectedUnlocked.length} unlocked = ${limitedMarkers.length} total`
+  );
+
+  return { limitedMarkers, wasLimited: true };
 };

@@ -18,7 +18,7 @@ import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
 import CenterFocusStrongIcon from "@mui/icons-material/CenterFocusStrong";
 import LockIcon from "@mui/icons-material/Lock";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
-import { TOOLTIP_DELAYS } from "../constants";
+import { TOOLTIP_DELAYS, MAX_TOTAL_SPLICE_POINTS } from "../constants";
 
 interface SpliceMarkerControlsProps {
   selectedSpliceMarker: boolean;
@@ -85,22 +85,29 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
           }}
         >
           <Tooltip
-            title="Add splice marker at current time"
+            title={
+              spliceMarkersCount >= MAX_TOTAL_SPLICE_POINTS
+                ? `Maximum splice points limit reached (${MAX_TOTAL_SPLICE_POINTS} for device compatibility)`
+                : "Add splice marker at current time"
+            }
             enterDelay={TOOLTIP_DELAYS.ENTER}
             leaveDelay={TOOLTIP_DELAYS.LEAVE}
           >
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={onAddSpliceMarker}
-              sx={{
-                minWidth: { xs: "48px", sm: "auto" },
-                minHeight: { xs: "48px", sm: "36px" },
-                fontSize: { xs: "1.1rem", sm: "1rem" },
-              }}
-            >
-              <AddIcon />
-            </Button>
+            <Box component="span">
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={onAddSpliceMarker}
+                disabled={spliceMarkersCount >= MAX_TOTAL_SPLICE_POINTS}
+                sx={{
+                  minWidth: { xs: "48px", sm: "auto" },
+                  minHeight: { xs: "48px", sm: "36px" },
+                  fontSize: { xs: "1.1rem", sm: "1rem" },
+                }}
+              >
+                <AddIcon />
+              </Button>
+            </Box>
           </Tooltip>{" "}
           <Tooltip
             title="Remove selected splice marker"

@@ -14,6 +14,7 @@ import {
   removeUnlockedMarkersAndClearSelection,
   removeAllSpliceMarkersAndClearSelection,
   clearSelectionAndUpdateColors,
+  limitSpliceMarkers,
 } from "./regionHelpers";
 
 /**
@@ -24,7 +25,7 @@ export const detectTransients = (
   audioBuffer: AudioBuffer,
   sensitivity: number,
   frameSizeMs: number = TRANSIENT_DETECTION.DEFAULT_FRAME_SIZE_MS,
-  overlapPercent: number = TRANSIENT_DETECTION.DEFAULT_OVERLAP_PERCENT,
+  overlapPercent: number = TRANSIENT_DETECTION.DEFAULT_OVERLAP_PERCENT
 ): number[] => {
   if (!audioBuffer || audioBuffer.length === 0) {
     return [];
@@ -84,7 +85,7 @@ export const detectTransients = (
  */
 const calculateThreshold = (
   energyDeltas: number[],
-  sensitivity: number,
+  sensitivity: number
 ): number => {
   if (energyDeltas.length === 0) return 0;
 
@@ -115,7 +116,7 @@ export const applyTransientDetection = (
   overlapPercent: number,
   setSpliceMarkersStore: (markers: number[]) => void,
   setSelectedSpliceMarker: (marker: Region | null) => void,
-  updateSpliceMarkerColors: (marker: Region | null) => void,
+  updateSpliceMarkerColors: (marker: Region | null) => void
 ): number => {
   if (!_ws || !regions || !audioBuffer) {
     console.log("Cannot apply transient detection: missing dependencies");
@@ -125,7 +126,7 @@ export const applyTransientDetection = (
   const lockedMarkers = useAudioStore.getState().lockedSpliceMarkers;
 
   console.log(
-    `Applying transient detection with sensitivity: ${sensitivity}, preserving ${lockedMarkers.length} locked markers`,
+    `Applying transient detection with sensitivity: ${sensitivity}, preserving ${lockedMarkers.length} locked markers`
   );
 
   // Clear existing unlocked splice markers only
@@ -133,11 +134,11 @@ export const applyTransientDetection = (
     regions,
     lockedMarkers,
     setSelectedSpliceMarker,
-    updateSpliceMarkerColors,
+    updateSpliceMarkerColors
   );
 
   console.log(
-    `Removed ${removedRegions.length} unlocked markers, preserving ${lockedMarkers.length} locked markers`,
+    `Removed ${removedRegions.length} unlocked markers, preserving ${lockedMarkers.length} locked markers`
   );
 
   // Detect transients
@@ -145,7 +146,7 @@ export const applyTransientDetection = (
     audioBuffer,
     sensitivity,
     frameSizeMs,
-    overlapPercent,
+    overlapPercent
   );
   console.log(`Detected ${transients.length} transients:`, transients);
 
@@ -153,7 +154,7 @@ export const applyTransientDetection = (
   const filteredTransients = transients.filter((transientTime) => {
     const tooCloseToLocked = lockedMarkers.some(
       (locked: number) =>
-        Math.abs(locked - transientTime) < TRANSIENT_DETECTION.MIN_INTERVAL, // 50ms tolerance
+        Math.abs(locked - transientTime) < TRANSIENT_DETECTION.MIN_INTERVAL // 50ms tolerance
     );
     return !tooCloseToLocked;
   });
@@ -161,36 +162,93 @@ export const applyTransientDetection = (
   console.log(
     `Filtered to ${filteredTransients.length} transients (removed ${
       transients.length - filteredTransients.length
-    } too close to locked markers)`,
+    } too close to locked markers)`
   );
-
-  // Create visual splice marker regions for each filtered transient
-  filteredTransients.forEach((transientTime, index) => {
-    regions.addRegion({
-      start: transientTime,
-      color: REGION_COLORS.SPLICE_MARKER,
-      drag: true, // New transient markers are always draggable initially
-      resize: false,
-      id: `splice-marker-transient-${index}-${Date.now()}`,
-      content: MARKER_ICONS.UNLOCKED,
-    });
-  });
 
   // Combine locked markers with new transients for the store
   const allMarkers = [...lockedMarkers, ...filteredTransients].sort(
-    (a, b) => a - b,
+    (a, b) => a - b
   );
-  setSpliceMarkersStore(allMarkers);
+
+  // Apply limiting for device compatibility
+  const { limitedMarkers, wasLimited } = limitSpliceMarkers(
+    allMarkers,
+    lockedMarkers
+  );
+
+  if (wasLimited) {
+    console.log(
+      `Transient detection markers limited from ${allMarkers.length} to ${limitedMarkers.length} for device compatibility`
+    );
+
+    // Clear all existing markers and recreate only the limited ones
+    const existingRegions = regions
+      .getRegions()
+      .filter((r: Region) => r.id.startsWith("splice-marker-"));
+    existingRegions.forEach((region: Region) => region.remove());
+
+    // Recreate visual markers for limited set
+    const newTransients = limitedMarkers.filter(
+      (marker) =>
+        !lockedMarkers.some((locked) => Math.abs(locked - marker) < 0.01)
+    );
+    newTransients.forEach((transientTime, index) => {
+      regions.addRegion({
+        start: transientTime,
+        color: REGION_COLORS.SPLICE_MARKER,
+        drag: true,
+        resize: false,
+        id: `splice-marker-transient-limited-${index}-${Date.now()}`,
+        content: MARKER_ICONS.UNLOCKED,
+      });
+    });
+
+    // Recreate locked markers
+    lockedMarkers.forEach((markerTime, index) => {
+      if (limitedMarkers.includes(markerTime)) {
+        regions.addRegion({
+          start: markerTime,
+          color: REGION_COLORS.SPLICE_MARKER,
+          drag: false,
+          resize: false,
+          id: `splice-marker-locked-${index}-${Date.now()}`,
+          content: MARKER_ICONS.LOCKED,
+        });
+      }
+    });
+  } else {
+    // Create visual splice marker regions for each filtered transient (original logic)
+    filteredTransients.forEach((transientTime, index) => {
+      regions.addRegion({
+        start: transientTime,
+        color: REGION_COLORS.SPLICE_MARKER,
+        drag: true, // New transient markers are always draggable initially
+        resize: false,
+        id: `splice-marker-transient-${index}-${Date.now()}`,
+        content: MARKER_ICONS.UNLOCKED,
+      });
+    });
+  }
+
+  setSpliceMarkersStore(limitedMarkers);
 
   clearSelectionAndUpdateColors(
     setSelectedSpliceMarker,
-    updateSpliceMarkerColors,
+    updateSpliceMarkerColors
   );
 
+  const detectedTransients = wasLimited
+    ? limitedMarkers.length - lockedMarkers.length
+    : filteredTransients.length;
+
   console.log(
-    `Transient detection complete. Created ${filteredTransients.length} new markers, total: ${allMarkers.length} (${lockedMarkers.length} locked)`,
+    `Transient detection complete. Created ${detectedTransients} new markers${
+      wasLimited
+        ? ` (limited from ${allMarkers.length} to ${limitedMarkers.length})`
+        : ""
+    }, total: ${limitedMarkers.length} (${lockedMarkers.length} locked)`
   );
-  return filteredTransients.length;
+  return detectedTransients;
 };
 
 /**
@@ -200,7 +258,7 @@ export const applyTransientDetection = (
 export const findNearestZeroCrossing = (
   audioBuffer: AudioBuffer,
   targetTime: number,
-  searchWindow: number = MARKER_TOLERANCE, // 1ms search window
+  searchWindow: number = MARKER_TOLERANCE // 1ms search window
 ): number => {
   const sampleRate = audioBuffer.sampleRate;
   const channelData = audioBuffer.getChannelData(0);
@@ -210,7 +268,7 @@ export const findNearestZeroCrossing = (
   const startSample = Math.max(0, targetSample - windowSamples);
   const endSample = Math.min(
     channelData.length - 1,
-    targetSample + windowSamples,
+    targetSample + windowSamples
   );
 
   let bestZeroCrossing = targetSample;
@@ -243,7 +301,7 @@ export const snapToZeroCrossings = (
   spliceMarkers: number[],
   setSpliceMarkersStore: (markers: number[]) => void,
   setSelectedSpliceMarker: (marker: Region | null) => void,
-  updateSpliceMarkerColors: (marker: Region | null) => void,
+  updateSpliceMarkerColors: (marker: Region | null) => void
 ): void => {
   if (!audioBuffer || spliceMarkers.length === 0) {
     return;
@@ -255,17 +313,17 @@ export const snapToZeroCrossings = (
   removeAllSpliceMarkersAndClearSelection(
     regions,
     setSelectedSpliceMarker,
-    updateSpliceMarkerColors,
+    updateSpliceMarkerColors
   );
 
   // Find zero crossings for each marker
   const snappedMarkers = spliceMarkers.map((markerTime) =>
-    findNearestZeroCrossing(audioBuffer, markerTime),
+    findNearestZeroCrossing(audioBuffer, markerTime)
   );
 
   // Remove duplicates and sort
   const uniqueSnappedMarkers = [...new Set(snappedMarkers)].sort(
-    (a, b) => a - b,
+    (a, b) => a - b
   );
 
   // Create new visual markers
@@ -286,10 +344,10 @@ export const snapToZeroCrossings = (
   setSpliceMarkersStore(uniqueSnappedMarkers);
   clearSelectionAndUpdateColors(
     setSelectedSpliceMarker,
-    updateSpliceMarkerColors,
+    updateSpliceMarkerColors
   );
 
   console.log(
-    `Snapped ${spliceMarkers.length} markers to ${uniqueSnappedMarkers.length} zero crossings`,
+    `Snapped ${spliceMarkers.length} markers to ${uniqueSnappedMarkers.length} zero crossings`
   );
 };

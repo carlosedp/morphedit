@@ -7,7 +7,11 @@ import type { Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
 
 import { useAudioStore } from "../audioStore";
 import type { AudioState } from "../audioStore";
-import { ZOOM_LEVELS, MAX_SPLICE_MARKERS, MARKER_ICONS } from "../constants";
+import {
+  ZOOM_LEVELS,
+  MAX_KEYBOARD_SHORTCUT_MARKERS,
+  MARKER_ICONS,
+} from "../constants";
 import {
   playPause,
   rewind,
@@ -683,7 +687,7 @@ export const useWaveformHandlers = ({
   const spliceHandlers = useMemo(() => {
     const handlers: Record<string, () => void> = {};
 
-    for (let i = 1; i <= MAX_SPLICE_MARKERS; i++) {
+    for (let i = 1; i <= MAX_KEYBOARD_SHORTCUT_MARKERS; i++) {
       handlers[`handlePlaySplice${i}`] = createGenericSpliceHandler(
         wavesurferRef,
         spliceMarkersStore,

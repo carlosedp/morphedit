@@ -12,6 +12,7 @@ import {
   MARKER_ICONS,
   UI_COLORS,
   REGION_POSITIONING,
+  MAX_TOTAL_SPLICE_POINTS,
 } from "../constants";
 import {
   getSpliceMarkerRegions,
@@ -21,6 +22,7 @@ import {
   removeUnlockedMarkersAndClearSelection,
   isMarkerTooCloseToExisting,
   combineAndSortMarkers,
+  limitSpliceMarkers,
 } from "./regionHelpers";
 import "../App.css";
 
@@ -123,6 +125,14 @@ export const addSpliceMarker = (
   setSpliceMarkersStore: (markers: number[]) => void
 ) => {
   if (!ws || !regions) return;
+
+  // Check if we're at the limit
+  if (spliceMarkersStore.length >= MAX_TOTAL_SPLICE_POINTS) {
+    console.warn(
+      `Cannot add splice marker: maximum limit of ${MAX_TOTAL_SPLICE_POINTS} markers reached for device compatibility`
+    );
+    return;
+  }
 
   // Get audio buffer for zero-crossing detection
   const audioBuffer = getAudioBuffer();
@@ -361,20 +371,56 @@ export const autoSlice = (
     });
   }
 
+  // Sort markers chronologically
+  const sortedMarkers = newSpliceMarkers.sort((a, b) => a - b);
+
+  // Apply limiting for device compatibility
+  const { limitedMarkers, wasLimited } = limitSpliceMarkers(
+    sortedMarkers,
+    lockedMarkers
+  );
+
+  if (wasLimited) {
+    console.log(
+      `Auto-slice markers limited from ${sortedMarkers.length} to ${limitedMarkers.length} for device compatibility`
+    );
+
+    // Clear all existing markers and recreate only the limited ones
+    const spliceRegions = getSpliceMarkerRegions(regions);
+    spliceRegions.forEach((region) => region.remove());
+
+    // Recreate visual markers for limited set
+    limitedMarkers.forEach((markerTime, index) => {
+      const isLocked = isMarkerLocked(markerTime, lockedMarkers);
+      regions.addRegion({
+        start: markerTime,
+        color: REGION_COLORS.SPLICE_MARKER,
+        drag: !isLocked,
+        resize: false,
+        id: `splice-marker-auto-limited-${index}-${Date.now()}`,
+        content: isLocked ? MARKER_ICONS.LOCKED : MARKER_ICONS.UNLOCKED,
+      });
+    });
+  }
+
   // Update store with new splice marker times (including locked ones)
-  setSpliceMarkersStore(newSpliceMarkers.sort((a, b) => a - b));
+  setSpliceMarkersStore(limitedMarkers);
 
   clearSelectionAndUpdateColors(
     setSelectedSpliceMarker,
     updateSpliceMarkerColors
   );
 
+  const originalCount = newSpliceMarkers.length;
+  const finalCount = limitedMarkers.length;
   console.log(
     `Auto-slice complete. Created ${
-      newSpliceMarkers.length - lockedMarkers.length
-    } new markers, total: ${newSpliceMarkers.length} (${
-      lockedMarkers.length
-    } locked)${audioBuffer ? " with zero-crossing adjustment" : ""}`
+      originalCount - lockedMarkers.length
+    } new markers${
+      wasLimited ? ` (limited from ${originalCount} to ${finalCount})` : ""
+    }, total: ${finalCount} (${lockedMarkers.length} locked)${
+      audioBuffer ? " with zero-crossing adjustment" : ""
+    }`
   );
 };
 
@@ -645,10 +691,46 @@ export const loadExistingCuePoints = (
     });
   });
 
+  // Get locked markers for limiting consideration
+  const lockedMarkers = useAudioStore.getState().lockedSpliceMarkers;
+
+  // Apply limiting to adjusted cue points
+  const { limitedMarkers: finalCuePoints, wasLimited } = limitSpliceMarkers(
+    adjustedCuePoints.sort((a, b) => a - b),
+    lockedMarkers
+  );
+
+  if (wasLimited) {
+    console.log(
+      `Cue points limited from ${adjustedCuePoints.length} to ${finalCuePoints.length} for device compatibility`
+    );
+
+    // Clear existing visual markers and recreate with limited set
+    const allRegions = regions.getRegions();
+    const existingCueMarkers = allRegions.filter((r: Region) =>
+      r.id.startsWith("splice-marker-cue-")
+    );
+    existingCueMarkers.forEach((marker: Region) => marker.remove());
+
+    // Create visual markers for limited set
+    finalCuePoints.forEach((cueTime, index) => {
+      regions.addRegion({
+        start: cueTime,
+        color: REGION_COLORS.SPLICE_MARKER,
+        drag: true,
+        resize: false,
+        id: `splice-marker-cue-limited-${index}-${Date.now()}`,
+        content: MARKER_ICONS.UNLOCKED,
+      });
+    });
+  }
+
   // Update store with adjusted cue points
-  setSpliceMarkersStore(adjustedCuePoints.sort((a, b) => a - b));
+  setSpliceMarkersStore(finalCuePoints);
   console.log(
-    `Loaded ${adjustedCuePoints.length} cue points as splice markers`
+    `Loaded ${finalCuePoints.length} cue points as splice markers${
+      wasLimited ? ` (limited from ${adjustedCuePoints.length})` : ""
+    }`
   );
 };
 

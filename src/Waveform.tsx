@@ -32,7 +32,7 @@ import {
   POSITION_UPDATE_INTERVAL,
   PLAYBACK_TIMING,
   WAVEFORM_RENDERING,
-  MAX_SPLICE_MARKERS,
+  MAX_KEYBOARD_SHORTCUT_MARKERS,
 } from "./constants";
 import { waveformLogger } from "./utils/logger";
 import { type ExportFormat } from "./utils/exportUtils";
@@ -718,7 +718,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     const spliceHandlers = useMemo(() => {
       const handlers: Record<string, () => void> = {};
 
-      for (let i = 1; i <= MAX_SPLICE_MARKERS; i++) {
+      for (let i = 1; i <= MAX_KEYBOARD_SHORTCUT_MARKERS; i++) {
         handlers[`handlePlaySplice${i}`] = createGenericSpliceHandler(
           wavesurferRef,
           spliceMarkersStore,

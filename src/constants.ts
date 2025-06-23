@@ -11,7 +11,8 @@ export const POSITION_UPDATE_INTERVAL = 100; // ms
 export const LOADING_DIALOG_DELAY = 500; // ms
 
 // Splice marker constants
-export const MAX_SPLICE_MARKERS = 20;
+export const MAX_KEYBOARD_SHORTCUT_MARKERS = 20; // Number of markers accessible via keyboard shortcuts
+export const MAX_TOTAL_SPLICE_POINTS = 300; // Maximum splice points for output device compatibility
 export const MARKER_TOLERANCE = 0.01; // seconds for comparing marker positions
 
 // Enable or disable minimap in the waveform view

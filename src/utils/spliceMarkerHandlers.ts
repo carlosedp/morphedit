@@ -2,12 +2,12 @@
 import { useCallback } from "react";
 import type WaveSurfer from "wavesurfer.js";
 import { playSpliceMarker } from "./playbackUtils";
-import { MAX_SPLICE_MARKERS } from "../constants";
+import { MAX_KEYBOARD_SHORTCUT_MARKERS } from "../constants";
 
 // Generate array of marker numbers 1-20
 export const SPLICE_MARKER_NUMBERS = Array.from(
-  { length: MAX_SPLICE_MARKERS },
-  (_, i) => i + 1,
+  { length: MAX_KEYBOARD_SHORTCUT_MARKERS },
+  (_, i) => i + 1
 );
 
 // Type for individual splice marker handler
@@ -23,7 +23,7 @@ export type SpliceMarkerHandlers = Record<
 export const createGenericSpliceHandler = (
   wavesurferRef: React.RefObject<WaveSurfer | null>,
   spliceMarkersStore: number[],
-  markerNumber: number,
+  markerNumber: number
 ): SpliceMarkerHandler => {
   return () => {
     if (wavesurferRef.current) {
@@ -35,16 +35,16 @@ export const createGenericSpliceHandler = (
 // Generate splice marker handlers object dynamically
 export const createSpliceMarkerHandlers = (
   wavesurferRef: React.RefObject<WaveSurfer | null>,
-  spliceMarkersStore: number[],
+  spliceMarkersStore: number[]
 ): SpliceMarkerHandlers => {
   const handlers = {} as SpliceMarkerHandlers;
 
-  for (let i = 1; i <= MAX_SPLICE_MARKERS; i++) {
+  for (let i = 1; i <= MAX_KEYBOARD_SHORTCUT_MARKERS; i++) {
     const handlerName = `handlePlaySplice${i}` as keyof SpliceMarkerHandlers;
     handlers[handlerName] = createGenericSpliceHandler(
       wavesurferRef,
       spliceMarkersStore,
-      i,
+      i
     );
   }
 
@@ -54,7 +54,7 @@ export const createSpliceMarkerHandlers = (
 // Hook for splice marker handlers with proper memoization
 export const useSpliceMarkerHandlers = (
   wavesurferRef: React.RefObject<WaveSurfer | null>,
-  spliceMarkersStore: number[],
+  spliceMarkersStore: number[]
 ) => {
   return useCallback(() => {
     return createSpliceMarkerHandlers(wavesurferRef, spliceMarkersStore);
