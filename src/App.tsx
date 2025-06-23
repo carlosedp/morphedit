@@ -42,8 +42,8 @@ import {
   PLAYBACK_TIMING,
 } from "./constants";
 import { version } from "./Version.ts";
-import { theme } from "./theme";
-import { WaveformContainer } from "./components/StyledComponents";
+import { theme } from "./styles/theme.tsx";
+import { WaveformContainer } from "./styles/StyledComponents.tsx";
 
 function App() {
   const appLogger = createLogger("App");

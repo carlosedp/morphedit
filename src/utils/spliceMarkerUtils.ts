@@ -24,7 +24,6 @@ import {
   combineAndSortMarkers,
   limitSpliceMarkers,
 } from "./regionHelpers";
-import "../styles/App.css";
 
 // Helper functions for locked markers
 export const isMarkerLocked = (

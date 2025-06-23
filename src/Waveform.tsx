@@ -21,7 +21,6 @@ import { loadAudioIntoWaveform } from "./utils/waveformAudioLoader";
 
 import { useAudioStore } from "./audioStore";
 import type { AudioState } from "./audioStore";
-import "./styles/App.css";
 import { Container, Stack } from "@mui/material";
 
 // Import separated utilities and components
