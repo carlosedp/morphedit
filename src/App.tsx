@@ -1,5 +1,5 @@
 import "./ElectronApp.ts";
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import {
   Container,
   Typography,
@@ -41,9 +41,9 @@ import {
   UI_COLORS,
   PLAYBACK_TIMING,
 } from "./constants";
-import "./App.css";
 import { version } from "./Version.ts";
 import { theme } from "./theme";
+import { WaveformContainer } from "./components/StyledComponents";
 
 function App() {
   const appLogger = createLogger("App");
@@ -90,7 +90,7 @@ function App() {
   };
 
   const handleAppendFileChange = async (
-    e: React.ChangeEvent<HTMLInputElement>,
+    e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const files = e.target.files;
     if (files && files.length > 0) {
@@ -114,7 +114,7 @@ function App() {
           audioBuffer,
           spliceMarkers,
           audioFiles,
-          false, // Don't truncate by default
+          false // Don't truncate by default
         );
 
         // Check if the concatenated audio exceeds 174 seconds
@@ -193,7 +193,7 @@ function App() {
           existingSpliceMarkers,
           pendingFiles,
           shouldTruncate,
-          shouldTruncate ? CONST_MORPHAGENE_MAX_DURATION : undefined,
+          shouldTruncate ? CONST_MORPHAGENE_MAX_DURATION : undefined
         );
 
         await finishAppendProcess(result);
@@ -202,13 +202,13 @@ function App() {
         const result = await concatenateAudioFiles(
           pendingFiles,
           shouldTruncate,
-          shouldTruncate ? CONST_MORPHAGENE_MAX_DURATION : undefined,
+          shouldTruncate ? CONST_MORPHAGENE_MAX_DURATION : undefined
         );
 
         // Convert AudioBuffer to WAV blob with cue points
         const wavBlob = await audioBufferToWavBlob(
           result.concatenatedBuffer,
-          result.spliceMarkerPositions,
+          result.spliceMarkerPositions
         );
         const url = URL.createObjectURL(wavBlob) + "#morphedit-concatenated";
 
@@ -228,7 +228,7 @@ function App() {
           {
             spliceMarkers: result.spliceMarkerPositions.length,
             boundaryMarkers: result.boundaryMarkerPositions.length,
-          },
+          }
         );
       }
 
@@ -345,7 +345,7 @@ function App() {
       // Truncate the existing result instead of re-appending
       const truncatedResult = await truncateConcatenationResult(
         pendingAppendResult,
-        MORPHAGENE_MAX_DURATION,
+        MORPHAGENE_MAX_DURATION
       );
 
       await finishAppendProcess(truncatedResult);
@@ -444,7 +444,7 @@ function App() {
         audioBuffer,
         spliceMarkers,
         pendingReplaceFiles,
-        false, // Don't truncate by default
+        false // Don't truncate by default
       );
 
       // Check if the concatenated audio exceeds 174 seconds
@@ -452,7 +452,7 @@ function App() {
 
       if (totalDuration > CONST_MORPHAGENE_MAX_DURATION) {
         appLogger.warn(
-          `Concatenated audio duration (${totalDuration}s) exceeds Morphagene limit (${CONST_MORPHAGENE_MAX_DURATION}s)`,
+          `Concatenated audio duration (${totalDuration}s) exceeds Morphagene limit (${CONST_MORPHAGENE_MAX_DURATION}s)`
         );
 
         // Stop loading and show truncate dialog in append mode
@@ -483,7 +483,7 @@ function App() {
     // Convert AudioBuffer to WAV blob with all cue points
     const wavBlob = await audioBufferToWavBlob(
       result.concatenatedBuffer,
-      result.spliceMarkerPositions,
+      result.spliceMarkerPositions
     );
     const url = URL.createObjectURL(wavBlob) + "#morphedit-appended";
 
@@ -504,7 +504,7 @@ function App() {
     // This ensures exports include the appended audio
     setAudioBuffer(result.concatenatedBuffer);
     audioLogger.audioOperation(
-      "Updated audio buffer in store with concatenated buffer",
+      "Updated audio buffer in store with concatenated buffer"
     );
 
     // Add the boundary markers as locked (including the start of the appended audio)
@@ -517,7 +517,7 @@ function App() {
       ...result.boundaryMarkerPositions,
     ];
     const uniqueLockedMarkers = Array.from(new Set(allLockedMarkers)).sort(
-      (a, b) => a - b,
+      (a, b) => a - b
     );
 
     setLockedSpliceMarkers(uniqueLockedMarkers);
@@ -527,7 +527,7 @@ function App() {
         newBoundaryMarkers: result.boundaryMarkerPositions.length,
         totalLockedMarkers: uniqueLockedMarkers.length,
         totalSpliceMarkers: result.spliceMarkerPositions.length,
-      },
+      }
     );
 
     setPendingReplaceFiles([]);
@@ -614,7 +614,7 @@ function App() {
     if (!audioUrl) {
       // Trigger the file input when clicking on empty waveform
       const fileInput = document.querySelector(
-        'input[type="file"]',
+        'input[type="file"]'
       ) as HTMLInputElement;
       if (fileInput) {
         fileInput.click();
@@ -635,7 +635,7 @@ function App() {
   // Replace the large switch statement with a simple dispatcher
   const handleShortcutAction = useMemo(
     () => createActionDispatcher(waveformRef),
-    [waveformRef],
+    [waveformRef]
   );
 
   useKeyboardShortcuts({
@@ -648,7 +648,7 @@ function App() {
       if (window.electronAPI.onOpenAudioDialog) {
         window.electronAPI.onOpenAudioDialog(() => {
           const fileInput = document.querySelector(
-            'input[type="file"]',
+            'input[type="file"]'
           ) as HTMLInputElement | null;
           if (fileInput) fileInput.click();
         });
@@ -870,14 +870,13 @@ function App() {
           </Stack>
         </Box>
         {/* Waveform container - always visible */}
-        <Box
+        <WaveformContainer
           id="waveform-container"
           onClick={handleWaveformClick}
           sx={{
             cursor: !audioUrl ? "pointer" : "default",
             mx: { xs: 1, sm: 2 }, // Add horizontal margin
             mb: { xs: 2, sm: 0 }, // Add bottom margin on mobile
-            minHeight: audioUrl ? 150 : "auto", // Ensure enough height when audio is loaded
             "&:hover": !audioUrl
               ? {
                   backgroundColor: "action.hover",
@@ -885,7 +884,6 @@ function App() {
                 }
               : {},
             // Add a subtle visual hint for mouse wheel zoom when audio is loaded
-            position: "relative",
             "&::after": audioUrl
               ? {
                   content: '""',
@@ -905,7 +903,7 @@ function App() {
         >
           {!audioUrl &&
             "Click here, use the button above, or drag and drop audio file(s) to load/concatenate them"}
-        </Box>
+        </WaveformContainer>
         {audioUrl && (
           <Box sx={{ mx: { xs: 1, sm: 2 } }}>
             {" "}

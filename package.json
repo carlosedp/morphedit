@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build && npm run build:manual",
     "build:manual": "node scripts/build-manual.js",
+    "clean": "rm -rf dist && rm -rf node_modules",
     "lint": "eslint . --fix",
     "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\"",
     "format": "npm run pretty && npm run lint",
