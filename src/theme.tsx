@@ -47,10 +47,10 @@ const theme = createTheme({
           padding: "2rem",
           textAlign: "center",
           [theme.breakpoints.down("md")]: {
-            padding: "1rem 0.5rem",
+            padding: "1.5rem 1rem", // Less aggressive horizontal padding reduction
           },
           [theme.breakpoints.down("sm")]: {
-            padding: "0.5rem 0.25rem",
+            padding: "1rem 0.5rem", // Still responsive but with more horizontal space
           },
         },
         // Logo styling (if still needed)

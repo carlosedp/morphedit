@@ -1,5 +1,5 @@
 // Waveform controls component - playback, zoom, and navigation
-import React from "react";
+import * as React from "react";
 import { IconButton, Slider, Stack, Typography, Tooltip } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
@@ -176,13 +176,21 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           spacing={1}
           alignItems="center"
           sx={{
-            flexWrap: "wrap",
+            flexWrap: "nowrap", // Prevent wrapping to keep items on same line
             justifyContent: { xs: "center", md: "flex-end" },
+            overflow: "hidden", // Hide overflow instead of wrapping
+            "& > *": {
+              flexShrink: 1, // Allow items to shrink if needed
+              minWidth: "max-content", // Prevent text from breaking
+            },
           }}
         >
           <Typography
             variant="body2"
-            sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
+            sx={{
+              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+              whiteSpace: "nowrap",
+            }}
           >
             🕒 {formatTime(currentTime)} / {formatTime(duration)}
           </Typography>
@@ -190,7 +198,10 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
             <Typography
               variant="body2"
               color="primary"
-              sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
+              sx={{
+                fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                whiteSpace: "nowrap",
+              }}
             >
               | 🎵 {formatBPM(bpm)}
             </Typography>
@@ -198,9 +209,12 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           <Typography
             variant="body2"
             color="primary"
-            sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
+            sx={{
+              fontSize: { xs: "0.75rem", sm: "0.875rem" }, // Smaller on mobile
+              whiteSpace: "nowrap", // Prevent text wrapping
+            }}
           >
-            | ✂️ Splice markers: {spliceMarkersCount}
+            | ✂️ Splice: {spliceMarkersCount}
           </Typography>
         </Stack>
 

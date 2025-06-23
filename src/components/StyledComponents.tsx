@@ -65,12 +65,12 @@ export const TransportControls = styled(Box)(({ theme }) => ({
 // Styled info container component (replacement for .info-container)
 export const InfoContainer = styled(Box)(({ theme }) => ({
   display: "flex",
-  border: "1px solid rgb(255, 208, 0)",
+  border: `1px solid ${theme.palette.primary.main}`, // Use theme color instead of hardcoded
   padding: theme.spacing(1),
   marginTop: theme.spacing(1),
   marginBottom: theme.spacing(1),
   borderRadius: theme.shape.borderRadius,
-  backgroundColor: "#333",
+  backgroundColor: theme.palette.background.paper, // Use theme color instead of hardcoded
   alignItems: "center",
   justifyContent: "space-between",
   flexWrap: "wrap",
