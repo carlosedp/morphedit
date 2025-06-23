@@ -1,14 +1,14 @@
 // Generic handler factory to reduce repetitive switch case patterns
 
 import type { WaveformRef } from "../Waveform";
-import { MAX_SPLICE_MARKERS } from "../constants";
+import { MAX_KEYBOARD_SHORTCUT_MARKERS } from "../constants";
 
 // Type for action handlers
 type ActionHandler = () => void;
 
 // Create a mapping object for actions to avoid large switch statements
 export const createActionHandlers = (
-  waveformRef: React.RefObject<WaveformRef | null>,
+  waveformRef: React.RefObject<WaveformRef | null>
 ) => {
   const handlers: Record<string, ActionHandler> = {
     // Playback controls
@@ -55,7 +55,7 @@ export const createActionHandlers = (
   };
 
   // Dynamically add splice marker playback handlers
-  for (let i = 1; i <= MAX_SPLICE_MARKERS; i++) {
+  for (let i = 1; i <= MAX_KEYBOARD_SHORTCUT_MARKERS; i++) {
     const actionName = `playSplice${i}`;
     const handlerName = `handlePlaySplice${i}` as keyof WaveformRef;
 
@@ -72,7 +72,7 @@ export const createActionHandlers = (
 
 // Generic action dispatcher
 export const createActionDispatcher = (
-  waveformRef: React.RefObject<WaveformRef | null>,
+  waveformRef: React.RefObject<WaveformRef | null>
 ) => {
   const handlers = createActionHandlers(waveformRef);
 

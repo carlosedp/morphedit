@@ -24,7 +24,7 @@
   padding: 1.5em;
   will-change: filter;
   transition: filter 300ms;
-      border-radius: 50%;
+  border-radius: 50%;
 }
 
 .logo:hover {
@@ -218,11 +218,11 @@
 }
 
 /* #waveform-container ::part(marker) { */
-  /* position: relative; */
-  /* height: 175px; */
-  /* top: 6px; */
-  /* width: 1px; */
-  /* left: 1px; */
+/* position: relative; */
+/* height: 175px; */
+/* top: 6px; */
+/* width: 1px; */
+/* left: 1px; */
 /* } */
 
 /* #waveform-container ::part(wrapper) {
@@ -235,7 +235,7 @@
 
 /* Playhead cursor */
 #waveform-container ::part(cursor):after {
-  content: '▶';
+  content: "▶";
   font-size: 1.3em;
   color: #ff990a;
   position: absolute;

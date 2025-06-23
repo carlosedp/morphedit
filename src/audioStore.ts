@@ -13,6 +13,9 @@ export interface AudioState {
   // Locked splice markers - times that should not be removed/moved
   lockedSpliceMarkers: number[];
   setLockedSpliceMarkers: (markers: number[]) => void;
+  // BPM detection
+  bpm: number | null;
+  setBpm: (bpm: number | null) => void;
   // Undo functionality
   previousAudioUrl: string | null;
   setPreviousAudioUrl: (url: string | null) => void;
@@ -38,7 +41,7 @@ export const useAudioStore = create<AudioState>(
       console.log(
         "AudioStore - setAudioBuffer called with:",
         !!buffer,
-        buffer ? `duration: ${buffer.length / buffer.sampleRate}s` : "null",
+        buffer ? `duration: ${buffer.length / buffer.sampleRate}s` : "null"
       );
       set({ audioBuffer: buffer });
     },
@@ -52,13 +55,18 @@ export const useAudioStore = create<AudioState>(
     // Locked splice markers
     lockedSpliceMarkers: [],
     setLockedSpliceMarkers: (markers) => set({ lockedSpliceMarkers: markers }),
+    // BPM detection
+    bpm: null,
+    setBpm: (bpm) => set({ bpm }),
     // Undo functionality
     previousAudioUrl: null,
     setPreviousAudioUrl: (url) => set({ previousAudioUrl: url }),
     previousSpliceMarkers: [],
-    setPreviousSpliceMarkers: (markers) => set({ previousSpliceMarkers: markers }),
+    setPreviousSpliceMarkers: (markers) =>
+      set({ previousSpliceMarkers: markers }),
     previousLockedSpliceMarkers: [],
-    setPreviousLockedSpliceMarkers: (markers) => set({ previousLockedSpliceMarkers: markers }),
+    setPreviousLockedSpliceMarkers: (markers) =>
+      set({ previousLockedSpliceMarkers: markers }),
     canUndo: false,
     setCanUndo: (canUndo) => set({ canUndo }),
     // Processing state
@@ -81,6 +89,7 @@ export const useAudioStore = create<AudioState>(
         canUndo: false,
         isProcessingAudio: false,
         isUndoing: false,
+        bpm: null,
       }),
-  }),
+  })
 );

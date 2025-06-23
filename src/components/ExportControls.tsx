@@ -1,8 +1,17 @@
 // Export controls component
 import React from "react";
-import { Button, ButtonGroup, Menu, MenuItem, Tooltip, Typography } from "@mui/material";
+import {
+  Button,
+  ButtonGroup,
+  Menu,
+  MenuItem,
+  Tooltip,
+  Typography,
+  Stack,
+} from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import NormalizeIcon from "@mui/icons-material/TuneOutlined";
 import { type ExportFormat } from "../utils/exportUtils";
 import { EXPORT_FORMATS } from "../constants";
 import { TOOLTIP_DELAYS } from "../constants";
@@ -13,6 +22,7 @@ interface ExportControlsProps {
   onExport: () => void;
   onExportFormatChange: (format: ExportFormat) => void;
   onSetExportAnchorEl: (element: HTMLElement | null) => void;
+  onNormalize: () => void;
 }
 
 export const ExportControls: React.FC<ExportControlsProps> = ({
@@ -21,6 +31,7 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
   onExport,
   onExportFormatChange,
   onSetExportAnchorEl,
+  onNormalize,
 }) => {
   const exportMenuOpen = Boolean(exportAnchorEl);
 
@@ -30,14 +41,28 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
   };
 
   return (
-    <>
+    <Stack
+      direction="row"
+      spacing={2}
+      alignItems="center"
+      sx={{
+        flex: 1,
+        flexWrap: "wrap",
+        gap: { xs: 1, sm: 2 },
+        justifyContent: { xs: "center", md: "flex-start" },
+      }}
+    >
       <ButtonGroup variant="outlined" sx={{ ml: 2 }}>
         <Tooltip
           title={`Export audio as ${selectedExportFormat.label}`}
           enterDelay={TOOLTIP_DELAYS.ENTER}
           leaveDelay={TOOLTIP_DELAYS.LEAVE}
         >
-          <Button onClick={onExport} startIcon={<DownloadIcon />} sx={{ minWidth: 140 }}>
+          <Button
+            onClick={onExport}
+            startIcon={<DownloadIcon />}
+            sx={{ minWidth: 140 }}
+          >
             Export WAV
           </Button>
         </Tooltip>
@@ -49,7 +74,7 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
           <Button
             size="small"
             onClick={(event) => onSetExportAnchorEl(event.currentTarget)}
-            sx={{ fontSize: '0.6rem', px: 1 }}
+            sx={{ fontSize: "0.6rem", px: 1 }}
           >
             {selectedExportFormat.shortLabel}
             <ArrowDropDownIcon />
@@ -83,6 +108,21 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
           </MenuItem>
         ))}
       </Menu>
-    </>
+
+      <Tooltip
+        title="Normalize audio to peak -1dB"
+        enterDelay={TOOLTIP_DELAYS.ENTER}
+        leaveDelay={TOOLTIP_DELAYS.LEAVE}
+      >
+        <Button
+          variant="outlined"
+          onClick={onNormalize}
+          startIcon={<NormalizeIcon />}
+          sx={{ minWidth: 120 }}
+        >
+          Normalize
+        </Button>
+      </Tooltip>
+    </Stack>
   );
 };

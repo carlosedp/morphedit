@@ -1,7 +1,7 @@
 {
   "name": "morphedit",
   "private": true,
-  "version": "4.2.0",
+  "version": "4.3.0",
   "type": "module",
   "scripts": {
     "start": "vite",
@@ -12,8 +12,8 @@
     "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\"",
     "preview": "vite preview",
     "electron:dev": "vite build && electron .",
-    "electron:pack": "electron-builder --dir",
-    "electron:dist": "electron-builder"
+    "electron:pack": "npm run build && electron-builder --dir",
+    "electron:dist": "npm run build && electron-builder"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -23,8 +23,8 @@
     "@mui/material": "^7.1.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^7.6.2",
     "wavesurfer.js": "^7.9.5",
+    "web-audio-beat-detector": "^8.2.29",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
@@ -34,8 +34,8 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
-    "electron": "^25.3.0",
-    "electron-builder": "^24.6.0",
+    "electron": "^36.4.0",
+    "electron-builder": "^26.0.0",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
@@ -44,7 +44,8 @@
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
     "unplugin-fonts": "^1.3.1",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "web-audio-beat-detector": "^8.2.29"
   },
   "main": "electron-main.cjs",
   "build": {

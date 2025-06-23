@@ -11,7 +11,7 @@ import { FADE_CURVE_TYPES } from "../constants";
 export const calculateFadeGain = (
   position: number,
   curveType: string,
-  isFadeOut: boolean = false
+  isFadeOut: boolean = false,
 ): number => {
   // Clamp position to valid range
   position = Math.max(0, Math.min(1, position));
@@ -64,7 +64,19 @@ export const getFadeCurveDescription = (curveType: string): string => {
  * Get all available fade curve types with descriptions
  */
 export const getFadeCurveOptions = () => [
-  { value: FADE_CURVE_TYPES.LINEAR, label: "Linear", description: "Constant fade rate" },
-  { value: FADE_CURVE_TYPES.EXPONENTIAL, label: "Exponential", description: "Smooth, gradual start" },
-  { value: FADE_CURVE_TYPES.LOGARITHMIC, label: "Logarithmic", description: "Quick start, gentle end" },
+  {
+    value: FADE_CURVE_TYPES.LINEAR,
+    label: "Linear",
+    description: "Constant fade rate",
+  },
+  {
+    value: FADE_CURVE_TYPES.EXPONENTIAL,
+    label: "Exponential",
+    description: "Smooth, gradual start",
+  },
+  {
+    value: FADE_CURVE_TYPES.LOGARITHMIC,
+    label: "Logarithmic",
+    description: "Quick start, gentle end",
+  },
 ];

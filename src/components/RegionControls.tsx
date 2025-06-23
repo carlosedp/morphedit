@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Box, Button, ButtonGroup, Stack, Tooltip } from "@mui/material";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TrendingDownIcon from "@mui/icons-material/TrendingDown";
+import CutIcon from "@mui/icons-material/ContentCut";
 import UndoIcon from "@mui/icons-material/Undo";
 import { TOOLTIP_DELAYS } from "../constants";
 import { FadeCurveSelector } from "./FadeCurveSelector";
@@ -40,8 +41,12 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
   onSetFadeInCurveType,
   onSetFadeOutCurveType,
 }) => {
-  const [fadeInAnchorEl, setFadeInAnchorEl] = useState<HTMLElement | null>(null);
-  const [fadeOutAnchorEl, setFadeOutAnchorEl] = useState<HTMLElement | null>(null);
+  const [fadeInAnchorEl, setFadeInAnchorEl] = useState<HTMLElement | null>(
+    null,
+  );
+  const [fadeOutAnchorEl, setFadeOutAnchorEl] = useState<HTMLElement | null>(
+    null,
+  );
   return (
     <Stack
       direction="column"
@@ -69,6 +74,7 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
             variant={cropMode ? "contained" : "outlined"}
             color="primary"
             onClick={onCropRegion}
+            startIcon={<CutIcon />}
           >
             Crop/Loop Region
           </Button>
@@ -99,7 +105,6 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
           gap: { xs: 0.5, sm: 1 },
         }}
       >
-
         {/* Fade In button group */}
         {fadeInMode ? (
           <ButtonGroup variant="outlined">
@@ -125,23 +130,22 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
               onSetAnchorEl={setFadeInAnchorEl}
             />
           </ButtonGroup>
-        )
-          : (
-            <Tooltip
-              title="Create a fade-in region"
-              enterDelay={TOOLTIP_DELAYS.ENTER}
-              leaveDelay={TOOLTIP_DELAYS.LEAVE}
+        ) : (
+          <Tooltip
+            title="Create a fade-in region"
+            enterDelay={TOOLTIP_DELAYS.ENTER}
+            leaveDelay={TOOLTIP_DELAYS.LEAVE}
+          >
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={onFadeInRegion}
+              startIcon={<TrendingUpIcon />}
             >
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={onFadeInRegion}
-                startIcon={<TrendingUpIcon />}
-              >
-                Fade In
-              </Button>
-            </Tooltip>
-          )}
+              Fade In
+            </Button>
+          </Tooltip>
+        )}
 
         {/* Fade Out button group */}
         {fadeOutMode ? (

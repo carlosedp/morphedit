@@ -11,12 +11,13 @@ import {
 } from "react";
 import { useTheme } from "@mui/material/styles";
 
-import WaveSurfer from "wavesurfer.js";
-import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 import type { Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
-import TimelinePlugin from "wavesurfer.js/dist/plugins/timeline.esm.js";
-import Minimap from "wavesurfer.js/dist/plugins/minimap.esm.js";
-import Hover from "wavesurfer.js/dist/plugins/hover.esm.js";
+
+import {
+  createWaveSurferInstance,
+  calculateInitialZoom,
+} from "./utils/waveformInitialization";
+import { loadAudioIntoWaveform } from "./utils/waveformAudioLoader";
 
 import { useAudioStore } from "./audioStore";
 import type { AudioState } from "./audioStore";
@@ -25,68 +26,37 @@ import { Container, Stack } from "@mui/material";
 
 // Import separated utilities and components
 import { parseWavCuePoints } from "./utils/audioProcessing";
-import { truncateAudioBuffer } from "./utils/fileLengthUtils";
 import {
-  AUDIO_MAX_DURATION,
   REGION_COLORS,
-  UI_COLORS,
   MARKER_ICONS,
   POSITION_UPDATE_INTERVAL,
   PLAYBACK_TIMING,
   WAVEFORM_RENDERING,
-  ZOOM_LEVELS,
-  MINIMAP_ENABLED,
+  MAX_KEYBOARD_SHORTCUT_MARKERS,
 } from "./constants";
 import { waveformLogger } from "./utils/logger";
+import { type ExportFormat } from "./utils/exportUtils";
+import { detectBPMWithTimeout } from "./utils/bpmDetection";
 import {
-  audioBufferToWavFormat,
-  downloadWav,
-  type ExportFormat,
-} from "./utils/exportUtils";
-import {
-  addSpliceMarker,
-  removeSpliceMarker,
-  autoSlice,
-  halfMarkers,
-  clearAllMarkers,
   updateSpliceMarkerColors,
   loadExistingCuePoints,
-  toggleMarkerLock,
   isMarkerLocked,
 } from "./utils/spliceMarkerUtils";
 import { removeAllSpliceMarkersAndClearSelection } from "./utils/regionHelpers";
 import {
-  applyTransientDetection,
-  snapToZeroCrossings,
-} from "./utils/transientDetection";
-import {
-  createCropRegion,
-  createFadeInRegion,
-  createFadeOutRegion,
-  applyCrop,
-  applyFades,
   getRegionInfo,
 } from "./utils/regionUtils";
 import {
   createGenericSpliceHandler,
   type SpliceMarkerHandlers,
 } from "./utils/spliceMarkerHandlers";
-import { MAX_SPLICE_MARKERS } from "./constants";
-import {
-  playPause,
-  rewind,
-  zoom,
-  skipForward,
-  skipBackward,
-  increaseSkipIncrement,
-  decreaseSkipIncrement,
-  undo,
-} from "./utils/playbackUtils";
 import { useWaveformState, useWaveformRefs } from "./hooks/useWaveformState";
+import { useWaveformHandlers } from "./hooks/useWaveformHandlers";
 import { WaveformControls } from "./components/WaveformControls";
 import { ExportControls } from "./components/ExportControls";
 import { RegionControls } from "./components/RegionControls";
 import { SpliceMarkerControls } from "./components/SpliceMarkerControls";
+import { setupWaveformDebugUtils } from "./utils/waveformDebugUtils";
 
 interface WaveformProps {
   audioUrl: string;
@@ -111,6 +81,7 @@ export interface WaveformRef extends SpliceMarkerHandlers {
   handleFadeOutRegion: () => void;
   handleApplyCrop: () => void;
   handleApplyFades: () => void;
+  handleNormalize: () => void;
   handleUndo: () => void;
   handleExport: () => void;
   handleExportFormatChange: (format: ExportFormat) => void;
@@ -150,6 +121,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
     // Audio store hooks
     const setAudioBuffer = useAudioStore((s: AudioState) => s.setAudioBuffer);
+    const setBpm = useAudioStore((s: AudioState) => s.setBpm);
     const setMarkers = useAudioStore((s: AudioState) => s.setMarkers);
     const setRegions = useAudioStore((s: AudioState) => s.setRegions);
     const setSpliceMarkersStore = useAudioStore(
@@ -158,25 +130,11 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     const spliceMarkersStore = useAudioStore(
       (s: AudioState) => s.spliceMarkers,
     );
+    const bpm = useAudioStore((s: AudioState) => s.bpm);
     const lockedSpliceMarkersStore = useAudioStore(
       (s: AudioState) => s.lockedSpliceMarkers,
     );
-    const setLockedSpliceMarkersStore = useAudioStore(
-      (s: AudioState) => s.setLockedSpliceMarkers,
-    );
-    const setPreviousAudioUrl = useAudioStore(
-      (s: AudioState) => s.setPreviousAudioUrl,
-    );
-    const setPreviousSpliceMarkers = useAudioStore(
-      (s: AudioState) => s.setPreviousSpliceMarkers,
-    );
-    const setPreviousLockedSpliceMarkers = useAudioStore(
-      (s: AudioState) => s.setPreviousLockedSpliceMarkers,
-    );
-    const setCanUndo = useAudioStore((s: AudioState) => s.setCanUndo);
-    const previousAudioUrl = useAudioStore(
-      (s: AudioState) => s.previousAudioUrl,
-    );
+
     const canUndo = useAudioStore((s: AudioState) => s.canUndo);
 
     // Sync currentAudioUrl with audioUrl prop
@@ -222,6 +180,35 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       [theme, regionsRef],
     );
 
+    // Helper function to detect BPM from audio buffer
+    const detectAndSetBPM = useCallback(async (audioBuffer: AudioBuffer) => {
+      try {
+        waveformLogger.debug("Starting BPM detection for audio buffer");
+        const detectedBpm = await detectBPMWithTimeout(audioBuffer, 20000); // 20 second timeout
+        setBpm(detectedBpm);
+        if (detectedBpm) {
+          waveformLogger.debug(`BPM detected: ${detectedBpm}`);
+        } else {
+          waveformLogger.warn("BPM detection failed or returned no result");
+        }
+      } catch (error) {
+        waveformLogger.error("Error during BPM detection:", error);
+        setBpm(null);
+      }
+    }, [setBpm]);
+
+    // Extract handlers using the custom hook
+    const handlers = useWaveformHandlers({
+      state,
+      actions,
+      wavesurferRef,
+      regionsRef,
+      cropRegionRef,
+      memoizedUpdateSpliceMarkerColors,
+      onProcessingStart,
+      onProcessingComplete,
+    });
+
     // Main wavesurfer initialization effect
     useEffect(() => {
       waveformLogger.debug("WaveSurfer useEffect starting");
@@ -251,55 +238,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         return;
       }
 
-      // Create regions plugin instance
-      const regions = RegionsPlugin.create();
-      regionsRef.current = regions;
-
-      // Expose regions plugin to global window for debug function
-      (window as DebugWindow).morpheditRegions = regions;
-
-      const minimap = Minimap.create({
-        height: 20,
-        waveColor: theme.palette.primary.main,
-        progressColor: theme.palette.primary.light,
-        overlayColor: theme.palette.primary.dark,
-        dragToSeek: true,
-      })
-
-      // Create wavesurfer instance
-      const ws = WaveSurfer.create({
-        container: "#waveform-container",
-        waveColor: theme.palette.primary.main,
-        // Use the primary main color but lightened for better contrast
-        progressColor: theme.palette.primary.light,
-        cursorColor: theme.palette.primary.main,
-        cursorWidth: WAVEFORM_RENDERING.CURSOR_WIDTH,
-        minPxPerSec: 20, // Ensure waveform fills container initially
-        plugins: [
-          regions,
-          TimelinePlugin.create({}),
-          Hover.create({
-            lineColor: theme.palette.secondary.main,
-            lineWidth: WAVEFORM_RENDERING.GRID_LINE_WIDTH,
-            labelBackground: UI_COLORS.LABEL_BACKGROUND,
-            labelColor: UI_COLORS.LABEL_TEXT,
-            labelSize: "11px",
-            formatTimeCallback: (seconds: number) => {
-              const minutes = Math.floor(seconds / 60);
-              const secs = Math.floor(seconds % 60);
-              const millis = Math.floor((seconds % 1) * 1000);
-              return `${minutes}:${secs < 10 ? "0" : ""}${secs}.${millis}`;
-            },
-          }),
-        ],
-      });
-
-      if (MINIMAP_ENABLED) {
-        // Add minimap plugin if enabled
-        ws.registerPlugin(minimap);
-      }
-
+      const { wavesurfer: ws, regions } = createWaveSurferInstance(theme);
       wavesurferRef.current = ws;
+      regionsRef.current = regions;
 
       // Set up event listeners
       ws.on("ready", async () => {
@@ -311,27 +252,13 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           // Apply zoom - either current zoom or calculate initial zoom to fill container
           let zoomToApply = state.zoom;
           if (state.zoom === 0) {
-            // Get container width with multiple fallbacks
-            const container = document.getElementById("waveform-container");
-            let containerWidth = 800; // Default fallback
-
-            if (container) {
-              const rect = container.getBoundingClientRect();
-              containerWidth =
-                rect.width > 0 ? rect.width : container.clientWidth || 800;
-            }
-
-            // Calculate appropriate zoom to fill the container
-            const duration = ws.getDuration();
-            const minPxPerSec = containerWidth / duration;
-            // Allow very low zoom values for long audio files, but ensure minimum usability
-            zoomToApply = Math.min(1000, Math.max(1, minPxPerSec));
+            // Calculate initial zoom based on audio duration and container size
+            zoomToApply = calculateInitialZoom(ws.getDuration());
             actions.setZoom(zoomToApply);
             actions.setResetZoom(zoomToApply); // Store the resetZoom level for the slider
 
             console.log("Initial zoom calculated:", {
-              duration,
-              containerWidth,
+              duration: ws.getDuration(),
               zoomToApply,
             });
           } else {
@@ -357,7 +284,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           const isProcessedAudio =
             urlToCheck.includes("#morphedit-cropped") ||
             urlToCheck.includes("#morphedit-faded") ||
-            isAudioProcessing ||  // Also treat as processed if we're currently processing
+            isAudioProcessing || // Also treat as processed if we're currently processing
             isUndoing; // Also treat as processed if we're undoing to preserve restored markers
           const isConcatenatedAudio = urlToCheck.includes(
             "#morphedit-concatenated",
@@ -416,8 +343,14 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           // For processed audio (cropped/faded) or undo operations, create visual markers directly from store to ensure correct positioning
           else if (isProcessedAudio && currentSpliceMarkers.length > 0) {
             console.log("=== PROCESSED AUDIO MARKER LOADING DEBUG ===");
-            console.log("URL contains cropped:", urlToLoad.includes("#morphedit-cropped"));
-            console.log("URL contains faded:", urlToLoad.includes("#morphedit-faded"));
+            console.log(
+              "URL contains cropped:",
+              urlToLoad.includes("#morphedit-cropped"),
+            );
+            console.log(
+              "URL contains faded:",
+              urlToLoad.includes("#morphedit-faded"),
+            );
             console.log("Is undo operation:", isUndoing);
             console.log("Current store splice markers:", currentSpliceMarkers);
             console.log("Current store locked markers:", currentLockedMarkers);
@@ -430,16 +363,21 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             const existingSpliceMarkers = allRegions.filter((r: Region) =>
               r.id.startsWith("splice-marker-"),
             );
-            console.log("Clearing existing splice markers:", existingSpliceMarkers.length);
+            console.log(
+              "Clearing existing splice markers:",
+              existingSpliceMarkers.length,
+            );
             existingSpliceMarkers.forEach((marker: Region) => marker.remove());
 
             // Create visual markers from store (which has the correct adjusted times for crops or restored times for undo)
             currentSpliceMarkers.forEach((markerTime, index) => {
               const isLocked = isMarkerLocked(markerTime, currentLockedMarkers);
-              console.log(`Creating visual marker ${index}: time=${markerTime}, locked=${isLocked}`);
-              const markerId = isUndoing ?
-                `splice-marker-undo-${index}-${Date.now()}` :
-                `splice-marker-processed-${index}-${Date.now()}`;
+              console.log(
+                `Creating visual marker ${index}: time=${markerTime}, locked=${isLocked}`,
+              );
+              const markerId = isUndoing
+                ? `splice-marker-undo-${index}-${Date.now()}`
+                : `splice-marker-processed-${index}-${Date.now()}`;
               regions.addRegion({
                 start: markerTime,
                 color: REGION_COLORS.SPLICE_MARKER,
@@ -451,7 +389,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             });
 
             console.log(
-              `Created ${currentSpliceMarkers.length} visual markers from store for ${isUndoing ? 'undo operation' : 'processed audio'}`,
+              `Created ${currentSpliceMarkers.length} visual markers from store for ${isUndoing ? "undo operation" : "processed audio"}`,
             );
             console.log("=== END PROCESSED AUDIO MARKER LOADING DEBUG ===");
           }
@@ -562,6 +500,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               "seconds",
             );
             setAudioBuffer(backend.buffer);
+            // Detect BPM in the background
+            detectAndSetBPM(backend.buffer);
           } else {
             console.log(
               "No backend buffer available, attempting manual decode",
@@ -589,6 +529,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
                     "seconds",
                   );
                   setAudioBuffer(decodedBuffer);
+                  // Detect BPM in the background
+                  detectAndSetBPM(decodedBuffer);
                 })
                 .catch((error) => {
                   console.error("Error decoding audio:", error);
@@ -632,143 +574,17 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         actions.setCurrentTime(ws.getCurrentTime());
       });
 
-      // Load audio - preprocess for truncation if needed
-      const loadAudio = async () => {
-        // Strip URL fragments early to ensure all operations use clean URLs
-        let urlToLoad = audioUrl.split("#")[0];
-
-        console.log("=== loadAudio called ===");
-        console.log("shouldTruncate:", shouldTruncate);
-        console.log("Original audioUrl:", audioUrl);
-        console.log("Cleaned audioUrl:", urlToLoad);
-        console.log("state.currentAudioUrl:", state.currentAudioUrl);
-
-        // Check if we already have a truncated URL for this audio file to prevent loops
-        const currentUrl = state.currentAudioUrl;
-        const isAlreadyTruncated =
-          currentUrl &&
-          currentUrl.startsWith("blob:") &&
-          currentUrl !== urlToLoad && // Compare with clean URL
-          !audioUrl.includes("#morphedit-appended") && // Don't reuse URLs for appended audio
-          !audioUrl.includes("#morphedit-concatenated"); // Don't reuse URLs for concatenated audio
-
-        if (shouldTruncate && !isAlreadyTruncated) {
-          console.log(
-            "🔄 Preprocessing audio for truncation before loading...",
-          );
-          try {
-            // Parse cue points from original file BEFORE truncation
-            let originalCuePoints: number[] = [];
-            try {
-              console.log(
-                "🔍 Parsing cue points from original file before truncation...",
-              );
-              originalCuePoints = await parseWavCuePoints(urlToLoad);
-              console.log(
-                "🔍 Found cue points in original file:",
-                originalCuePoints,
-              );
-            } catch (error) {
-              console.warn(
-                "Could not parse cue points from original file:",
-                error,
-              );
-            }
-
-            // Fetch and decode the original audio to check if truncation is needed
-            const response = await fetch(urlToLoad);
-            const arrayBuffer = await response.arrayBuffer();
-
-            const audioContext = new (window.AudioContext ||
-              (
-                window as Window &
-                typeof globalThis & {
-                  webkitAudioContext?: typeof AudioContext;
-                }
-              ).webkitAudioContext)();
-
-            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-            const originalDuration =
-              audioBuffer.length / audioBuffer.sampleRate;
-
-            console.log(
-              "Original audio duration:",
-              originalDuration,
-              "seconds",
-            );
-
-            if (originalDuration > AUDIO_MAX_DURATION) {
-              console.log(
-                "✂️ Audio exceeds max duration, creating truncated version",
-              );
-
-              // Filter cue points to only include those within the truncated range
-              const filteredCuePoints = originalCuePoints.filter(
-                (cueTime) => cueTime <= AUDIO_MAX_DURATION,
-              );
-              console.log(
-                "🔍 Filtered cue points for truncated audio:",
-                filteredCuePoints,
-              );
-
-              // Truncate the buffer
-              const truncatedBuffer = truncateAudioBuffer(
-                audioBuffer,
-                AUDIO_MAX_DURATION,
-              );
-              const truncatedDuration =
-                truncatedBuffer.length / truncatedBuffer.sampleRate;
-              console.log("Truncated duration:", truncatedDuration, "seconds");
-
-              // Convert to WAV blob
-              const { audioBufferToWavFormat } = await import(
-                "./utils/exportUtils"
-              );
-              const { EXPORT_FORMATS: exportFormats } = await import("./constants");
-              const defaultFormat = exportFormats[0];
-
-              const wavArrayBuffer = audioBufferToWavFormat(
-                truncatedBuffer,
-                defaultFormat,
-                filteredCuePoints, // Include the filtered cue points in the truncated file
-              );
-              const wavBlob = new Blob([wavArrayBuffer], { type: "audio/wav" });
-              urlToLoad = URL.createObjectURL(wavBlob);
-
-              console.log("Created truncated URL for loading:", urlToLoad);
-
-              // Store the truncated buffer in the store immediately
-              setAudioBuffer(truncatedBuffer);
-
-              // Update current audio URL
-              actions.setCurrentAudioUrl(urlToLoad);
-            } else {
-              console.log("✅ Audio is within limits, no truncation needed");
-            }
-          } catch (error) {
-            console.error(
-              "❌ Error preprocessing audio for truncation:",
-              error,
-            );
-            // If preprocessing fails, use original URL
-          }
-        } else if (isAlreadyTruncated) {
-          console.log("🔄 Using already truncated URL:", currentUrl);
-          urlToLoad = currentUrl;
-        }
-
-        console.log("Loading URL into WaveSurfer:", urlToLoad);
-        // Update current audio URL with the clean URL
-        actions.setCurrentAudioUrl(urlToLoad);
-        try {
-          ws.load(urlToLoad);
-        } catch (error) {
-          console.error("Error loading URL into WaveSurfer:", error);
-          // Continue anyway as WaveSurfer might still work
-        }
-      };
-
-      loadAudio();
+      // Load audio using extracted helper function
+      (async () => {
+        await loadAudioIntoWaveform(
+          ws,
+          audioUrl,
+          shouldTruncate,
+          state,
+          actions,
+          setAudioBuffer,
+        );
+      })();
 
       // Set up region event listeners
       regions.on("region-out", (region: Region) => {
@@ -865,516 +681,44 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     ]);
 
     // Handler functions using extracted utilities
-    const handlePlayPause = useCallback(() => {
-      playPause(
-        wavesurferRef.current!,
-        regionsRef.current!,
-        state.isPlaying,
-        state.cropRegion,
-      );
-    }, [state.isPlaying, state.cropRegion, wavesurferRef, regionsRef]);
+    const handlePlayPause = handlers.handlePlayPause;
+    const handleRewind = handlers.handleRewind;
+    const handleZoom = handlers.handleZoom;
+    const handleZoomReset = handlers.handleZoomReset;
+    const handleSkipForward = handlers.handleSkipForward;
+    const handleSkipBackward = handlers.handleSkipBackward;
+    const handleIncreaseSkipIncrement = handlers.handleIncreaseSkipIncrement;
+    const handleDecreaseSkipIncrement = handlers.handleDecreaseSkipIncrement;
 
-    const handleRewind = useCallback(() => {
-      rewind(wavesurferRef.current!, regionsRef.current!, state.cropRegion);
-    }, [state.cropRegion, wavesurferRef, regionsRef]);
+    // Region handlers
+    const handleCropRegion = handlers.handleCropRegion;
+    const handleLoop = handlers.handleLoop;
+    const handleFadeInRegion = handlers.handleFadeInRegion;
+    const handleFadeOutRegion = handlers.handleFadeOutRegion;
+    const handleApplyCrop = handlers.handleApplyCrop;
+    const handleApplyFades = handlers.handleApplyFades;
+    const handleNormalize = handlers.handleNormalize;
+    const handleUndo = handlers.handleUndo;
 
-    const handleZoom = useCallback(
-      (value: number) => {
-        // Apply zoom constraints - use the resetZoom as minimum and ZOOM_LEVELS.MAX as maximum
-        const minZoom = Math.max(ZOOM_LEVELS.MIN, state.resetZoom);
-        const maxZoom = ZOOM_LEVELS.MAX;
-        const constrainedValue = Math.min(maxZoom, Math.max(minZoom, value));
-
-        actions.setZoom(constrainedValue);
-        zoom(wavesurferRef.current!, constrainedValue);
-      },
-      [actions, wavesurferRef, state.resetZoom],
-    );
-
-    const handleZoomReset = useCallback(() => {
-      if (!wavesurferRef.current) return;
-
-      const duration = wavesurferRef.current.getDuration();
-      if (duration <= 0) return;
-
-      // Get container width with multiple fallbacks
-      const container = document.getElementById("waveform-container");
-      let containerWidth = 800; // Default fallback
-
-      if (container) {
-        const rect = container.getBoundingClientRect();
-        containerWidth =
-          rect.width > 0 ? rect.width : container.clientWidth || 800;
-      }
-
-      // Calculate appropriate zoom to fill the container
-      const minPxPerSec = containerWidth / duration;
-      // Allow very low zoom values for long audio files, but ensure minimum usability
-      const resetZoom = Math.min(1000, Math.max(1, minPxPerSec));
-
-      console.log("Zoom reset:", { duration, containerWidth, resetZoom });
-
-      // Update state and apply zoom
-      actions.setZoom(resetZoom);
-      actions.setResetZoom(resetZoom); // Update the resetZoom level for the slider
-      wavesurferRef.current.zoom(resetZoom);
-
-      // Force a complete redraw of regions after zoom to ensure splice markers are visible
-      setTimeout(() => {
-        if (regionsRef.current && wavesurferRef.current) {
-          console.log("Refreshing regions after zoom reset");
-
-          // Get all current regions data before clearing
-          const allRegions = regionsRef.current.getRegions();
-          const spliceMarkers = allRegions.filter((r: Region) =>
-            r.id.startsWith("splice-marker-"),
-          );
-
-          if (spliceMarkers.length > 0) {
-            console.log(
-              `Found ${spliceMarkers.length} splice markers to refresh`,
-            );
-
-            // Store region data
-            const markerData = spliceMarkers.map((region) => ({
-              id: region.id,
-              start: region.start,
-              end: region.end,
-              content: region.content?.textContent || "🔶",
-              color: region.color,
-              drag: region.drag,
-              resize: region.resize,
-            }));
-
-            // Remove all splice markers
-            spliceMarkers.forEach((region) => region.remove());
-
-            // Re-add them after a brief delay to force complete re-render
-            setTimeout(() => {
-              markerData.forEach((data) => {
-                regionsRef.current!.addRegion({
-                  id: data.id,
-                  start: data.start,
-                  end: data.end,
-                  content: data.content,
-                  color: data.color,
-                  drag: data.drag,
-                  resize: data.resize,
-                });
-              });
-              console.log("Re-added splice markers after zoom reset");
-            }, 50);
-          }
-        }
-      }, 150);
-    }, [actions, wavesurferRef, regionsRef]);
-
-    const handleCropRegion = useCallback(() => {
-      const region = createCropRegion(
-        wavesurferRef.current!,
-        regionsRef.current!,
-        actions.setCropRegion,
-        actions.setCropMode,
-      );
-      if (region) {
-        cropRegionRef.current = region;
-      } else {
-        cropRegionRef.current = null;
-      }
-    }, [actions, wavesurferRef, regionsRef, cropRegionRef]);
-
-    const handleLoop = useCallback(() => {
-      actions.setIsLooping((prev: boolean) => !prev);
-    }, [actions]);
-
-    const handleFadeInRegion = useCallback(() => {
-      createFadeInRegion(
-        wavesurferRef.current!,
-        regionsRef.current!,
-        actions.setFadeInMode,
-      );
-    }, [actions, wavesurferRef, regionsRef]);
-
-    const handleFadeOutRegion = useCallback(() => {
-      createFadeOutRegion(
-        wavesurferRef.current!,
-        regionsRef.current!,
-        actions.setFadeOutMode,
-      );
-    }, [actions, wavesurferRef, regionsRef]);
-
-    const handleAddSpliceMarker = useCallback(() => {
-      addSpliceMarker(
-        wavesurferRef.current!,
-        regionsRef.current!,
-        state.currentTime,
-        spliceMarkersStore,
-        setSpliceMarkersStore,
-      );
-    }, [
-      state.currentTime,
-      spliceMarkersStore,
-      setSpliceMarkersStore,
-      wavesurferRef,
-      regionsRef,
-    ]);
-
-    const handleRemoveSpliceMarker = useCallback(() => {
-      removeSpliceMarker(
-        wavesurferRef.current!,
-        regionsRef.current!,
-        state.selectedSpliceMarker,
-        spliceMarkersStore,
-        setSpliceMarkersStore,
-        actions.setSelectedSpliceMarker,
-        memoizedUpdateSpliceMarkerColors,
-      );
-    }, [
-      state.selectedSpliceMarker,
-      spliceMarkersStore,
-      setSpliceMarkersStore,
-      actions,
-      memoizedUpdateSpliceMarkerColors,
-      wavesurferRef,
-      regionsRef,
-    ]);
-
-    const handleToggleMarkerLock = useCallback(() => {
-      if (!state.selectedSpliceMarker) {
-        console.log("No splice marker selected for locking/unlocking");
-        return;
-      }
-
-      const markerTime = state.selectedSpliceMarker.start;
-      toggleMarkerLock(
-        markerTime,
-        lockedSpliceMarkersStore,
-        setLockedSpliceMarkersStore,
-        regionsRef.current!, // Pass regions to update drag properties
-      );
-
-      // Update visual appearance of all markers
-      memoizedUpdateSpliceMarkerColors(state.selectedSpliceMarker);
-    }, [
-      state.selectedSpliceMarker,
-      lockedSpliceMarkersStore,
-      setLockedSpliceMarkersStore,
-      memoizedUpdateSpliceMarkerColors,
-      regionsRef,
-    ]);
-
-    const handleAutoSlice = useCallback(() => {
-      autoSlice(
-        wavesurferRef.current!,
-        regionsRef.current!,
-        state.numberOfSlices,
-        setSpliceMarkersStore,
-        actions.setSelectedSpliceMarker,
-        memoizedUpdateSpliceMarkerColors,
-      );
-    }, [
-      state.numberOfSlices,
-      setSpliceMarkersStore,
-      actions,
-      memoizedUpdateSpliceMarkerColors,
-      wavesurferRef,
-      regionsRef,
-    ]);
-
-    const handleHalfMarkers = useCallback(() => {
-      halfMarkers(
-        regionsRef.current!,
-        setSpliceMarkersStore,
-        actions.setSelectedSpliceMarker,
-        memoizedUpdateSpliceMarkerColors,
-      );
-    }, [
-      setSpliceMarkersStore,
-      actions,
-      memoizedUpdateSpliceMarkerColors,
-      regionsRef,
-    ]);
-
-    const handleClearAllMarkers = useCallback(() => {
-      clearAllMarkers(
-        regionsRef.current!,
-        setSpliceMarkersStore,
-        actions.setSelectedSpliceMarker,
-        memoizedUpdateSpliceMarkerColors,
-      );
-    }, [
-      setSpliceMarkersStore,
-      actions,
-      memoizedUpdateSpliceMarkerColors,
-      regionsRef,
-    ]);
-
-    const handleTransientDetection = useCallback(() => {
-      const audioBuffer = useAudioStore.getState().audioBuffer;
-      if (!audioBuffer) {
-        console.log("No audio buffer available for transient detection");
-        return;
-      }
-
-      console.log(
-        "Starting transient detection with sensitivity:",
-        state.transientSensitivity,
-      );
-      const detectedCount = applyTransientDetection(
-        wavesurferRef.current!,
-        regionsRef.current!,
-        audioBuffer,
-        state.transientSensitivity,
-        state.transientFrameSize,
-        state.transientOverlap,
-        setSpliceMarkersStore,
-        actions.setSelectedSpliceMarker,
-        memoizedUpdateSpliceMarkerColors,
-      );
-      console.log(
-        `Transient detection completed. Detected ${detectedCount} transients.`,
-      );
-    }, [
-      state.transientSensitivity,
-      state.transientFrameSize,
-      state.transientOverlap,
-      setSpliceMarkersStore,
-      actions,
-      memoizedUpdateSpliceMarkerColors,
-      wavesurferRef,
-      regionsRef,
-    ]);
-
-    const handleSnapToZeroCrossings = useCallback(() => {
-      const audioBuffer = useAudioStore.getState().audioBuffer;
-      if (!audioBuffer || spliceMarkersStore.length === 0) {
-        console.log(
-          "No audio buffer or splice markers available for zero crossing snap",
-        );
-        return;
-      }
-
-      console.log("Snapping splice markers to zero crossings");
-      snapToZeroCrossings(
-        wavesurferRef.current!,
-        regionsRef.current!,
-        audioBuffer,
-        spliceMarkersStore,
-        setSpliceMarkersStore,
-        actions.setSelectedSpliceMarker,
-        memoizedUpdateSpliceMarkerColors,
-      );
-    }, [
-      spliceMarkersStore,
-      setSpliceMarkersStore,
-      actions,
-      memoizedUpdateSpliceMarkerColors,
-      wavesurferRef,
-      regionsRef,
-    ]);
-
-    const handleApplyCrop = useCallback(async () => {
-      if (onProcessingStart) {
-        onProcessingStart("Applying crop to audio...");
-      }
-
-      await applyCrop(
-        wavesurferRef.current!,
-        regionsRef.current!,
-        state.cropRegion,
-        state.currentAudioUrl,
-        spliceMarkersStore,
-        lockedSpliceMarkersStore,
-        {
-          setPreviousAudioUrl,
-          setCanUndo,
-          setAudioBuffer,
-          setCropMode: actions.setCropMode,
-          setCropRegion: actions.setCropRegion,
-          setCurrentAudioUrl: actions.setCurrentAudioUrl,
-          setFadeInMode: actions.setFadeInMode,
-          setFadeOutMode: actions.setFadeOutMode,
-          setSpliceMarkersStore,
-          setLockedSpliceMarkersStore,
-          setPreviousSpliceMarkers,
-          setPreviousLockedSpliceMarkers,
-          setZoom: actions.setZoom,
-        },
-      );
-      cropRegionRef.current = null;
-
-      if (onProcessingComplete) {
-        onProcessingComplete();
-      }
-    }, [
-      state.cropRegion,
-      state.currentAudioUrl,
-      spliceMarkersStore,
-      setPreviousAudioUrl,
-      setPreviousSpliceMarkers,
-      setPreviousLockedSpliceMarkers,
-      setCanUndo,
-      setAudioBuffer,
-      actions,
-      wavesurferRef,
-      regionsRef,
-      cropRegionRef,
-      onProcessingStart,
-      onProcessingComplete,
-      setSpliceMarkersStore,
-      lockedSpliceMarkersStore,
-      setLockedSpliceMarkersStore,
-    ]);
-
-    const handleApplyFades = useCallback(async () => {
-      if (onProcessingStart) {
-        onProcessingStart("Applying fades to audio...");
-      }
-
-      await applyFades(
-        wavesurferRef.current!,
-        regionsRef.current!,
-        state.fadeInMode,
-        state.fadeOutMode,
-        state.fadeInCurveType,
-        state.fadeOutCurveType,
-        state.currentAudioUrl,
-        spliceMarkersStore,
-        lockedSpliceMarkersStore,
-        {
-          setPreviousAudioUrl,
-          setCanUndo,
-          setAudioBuffer,
-          setFadeInMode: actions.setFadeInMode,
-          setFadeOutMode: actions.setFadeOutMode,
-          setCurrentAudioUrl: actions.setCurrentAudioUrl,
-          setCropMode: actions.setCropMode,
-          setCropRegion: actions.setCropRegion,
-          setSpliceMarkersStore,
-          setPreviousSpliceMarkers,
-          setPreviousLockedSpliceMarkers,
-          setZoom: actions.setZoom,
-        },
-      );
-
-      if (onProcessingComplete) {
-        onProcessingComplete();
-      }
-    }, [
-      state.fadeInMode,
-      state.fadeOutMode,
-      state.fadeInCurveType,
-      state.fadeOutCurveType,
-      state.currentAudioUrl,
-      spliceMarkersStore,
-      lockedSpliceMarkersStore,
-      setPreviousAudioUrl,
-      setPreviousSpliceMarkers,
-      setPreviousLockedSpliceMarkers,
-      setCanUndo,
-      setAudioBuffer,
-      actions,
-      wavesurferRef,
-      regionsRef,
-      onProcessingStart,
-      onProcessingComplete,
-      setSpliceMarkersStore,
-    ]);
-
-    const handleUndo = useCallback(async () => {
-      await undo(wavesurferRef.current!, canUndo, previousAudioUrl, {
-        setCurrentAudioUrl: actions.setCurrentAudioUrl,
-        setPreviousAudioUrl,
-        setCanUndo,
-        setCropMode: actions.setCropMode,
-        setCropRegion: actions.setCropRegion,
-        setFadeInMode: actions.setFadeInMode,
-        setFadeOutMode: actions.setFadeOutMode,
-        setSpliceMarkersStore,
-        setLockedSpliceMarkersStore,
-      });
-    }, [
-      canUndo,
-      previousAudioUrl,
-      setPreviousAudioUrl,
-      setCanUndo,
-      actions,
-      wavesurferRef,
-      setSpliceMarkersStore,
-      setLockedSpliceMarkersStore,
-    ]);
-
-    const handleSkipForward = useCallback(() => {
-      skipForward(wavesurferRef.current!, state.skipIncrement);
-    }, [state.skipIncrement, wavesurferRef]);
-
-    const handleSkipBackward = useCallback(() => {
-      skipBackward(wavesurferRef.current!, state.skipIncrement);
-    }, [state.skipIncrement, wavesurferRef]);
-
-    const handleIncreaseSkipIncrement = useCallback(() => {
-      const newIncrement = increaseSkipIncrement(state.skipIncrement);
-      actions.setSkipIncrement(newIncrement);
-    }, [state.skipIncrement, actions]);
-
-    const handleDecreaseSkipIncrement = useCallback(() => {
-      const newIncrement = decreaseSkipIncrement(state.skipIncrement);
-      actions.setSkipIncrement(newIncrement);
-    }, [state.skipIncrement, actions]);
+    // Splice marker handlers
+    const handleAddSpliceMarker = handlers.handleAddSpliceMarker;
+    const handleRemoveSpliceMarker = handlers.handleRemoveSpliceMarker;
+    const handleToggleMarkerLock = handlers.handleToggleMarkerLock;
+    const handleAutoSlice = handlers.handleAutoSlice;
+    const handleHalfMarkers = handlers.handleHalfMarkers;
+    const handleClearAllMarkers = handlers.handleClearAllMarkers;
+    const handleTransientDetection = handlers.handleTransientDetection;
+    const handleSnapToZeroCrossings = handlers.handleSnapToZeroCrossings;
 
     // Export handlers
-    const handleExport = useCallback(() => {
-      const audioBuffer = useAudioStore.getState().audioBuffer;
-      const isProcessing = useAudioStore.getState().isProcessingAudio;
-
-      if (!audioBuffer) {
-        console.log("No audio buffer found");
-        return;
-      }
-
-      console.log("=================== EXPORT DEBUG ===================");
-      console.log("Export - Current audio URL:", state.currentAudioUrl);
-      console.log("Export - Is processing:", isProcessing);
-      console.log(
-        "Exporting WAV with splice markers as cue points:",
-        spliceMarkersStore,
-      );
-      console.log(
-        "Export - Audio buffer details:",
-        `Duration: ${audioBuffer.length / audioBuffer.sampleRate}s`,
-        `Length: ${audioBuffer.length} samples`,
-        `Sample rate: ${audioBuffer.sampleRate}Hz`,
-        `Channels: ${audioBuffer.numberOfChannels}`,
-      );
-      console.log(
-        "Export - Current WaveSurfer duration:",
-        wavesurferRef.current?.getDuration() || "N/A",
-      );
-      console.log("Export format:", state.selectedExportFormat);
-      console.log("=====================================================");
-
-      const wav = audioBufferToWavFormat(
-        audioBuffer,
-        state.selectedExportFormat,
-        spliceMarkersStore,
-      );
-      const filename = `morphedit-export-${state.selectedExportFormat.label.toLowerCase().replace(/[^a-z0-9]/g, "-")}.wav`;
-      downloadWav(wav, filename);
-    }, [spliceMarkersStore, wavesurferRef, state.currentAudioUrl, state.selectedExportFormat]);
-
-    const handleExportFormatChange = useCallback(
-      (format: ExportFormat) => {
-        console.log("Changing export format to:", format);
-        actions.setSelectedExportFormat(format);
-      },
-      [actions],
-    );
+    const handleExport = handlers.handleExport;
+    const handleExportFormatChange = handlers.handleExportFormatChange;
 
     // Splice playback handlers - dynamically generate handlers for all 20 splice markers
     const spliceHandlers = useMemo(() => {
       const handlers: Record<string, () => void> = {};
 
-      for (let i = 1; i <= MAX_SPLICE_MARKERS; i++) {
+      for (let i = 1; i <= MAX_KEYBOARD_SHORTCUT_MARKERS; i++) {
         handlers[`handlePlaySplice${i}`] = createGenericSpliceHandler(
           wavesurferRef,
           spliceMarkersStore,
@@ -1410,6 +754,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleFadeOutRegion,
         handleApplyCrop,
         handleApplyFades,
+        handleNormalize,
         handleUndo,
         handleExport,
         handleExportFormatChange,
@@ -1437,6 +782,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleFadeOutRegion,
         handleApplyCrop,
         handleApplyFades,
+        handleNormalize,
         handleUndo,
         handleExport,
         handleExportFormatChange,
@@ -1484,6 +830,11 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       }
     }, [state.zoom, handleZoom]);
 
+    // Initialize debug utilities
+    useEffect(() => {
+      setupWaveformDebugUtils();
+    }, []);
+
     return (
       <Container maxWidth="xl" sx={{ mt: 2, mb: 2 }}>
         {/* Playback controls */}
@@ -1492,11 +843,13 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           isLooping={state.isLooping}
           currentTime={state.currentTime}
           duration={state.duration}
+          bpm={bpm}
           zoom={state.zoom}
           resetZoom={state.resetZoom}
           skipIncrement={state.skipIncrement}
           spliceMarkersCount={spliceMarkersStore.length}
           regionInfo={regionInfo}
+          selectedSpliceMarkerTime={state.selectedSpliceMarker?.start ?? null}
           onPlayPause={handlePlayPause}
           onLoop={handleLoop}
           onRewind={handleRewind}
@@ -1507,7 +860,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         {/* Export and Region controls */}
         <Stack
           direction="row"
-          alignItems="center"
+          alignItems="left"
           sx={{
             mt: 2,
             width: "100%",
@@ -1531,6 +884,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               onExport={handleExport}
               onExportFormatChange={handleExportFormatChange}
               onSetExportAnchorEl={actions.setExportAnchorEl}
+              onNormalize={handleNormalize}
             />
           </Stack>
 
@@ -1603,84 +957,3 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 Waveform.displayName = "Waveform";
 
 export default Waveform;
-
-// Debug function to inspect regions from browser console
-// Using proper types and accessing the global window object
-interface DebugWindow extends Window {
-  debugListRegions?: () => void;
-  morpheditRegions?: {
-    getRegions: () => Region[];
-  };
-}
-
-(window as DebugWindow).debugListRegions = () => {
-  const regions = (window as DebugWindow).morpheditRegions;
-  if (!regions) {
-    console.log(
-      "🚫 No regions plugin found. Make sure an audio file is loaded.",
-    );
-    return;
-  }
-
-  const allRegions: Region[] = regions.getRegions();
-  console.log(`📊 Found ${allRegions.length} total regions:`);
-  console.log("=====================================");
-
-  // Separate splice markers from other regions
-  const spliceMarkers = allRegions.filter((r: Region) =>
-    r.id.startsWith("splice-marker-"),
-  );
-  const otherRegions = allRegions.filter(
-    (r: Region) => !r.id.startsWith("splice-marker-"),
-  );
-
-  // Display splice markers
-  if (spliceMarkers.length > 0) {
-    console.log(`🔷 SPLICE MARKERS (${spliceMarkers.length}):`);
-    spliceMarkers
-      .sort((a: Region, b: Region) => a.start - b.start)
-      .forEach((region: Region, index: number) => {
-        // Check if region content indicates it's locked (based on how markers are created)
-        const contentText = region.content?.textContent || "";
-        const isLocked = contentText === "🔒";
-        console.log(`  ${index + 1}. ID: ${region.id}`);
-        console.log(`     Time: ${region.start.toFixed(3)}s`);
-        console.log(
-          `     Content: ${contentText} ${isLocked ? "(LOCKED)" : "(UNLOCKED)"}`,
-        );
-        console.log(`     Draggable: ${region.drag}`);
-        console.log("");
-      });
-  } else {
-    console.log("🔷 SPLICE MARKERS: None");
-  }
-
-  // Display other regions
-  if (otherRegions.length > 0) {
-    console.log(`🔶 OTHER REGIONS (${otherRegions.length}):`);
-    otherRegions.forEach((region: Region, index: number) => {
-      console.log(`  ${index + 1}. ID: ${region.id}`);
-      console.log(`     Start: ${region.start.toFixed(3)}s`);
-      console.log(`     End: ${region.end.toFixed(3)}s`);
-      console.log(`     Duration: ${(region.end - region.start).toFixed(3)}s`);
-      console.log("");
-    });
-  } else {
-    console.log("🔶 OTHER REGIONS: None");
-  }
-
-  // Display store information
-  const store = useAudioStore.getState();
-  console.log("📦 STORE INFORMATION:");
-  console.log(`     Splice markers in store: ${store.spliceMarkers.length}`);
-  console.log(
-    `     Store marker times: [${store.spliceMarkers.map((m) => m.toFixed(3)).join(", ")}]`,
-  );
-  console.log(`     Locked markers: ${store.lockedSpliceMarkers.length}`);
-  console.log(
-    `     Locked marker times: [${store.lockedSpliceMarkers.map((m) => m.toFixed(3)).join(", ")}]`,
-  );
-  console.log("=====================================");
-};
-
-console.log("🛠️  Debug function available: debugListRegions()");
