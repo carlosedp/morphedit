@@ -3,7 +3,7 @@
 // Helper function to convert AudioBuffer to WAV with cue points
 export const audioBufferToWavWithCues = (
   buffer: AudioBuffer,
-  cuePoints: number[],
+  cuePoints: number[]
 ): ArrayBuffer => {
   const length = buffer.length;
   const numberOfChannels = buffer.numberOfChannels;
@@ -83,7 +83,7 @@ export const audioBufferToWavWithCues = (
 
 // Helper function to parse WAV file for existing cue points
 export const parseWavCuePoints = async (
-  audioUrl: string,
+  audioUrl: string
 ): Promise<number[]> => {
   try {
     console.log("Parsing WAV file for cue points:", audioUrl);
@@ -96,13 +96,13 @@ export const parseWavCuePoints = async (
       view.getUint8(0),
       view.getUint8(1),
       view.getUint8(2),
-      view.getUint8(3),
+      view.getUint8(3)
     );
     const waveHeader = String.fromCharCode(
       view.getUint8(8),
       view.getUint8(9),
       view.getUint8(10),
-      view.getUint8(11),
+      view.getUint8(11)
     );
 
     if (riffHeader !== "RIFF" || waveHeader !== "WAVE") {
@@ -120,7 +120,7 @@ export const parseWavCuePoints = async (
         view.getUint8(offset),
         view.getUint8(offset + 1),
         view.getUint8(offset + 2),
-        view.getUint8(offset + 3),
+        view.getUint8(offset + 3)
       );
       const chunkSize = view.getUint32(offset + 4, true);
 
@@ -147,7 +147,7 @@ export const parseWavCuePoints = async (
           cuePoints.push(timeInSeconds);
 
           console.log(
-            `Cue point ${i}: ID=${cueId}, PlayOrder=${playOrder}, Sample=${sampleOffset}, Time=${timeInSeconds}s`,
+            `Cue point ${i}: ID=${cueId}, PlayOrder=${playOrder}, Sample=${sampleOffset}, Time=${timeInSeconds}s`
           );
           cueOffset += 24;
         }
@@ -175,7 +175,7 @@ export const formatTime = (seconds: number): string => {
   const minutes = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   const milliseconds = Math.floor((seconds % 1) * 1000);
-  return `${minutes}:${secs < 10 ? "0" : ""}${secs}.${milliseconds}`;
+  return `${minutes}:${secs.toString().padStart(2, "0")}.${milliseconds.toString().padStart(3, "0")}`;
 };
 
 // Helper function to format seconds/milliseconds for display
@@ -183,5 +183,5 @@ export const formatSeconds = (seconds: number): string => {
   if (isNaN(seconds)) return "0s";
   const secs = Math.floor(seconds % 60);
   const millis = Math.floor((seconds % 1) * 1000);
-  return `${secs}.${millis}`;
+  return `${secs.toString().padStart(2, "0")}.${millis.toString().padStart(3, "0")}`;
 };
