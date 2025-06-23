@@ -17,7 +17,7 @@ export const setupWaveformDebugUtils = () => {
     const regions = (window as DebugWindow).morpheditRegions;
     if (!regions) {
       console.log(
-        "🚫 No regions plugin found. Make sure an audio file is loaded."
+        "🚫 No regions plugin found. Make sure an audio file is loaded.",
       );
       return;
     }
@@ -28,10 +28,10 @@ export const setupWaveformDebugUtils = () => {
 
     // Separate splice markers from other regions
     const spliceMarkers = allRegions.filter((r: Region) =>
-      r.id.startsWith("splice-marker-")
+      r.id.startsWith("splice-marker-"),
     );
     const otherRegions = allRegions.filter(
-      (r: Region) => !r.id.startsWith("splice-marker-")
+      (r: Region) => !r.id.startsWith("splice-marker-"),
     );
 
     // Display splice markers
@@ -48,7 +48,7 @@ export const setupWaveformDebugUtils = () => {
           console.log(
             `     Content: ${contentText} ${
               isLocked ? "(LOCKED)" : "(UNLOCKED)"
-            }`
+            }`,
           );
           console.log(`     Draggable: ${region.drag}`);
           console.log("");
@@ -60,14 +60,14 @@ export const setupWaveformDebugUtils = () => {
     // Display other regions
     if (otherRegions.length > 0) {
       console.log(
-        ` ${MARKER_ICONS.UNLOCKED} OTHER REGIONS (${otherRegions.length}):`
+        ` ${MARKER_ICONS.UNLOCKED} OTHER REGIONS (${otherRegions.length}):`,
       );
       otherRegions.forEach((region: Region, index: number) => {
         console.log(`  ${index + 1}. ID: ${region.id}`);
         console.log(`     Start: ${region.start.toFixed(3)}s`);
         console.log(`     End: ${region.end.toFixed(3)}s`);
         console.log(
-          `     Duration: ${(region.end - region.start).toFixed(3)}s`
+          `     Duration: ${(region.end - region.start).toFixed(3)}s`,
         );
         console.log("");
       });
@@ -82,13 +82,13 @@ export const setupWaveformDebugUtils = () => {
     console.log(
       `     Store marker times: [${store.spliceMarkers
         .map((m) => m.toFixed(3))
-        .join(", ")}]`
+        .join(", ")}]`,
     );
     console.log(`     Locked markers: ${store.lockedSpliceMarkers.length}`);
     console.log(
       `     Locked marker times: [${store.lockedSpliceMarkers
         .map((m) => m.toFixed(3))
-        .join(", ")}]`
+        .join(", ")}]`,
     );
     console.log("=====================================");
   };

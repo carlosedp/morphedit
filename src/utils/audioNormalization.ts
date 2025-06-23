@@ -32,7 +32,7 @@ export const findPeakAmplitude = (audioBuffer: AudioBuffer): number => {
  */
 export const normalizeAudioBuffer = (
   audioBuffer: AudioBuffer,
-  targetPeakDb: number = -1
+  targetPeakDb: number = -1,
 ): AudioBuffer => {
   // Find current peak amplitude
   const currentPeak = findPeakAmplitude(audioBuffer);
@@ -52,8 +52,8 @@ export const normalizeAudioBuffer = (
 
   console.log(
     `Normalizing audio: current peak ${currentPeak.toFixed(
-      4
-    )}, target peak ${targetPeakLinear.toFixed(4)}, gain ${gain.toFixed(4)}`
+      4,
+    )}, target peak ${targetPeakLinear.toFixed(4)}, gain ${gain.toFixed(4)}`,
   );
 
   // Create new normalized buffer
@@ -66,7 +66,7 @@ export const normalizeAudioBuffer = (
   const normalizedBuffer = audioContext.createBuffer(
     audioBuffer.numberOfChannels,
     audioBuffer.length,
-    audioBuffer.sampleRate
+    audioBuffer.sampleRate,
   );
 
   // Apply gain to all channels
@@ -99,13 +99,13 @@ export const applyNormalization = async (
     setSpliceMarkersStore: (markers: number[]) => void;
     setPreviousSpliceMarkers: (markers: number[]) => void;
     setPreviousLockedSpliceMarkers: (markers: number[]) => void;
-  }
+  },
 ): Promise<void> => {
   // Get the audio buffer from the audio store
   const audioBuffer = useAudioStore.getState().audioBuffer;
   console.log(
     "applyNormalization - checking audio buffer in store:",
-    !!audioBuffer
+    !!audioBuffer,
   );
 
   if (!audioBuffer) {
@@ -121,13 +121,13 @@ export const applyNormalization = async (
   console.log("Applying normalization...");
   console.log(
     "Current audio URL passed to applyNormalization:",
-    currentAudioUrl
+    currentAudioUrl,
   );
   console.log("Audio buffer found:", audioBuffer.length, "samples");
   console.log(
     "Audio buffer duration:",
     audioBuffer.length / audioBuffer.sampleRate,
-    "seconds"
+    "seconds",
   );
 
   // Normalize the audio buffer
@@ -167,7 +167,7 @@ export const applyNormalization = async (
     console.log(
       "New audio duration after normalization:",
       ws.getDuration(),
-      "seconds"
+      "seconds",
     );
 
     // Update the current audio URL to the new normalized version
@@ -179,7 +179,7 @@ export const applyNormalization = async (
     console.log(
       "Updated audio buffer in store with normalized version - duration:",
       normalizedBuffer.length / normalizedBuffer.sampleRate,
-      "seconds"
+      "seconds",
     );
 
     // Clear processing flag

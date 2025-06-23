@@ -117,22 +117,22 @@ export const useWaveformHandlers = ({
   // Audio store hooks
   const spliceMarkersStore = useAudioStore((s: AudioState) => s.spliceMarkers);
   const lockedSpliceMarkersStore = useAudioStore(
-    (s: AudioState) => s.lockedSpliceMarkers
+    (s: AudioState) => s.lockedSpliceMarkers,
   );
   const setSpliceMarkersStore = useAudioStore(
-    (s: AudioState) => s.setSpliceMarkers
+    (s: AudioState) => s.setSpliceMarkers,
   );
   const setLockedSpliceMarkersStore = useAudioStore(
-    (s: AudioState) => s.setLockedSpliceMarkers
+    (s: AudioState) => s.setLockedSpliceMarkers,
   );
   const setPreviousAudioUrl = useAudioStore(
-    (s: AudioState) => s.setPreviousAudioUrl
+    (s: AudioState) => s.setPreviousAudioUrl,
   );
   const setPreviousSpliceMarkers = useAudioStore(
-    (s: AudioState) => s.setPreviousSpliceMarkers
+    (s: AudioState) => s.setPreviousSpliceMarkers,
   );
   const setPreviousLockedSpliceMarkers = useAudioStore(
-    (s: AudioState) => s.setPreviousLockedSpliceMarkers
+    (s: AudioState) => s.setPreviousLockedSpliceMarkers,
   );
   const setCanUndo = useAudioStore((s: AudioState) => s.setCanUndo);
   const setAudioBuffer = useAudioStore((s: AudioState) => s.setAudioBuffer);
@@ -145,7 +145,7 @@ export const useWaveformHandlers = ({
       wavesurferRef.current!,
       regionsRef.current!,
       state.isPlaying,
-      state.cropRegion
+      state.cropRegion,
     );
   }, [state.isPlaying, state.cropRegion, wavesurferRef, regionsRef]);
 
@@ -163,7 +163,7 @@ export const useWaveformHandlers = ({
       actions.setZoom(constrainedValue);
       zoom(wavesurferRef.current!, constrainedValue);
     },
-    [actions, wavesurferRef, state.resetZoom]
+    [actions, wavesurferRef, state.resetZoom],
   );
 
   const handleZoomReset = useCallback(() => {
@@ -190,12 +190,12 @@ export const useWaveformHandlers = ({
         // Get all current regions data before clearing
         const allRegions = regionsRef.current.getRegions();
         const spliceMarkers = allRegions.filter((r: Region) =>
-          r.id.startsWith("splice-marker-")
+          r.id.startsWith("splice-marker-"),
         );
 
         if (spliceMarkers.length > 0) {
           console.log(
-            `Found ${spliceMarkers.length} splice markers to refresh`
+            `Found ${spliceMarkers.length} splice markers to refresh`,
           );
 
           // Store region data
@@ -256,7 +256,7 @@ export const useWaveformHandlers = ({
       wavesurferRef.current!,
       regionsRef.current!,
       actions.setCropRegion,
-      actions.setCropMode
+      actions.setCropMode,
     );
     if (region) {
       cropRegionRef.current = region;
@@ -273,7 +273,7 @@ export const useWaveformHandlers = ({
     createFadeInRegion(
       wavesurferRef.current!,
       regionsRef.current!,
-      actions.setFadeInMode
+      actions.setFadeInMode,
     );
   }, [actions, wavesurferRef, regionsRef]);
 
@@ -281,7 +281,7 @@ export const useWaveformHandlers = ({
     createFadeOutRegion(
       wavesurferRef.current!,
       regionsRef.current!,
-      actions.setFadeOutMode
+      actions.setFadeOutMode,
     );
   }, [actions, wavesurferRef, regionsRef]);
 
@@ -311,7 +311,7 @@ export const useWaveformHandlers = ({
         setPreviousSpliceMarkers,
         setPreviousLockedSpliceMarkers,
         setZoom: actions.setZoom,
-      }
+      },
     );
     cropRegionRef.current = null;
 
@@ -366,7 +366,7 @@ export const useWaveformHandlers = ({
         setPreviousSpliceMarkers,
         setPreviousLockedSpliceMarkers,
         setZoom: actions.setZoom,
-      }
+      },
     );
 
     if (onProcessingComplete) {
@@ -412,7 +412,7 @@ export const useWaveformHandlers = ({
         setSpliceMarkersStore,
         setPreviousSpliceMarkers,
         setPreviousLockedSpliceMarkers,
-      }
+      },
     );
 
     if (onProcessingComplete) {
@@ -464,7 +464,7 @@ export const useWaveformHandlers = ({
       regionsRef.current!,
       state.currentTime,
       spliceMarkersStore,
-      setSpliceMarkersStore
+      setSpliceMarkersStore,
     );
   }, [
     state.currentTime,
@@ -482,7 +482,7 @@ export const useWaveformHandlers = ({
       spliceMarkersStore,
       setSpliceMarkersStore,
       actions.setSelectedSpliceMarker,
-      memoizedUpdateSpliceMarkerColors
+      memoizedUpdateSpliceMarkerColors,
     );
   }, [
     state.selectedSpliceMarker,
@@ -505,7 +505,7 @@ export const useWaveformHandlers = ({
       markerTime,
       lockedSpliceMarkersStore,
       setLockedSpliceMarkersStore,
-      regionsRef.current! // Pass regions to update drag properties
+      regionsRef.current!, // Pass regions to update drag properties
     );
 
     // Update visual appearance of all markers
@@ -525,7 +525,7 @@ export const useWaveformHandlers = ({
       state.numberOfSlices,
       setSpliceMarkersStore,
       actions.setSelectedSpliceMarker,
-      memoizedUpdateSpliceMarkerColors
+      memoizedUpdateSpliceMarkerColors,
     );
   }, [
     state.numberOfSlices,
@@ -541,7 +541,7 @@ export const useWaveformHandlers = ({
       regionsRef.current!,
       setSpliceMarkersStore,
       actions.setSelectedSpliceMarker,
-      memoizedUpdateSpliceMarkerColors
+      memoizedUpdateSpliceMarkerColors,
     );
   }, [
     setSpliceMarkersStore,
@@ -555,7 +555,7 @@ export const useWaveformHandlers = ({
       regionsRef.current!,
       setSpliceMarkersStore,
       actions.setSelectedSpliceMarker,
-      memoizedUpdateSpliceMarkerColors
+      memoizedUpdateSpliceMarkerColors,
     );
   }, [
     setSpliceMarkersStore,
@@ -573,7 +573,7 @@ export const useWaveformHandlers = ({
 
     console.log(
       "Starting transient detection with sensitivity:",
-      state.transientSensitivity
+      state.transientSensitivity,
     );
     const detectedCount = applyTransientDetection(
       wavesurferRef.current!,
@@ -584,10 +584,10 @@ export const useWaveformHandlers = ({
       state.transientOverlap,
       setSpliceMarkersStore,
       actions.setSelectedSpliceMarker,
-      memoizedUpdateSpliceMarkerColors
+      memoizedUpdateSpliceMarkerColors,
     );
     console.log(
-      `Transient detection completed. Detected ${detectedCount} transients.`
+      `Transient detection completed. Detected ${detectedCount} transients.`,
     );
   }, [
     state.transientSensitivity,
@@ -604,7 +604,7 @@ export const useWaveformHandlers = ({
     const audioBuffer = useAudioStore.getState().audioBuffer;
     if (!audioBuffer || spliceMarkersStore.length === 0) {
       console.log(
-        "No audio buffer or splice markers available for zero crossing snap"
+        "No audio buffer or splice markers available for zero crossing snap",
       );
       return;
     }
@@ -617,7 +617,7 @@ export const useWaveformHandlers = ({
       spliceMarkersStore,
       setSpliceMarkersStore,
       actions.setSelectedSpliceMarker,
-      memoizedUpdateSpliceMarkerColors
+      memoizedUpdateSpliceMarkerColors,
     );
   }, [
     spliceMarkersStore,
@@ -643,18 +643,18 @@ export const useWaveformHandlers = ({
     console.log("Export - Is processing:", isProcessing);
     console.log(
       "Exporting WAV with splice markers as cue points:",
-      spliceMarkersStore
+      spliceMarkersStore,
     );
     console.log(
       "Export - Audio buffer details:",
       `Duration: ${audioBuffer.length / audioBuffer.sampleRate}s`,
       `Length: ${audioBuffer.length} samples`,
       `Sample rate: ${audioBuffer.sampleRate}Hz`,
-      `Channels: ${audioBuffer.numberOfChannels}`
+      `Channels: ${audioBuffer.numberOfChannels}`,
     );
     console.log(
       "Export - Current WaveSurfer duration:",
-      wavesurferRef.current?.getDuration() || "N/A"
+      wavesurferRef.current?.getDuration() || "N/A",
     );
     console.log("Export format:", state.selectedExportFormat);
     console.log("=====================================================");
@@ -662,7 +662,7 @@ export const useWaveformHandlers = ({
     const wav = audioBufferToWavFormat(
       audioBuffer,
       state.selectedExportFormat,
-      spliceMarkersStore
+      spliceMarkersStore,
     );
     const filename = `morphedit-export-${state.selectedExportFormat.label
       .toLowerCase()
@@ -680,7 +680,7 @@ export const useWaveformHandlers = ({
       console.log("Changing export format to:", format);
       actions.setSelectedExportFormat(format);
     },
-    [actions]
+    [actions],
   );
 
   // Splice playback handlers - dynamically generate handlers for all 20 splice markers
@@ -691,7 +691,7 @@ export const useWaveformHandlers = ({
       handlers[`handlePlaySplice${i}`] = createGenericSpliceHandler(
         wavesurferRef,
         spliceMarkersStore,
-        i
+        i,
       );
     }
 

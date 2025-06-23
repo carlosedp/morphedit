@@ -60,7 +60,7 @@ export const useWaveSurferSetup = ({
   const setMarkers = useAudioStore((s: AudioState) => s.setMarkers);
   const setRegions = useAudioStore((s: AudioState) => s.setRegions);
   const setSpliceMarkersStore = useAudioStore(
-    (s: AudioState) => s.setSpliceMarkers
+    (s: AudioState) => s.setSpliceMarkers,
   );
 
   // Main wavesurfer initialization effect
@@ -141,7 +141,7 @@ export const useWaveSurferSetup = ({
           isAudioProcessing || // Also treat as processed if we're currently processing
           isUndoing; // Also treat as processed if we're undoing to preserve restored markers
         const isConcatenatedAudio = urlToCheck.includes(
-          "#morphedit-concatenated"
+          "#morphedit-concatenated",
         );
         const isAppendedAudio = urlToCheck.includes("#morphedit-appended");
 
@@ -167,14 +167,14 @@ export const useWaveSurferSetup = ({
           currentSpliceMarkers.length > 0
         ) {
           console.log(
-            "Loading splice markers from store for concatenated/appended audio"
+            "Loading splice markers from store for concatenated/appended audio",
           );
 
           // Clear existing visual markers
           removeAllSpliceMarkersAndClearSelection(
             regions,
             () => {},
-            () => {}
+            () => {},
           );
 
           // Create visual markers from store
@@ -191,7 +191,7 @@ export const useWaveSurferSetup = ({
           });
 
           console.log(
-            `Created ${currentSpliceMarkers.length} visual markers from store for concatenated/appended audio`
+            `Created ${currentSpliceMarkers.length} visual markers from store for concatenated/appended audio`,
           );
         }
         // For processed audio (cropped/faded) or undo operations, create visual markers directly from store to ensure correct positioning
@@ -199,27 +199,27 @@ export const useWaveSurferSetup = ({
           console.log("=== PROCESSED AUDIO MARKER LOADING DEBUG ===");
           console.log(
             "URL contains cropped:",
-            urlToLoad.includes("#morphedit-cropped")
+            urlToLoad.includes("#morphedit-cropped"),
           );
           console.log(
             "URL contains faded:",
-            urlToLoad.includes("#morphedit-faded")
+            urlToLoad.includes("#morphedit-faded"),
           );
           console.log("Is undo operation:", isUndoing);
           console.log("Current store splice markers:", currentSpliceMarkers);
           console.log("Current store locked markers:", currentLockedMarkers);
           console.log(
-            "Creating visual markers from store for processed audio or undo operation"
+            "Creating visual markers from store for processed audio or undo operation",
           );
 
           // Clear existing visual markers
           const allRegions = regions.getRegions();
           const existingSpliceMarkers = allRegions.filter((r: Region) =>
-            r.id.startsWith("splice-marker-")
+            r.id.startsWith("splice-marker-"),
           );
           console.log(
             "Clearing existing splice markers:",
-            existingSpliceMarkers.length
+            existingSpliceMarkers.length,
           );
           existingSpliceMarkers.forEach((marker: Region) => marker.remove());
 
@@ -227,7 +227,7 @@ export const useWaveSurferSetup = ({
           currentSpliceMarkers.forEach((markerTime, index) => {
             const isLocked = isMarkerLocked(markerTime, currentLockedMarkers);
             console.log(
-              `Creating visual marker ${index}: time=${markerTime}, locked=${isLocked}`
+              `Creating visual marker ${index}: time=${markerTime}, locked=${isLocked}`,
             );
             const markerId = isUndoing
               ? `splice-marker-undo-${index}-${Date.now()}`
@@ -247,7 +247,7 @@ export const useWaveSurferSetup = ({
               currentSpliceMarkers.length
             } visual markers from store for ${
               isUndoing ? "undo operation" : "processed audio"
-            }`
+            }`,
           );
           console.log("=== END PROCESSED AUDIO MARKER LOADING DEBUG ===");
         }
@@ -259,12 +259,12 @@ export const useWaveSurferSetup = ({
             if (existingCuePoints.length > 0) {
               console.log(
                 "Found cue points, loading as splice markers:",
-                existingCuePoints
+                existingCuePoints,
               );
               loadExistingCuePoints(
                 regions,
                 existingCuePoints,
-                setSpliceMarkersStore
+                setSpliceMarkersStore,
               );
             } else {
               console.log("No cue points found in audio file");
@@ -288,7 +288,7 @@ export const useWaveSurferSetup = ({
           }, PLAYBACK_TIMING.READY_CALLBACK_DELAY);
         } else {
           console.log(
-            "Waveform ready - no onLoadingComplete callback provided"
+            "Waveform ready - no onLoadingComplete callback provided",
           );
         }
 
@@ -301,7 +301,7 @@ export const useWaveSurferSetup = ({
         // If we're currently processing audio, don't override the buffer
         if (isCurrentlyProcessing) {
           console.log(
-            "Ready event - audio processing in progress, skipping buffer update"
+            "Ready event - audio processing in progress, skipping buffer update",
           );
           return;
         }
@@ -310,12 +310,12 @@ export const useWaveSurferSetup = ({
         // since it was specifically set by the processing operations
         if (isProcessedAudio && currentStoredBuffer) {
           console.log(
-            "Ready event - processed audio detected, keeping existing buffer in store"
+            "Ready event - processed audio detected, keeping existing buffer in store",
           );
           console.log(
             `Store buffer duration: ${
               currentStoredBuffer.length / currentStoredBuffer.sampleRate
-            }s, WS duration: ${wsDuration}s`
+            }s, WS duration: ${wsDuration}s`,
           );
 
           // Double-check that our store buffer makes sense for processed audio
@@ -333,12 +333,12 @@ export const useWaveSurferSetup = ({
           currentStoredBuffer &&
           Math.abs(
             currentStoredBuffer.length / currentStoredBuffer.sampleRate -
-              wsDuration
+              wsDuration,
           ) < WAVEFORM_RENDERING.BUFFER_DURATION_TOLERANCE;
 
         if (bufferAlreadyCorrect) {
           console.log(
-            "Ready event - audio buffer already correctly set in store, skipping update"
+            "Ready event - audio buffer already correctly set in store, skipping update",
           );
           return;
         }
@@ -349,7 +349,7 @@ export const useWaveSurferSetup = ({
 
         console.log(
           "Ready event - checking for backend buffer:",
-          !!(backend && backend.buffer)
+          !!(backend && backend.buffer),
         );
         console.log("Ready event - audio duration:", wsDuration);
 
@@ -357,7 +357,7 @@ export const useWaveSurferSetup = ({
           console.log(
             "Setting audio buffer from backend - duration:",
             backend.buffer.length / backend.buffer.sampleRate,
-            "seconds"
+            "seconds",
           );
           setAudioBuffer(backend.buffer);
         } else {
@@ -382,7 +382,7 @@ export const useWaveSurferSetup = ({
                 console.log(
                   "Audio buffer decoded successfully - duration:",
                   decodedBuffer.length / decodedBuffer.sampleRate,
-                  "seconds"
+                  "seconds",
                 );
                 setAudioBuffer(decodedBuffer);
               })
@@ -436,7 +436,7 @@ export const useWaveSurferSetup = ({
         shouldTruncate,
         state,
         actions,
-        setAudioBuffer
+        setAudioBuffer,
       );
     })();
 
@@ -456,10 +456,10 @@ export const useWaveSurferSetup = ({
       setRegions(
         regionList
           .filter((r) => r.end > r.start)
-          .map((r) => ({ start: r.start, end: r.end }))
+          .map((r) => ({ start: r.start, end: r.end })),
       );
       setMarkers(
-        regionList.filter((r) => r.end === r.start).map((r) => r.start)
+        regionList.filter((r) => r.end === r.start).map((r) => r.start),
       );
     };
 
@@ -481,7 +481,7 @@ export const useWaveSurferSetup = ({
         "Region clicked:",
         region.id,
         "starts with splice-marker:",
-        region.id.startsWith("splice-marker-")
+        region.id.startsWith("splice-marker-"),
       );
       if (region.id.startsWith("splice-marker-")) {
         console.log("Splice marker selected:", region.id);

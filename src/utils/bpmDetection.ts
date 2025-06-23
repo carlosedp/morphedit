@@ -10,7 +10,7 @@ const bpmLogger = createLogger("BPMDetection");
  * @returns Promise that resolves to the detected BPM or null if detection fails
  */
 export async function detectBPM(
-  audioBuffer: AudioBuffer
+  audioBuffer: AudioBuffer,
 ): Promise<number | null> {
   try {
     bpmLogger.debug("Starting BPM detection...", {
@@ -27,8 +27,8 @@ export async function detectBPM(
       typeof result === "object" && result !== null && "tempo" in result
         ? (result as { tempo: number }).tempo
         : typeof result === "number"
-        ? result
-        : null;
+          ? result
+          : null;
 
     if (bpm === null) {
       bpmLogger.warn("BPM detection returned no valid result");
@@ -59,7 +59,7 @@ export async function detectBPM(
  */
 export async function detectBPMWithTimeout(
   audioBuffer: AudioBuffer,
-  timeoutMs: number = 30000
+  timeoutMs: number = 30000,
 ): Promise<number | null> {
   try {
     const bpmPromise = detectBPM(audioBuffer);

@@ -25,7 +25,7 @@ export const createLogger = (context: string) => {
     audioOperation: (operation: string, details?: Record<string, unknown>) => {
       const detailsStr = details ? JSON.stringify(details, null, 2) : "";
       console.log(
-        `${prefix} 🎵 ${operation}${detailsStr ? `\n${detailsStr}` : ""}`
+        `${prefix} 🎵 ${operation}${detailsStr ? `\n${detailsStr}` : ""}`,
       );
     },
 
@@ -33,7 +33,7 @@ export const createLogger = (context: string) => {
     markerOperation: (operation: string, count: number, type?: string) => {
       const typeStr = type ? ` ${type}` : "";
       console.log(
-        `${prefix} ${MARKER_ICONS.UNLOCKED} ${operation}:${typeStr} ${count} markers`
+        `${prefix} ${MARKER_ICONS.UNLOCKED} ${operation}:${typeStr} ${count} markers`,
       );
     },
 
@@ -41,7 +41,7 @@ export const createLogger = (context: string) => {
     processingState: (state: string, isStart: boolean = true) => {
       const emoji = isStart ? "🔄" : "✅";
       console.log(
-        `${prefix} ${emoji} ${state} ${isStart ? "started" : "completed"}`
+        `${prefix} ${emoji} ${state} ${isStart ? "started" : "completed"}`,
       );
     },
   };

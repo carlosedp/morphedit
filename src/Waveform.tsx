@@ -43,9 +43,7 @@ import {
   isMarkerLocked,
 } from "./utils/spliceMarkerUtils";
 import { removeAllSpliceMarkersAndClearSelection } from "./utils/regionHelpers";
-import {
-  getRegionInfo,
-} from "./utils/regionUtils";
+import { getRegionInfo } from "./utils/regionUtils";
 import {
   createGenericSpliceHandler,
   type SpliceMarkerHandlers,
@@ -181,21 +179,24 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     );
 
     // Helper function to detect BPM from audio buffer
-    const detectAndSetBPM = useCallback(async (audioBuffer: AudioBuffer) => {
-      try {
-        waveformLogger.debug("Starting BPM detection for audio buffer");
-        const detectedBpm = await detectBPMWithTimeout(audioBuffer, 20000); // 20 second timeout
-        setBpm(detectedBpm);
-        if (detectedBpm) {
-          waveformLogger.debug(`BPM detected: ${detectedBpm}`);
-        } else {
-          waveformLogger.warn("BPM detection failed or returned no result");
+    const detectAndSetBPM = useCallback(
+      async (audioBuffer: AudioBuffer) => {
+        try {
+          waveformLogger.debug("Starting BPM detection for audio buffer");
+          const detectedBpm = await detectBPMWithTimeout(audioBuffer, 20000); // 20 second timeout
+          setBpm(detectedBpm);
+          if (detectedBpm) {
+            waveformLogger.debug(`BPM detected: ${detectedBpm}`);
+          } else {
+            waveformLogger.warn("BPM detection failed or returned no result");
+          }
+        } catch (error) {
+          waveformLogger.error("Error during BPM detection:", error);
+          setBpm(null);
         }
-      } catch (error) {
-        waveformLogger.error("Error during BPM detection:", error);
-        setBpm(null);
-      }
-    }, [setBpm]);
+      },
+      [setBpm],
+    );
 
     // Extract handlers using the custom hook
     const handlers = useWaveformHandlers({
@@ -319,8 +320,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             // Clear existing visual markers
             removeAllSpliceMarkersAndClearSelection(
               regions,
-              () => { },
-              () => { },
+              () => {},
+              () => {},
             );
 
             // Create visual markers from store
@@ -473,7 +474,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             currentStoredBuffer &&
             Math.abs(
               currentStoredBuffer.length / currentStoredBuffer.sampleRate -
-              wsDuration,
+                wsDuration,
             ) < WAVEFORM_RENDERING.BUFFER_DURATION_TOLERANCE;
 
           if (bufferAlreadyCorrect) {
@@ -516,9 +517,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
                   const audioContext = new (window.AudioContext ||
                     (
                       window as Window &
-                      typeof globalThis & {
-                        webkitAudioContext?: typeof AudioContext;
-                      }
+                        typeof globalThis & {
+                          webkitAudioContext?: typeof AudioContext;
+                        }
                     ).webkitAudioContext)();
                   return audioContext.decodeAudioData(arrayBuffer);
                 })
@@ -925,9 +926,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           selectedSpliceMarkerLocked={
             state.selectedSpliceMarker
               ? isMarkerLocked(
-                state.selectedSpliceMarker.start,
-                lockedSpliceMarkersStore,
-              )
+                  state.selectedSpliceMarker.start,
+                  lockedSpliceMarkersStore,
+                )
               : false
           }
           numberOfSlices={state.numberOfSlices}

@@ -214,7 +214,8 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
               fontWeight: 500,
             }}
           >
-            {MARKER_ICONS.SELECTED} Selected Marker: {formatTime(selectedSpliceMarkerTime)}
+            {MARKER_ICONS.SELECTED} Selected Marker:{" "}
+            {formatTime(selectedSpliceMarkerTime)}
           </Typography>
         )}
 
@@ -225,7 +226,8 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
             color="warning.main"
             sx={{ fontSize: { xs: "0.75rem", sm: "0.8rem" } }}
           >
-            Crop Region: {formatTime(regionInfo.cropRegion.start)} - {formatTime(regionInfo.cropRegion.end)}
+            Crop Region: {formatTime(regionInfo.cropRegion.start)} -{" "}
+            {formatTime(regionInfo.cropRegion.end)}
           </Typography>
         )}
 
@@ -235,7 +237,8 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
             color="success.main"
             sx={{ fontSize: { xs: "0.75rem", sm: "0.8rem" } }}
           >
-            Fade-In: {formatTime(regionInfo.fadeInRegion.start)} - {formatTime(regionInfo.fadeInRegion.end)}
+            Fade-In: {formatTime(regionInfo.fadeInRegion.start)} -{" "}
+            {formatTime(regionInfo.fadeInRegion.end)}
           </Typography>
         )}
 
@@ -245,7 +248,8 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
             color="error.main"
             sx={{ fontSize: { xs: "0.75rem", sm: "0.8rem" } }}
           >
-            Fade-Out: {formatTime(regionInfo.fadeOutRegion.start)} - {formatTime(regionInfo.fadeOutRegion.end)}
+            Fade-Out: {formatTime(regionInfo.fadeOutRegion.start)} -{" "}
+            {formatTime(regionInfo.fadeOutRegion.end)}
           </Typography>
         )}
 
