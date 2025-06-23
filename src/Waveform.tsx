@@ -21,7 +21,7 @@ import { loadAudioIntoWaveform } from "./utils/waveformAudioLoader";
 
 import { useAudioStore } from "./audioStore";
 import type { AudioState } from "./audioStore";
-import "./App.css";
+import "./styles/App.css";
 import { Container, Stack } from "@mui/material";
 
 // Import separated utilities and components
@@ -102,7 +102,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       onProcessingStart,
       onProcessingComplete,
     },
-    ref,
+    ref
   ) => {
     const theme = useTheme();
 
@@ -123,14 +123,14 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     const setMarkers = useAudioStore((s: AudioState) => s.setMarkers);
     const setRegions = useAudioStore((s: AudioState) => s.setRegions);
     const setSpliceMarkersStore = useAudioStore(
-      (s: AudioState) => s.setSpliceMarkers,
+      (s: AudioState) => s.setSpliceMarkers
     );
     const spliceMarkersStore = useAudioStore(
-      (s: AudioState) => s.spliceMarkers,
+      (s: AudioState) => s.spliceMarkers
     );
     const bpm = useAudioStore((s: AudioState) => s.bpm);
     const lockedSpliceMarkersStore = useAudioStore(
-      (s: AudioState) => s.lockedSpliceMarkers,
+      (s: AudioState) => s.lockedSpliceMarkers
     );
 
     const canUndo = useAudioStore((s: AudioState) => s.canUndo);
@@ -175,7 +175,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       (selectedMarker: Region | null) => {
         updateSpliceMarkerColors(regionsRef.current!, selectedMarker, theme);
       },
-      [theme, regionsRef],
+      [theme, regionsRef]
     );
 
     // Helper function to detect BPM from audio buffer
@@ -195,7 +195,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           setBpm(null);
         }
       },
-      [setBpm],
+      [setBpm]
     );
 
     // Extract handlers using the custom hook
@@ -288,7 +288,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             isAudioProcessing || // Also treat as processed if we're currently processing
             isUndoing; // Also treat as processed if we're undoing to preserve restored markers
           const isConcatenatedAudio = urlToCheck.includes(
-            "#morphedit-concatenated",
+            "#morphedit-concatenated"
           );
           const isAppendedAudio = urlToCheck.includes("#morphedit-appended");
 
@@ -314,14 +314,14 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             currentSpliceMarkers.length > 0
           ) {
             console.log(
-              "Loading splice markers from store for concatenated/appended audio",
+              "Loading splice markers from store for concatenated/appended audio"
             );
 
             // Clear existing visual markers
             removeAllSpliceMarkersAndClearSelection(
               regions,
               () => {},
-              () => {},
+              () => {}
             );
 
             // Create visual markers from store
@@ -338,7 +338,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             });
 
             console.log(
-              `Created ${currentSpliceMarkers.length} visual markers from store for concatenated/appended audio`,
+              `Created ${currentSpliceMarkers.length} visual markers from store for concatenated/appended audio`
             );
           }
           // For processed audio (cropped/faded) or undo operations, create visual markers directly from store to ensure correct positioning
@@ -346,27 +346,27 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             console.log("=== PROCESSED AUDIO MARKER LOADING DEBUG ===");
             console.log(
               "URL contains cropped:",
-              urlToLoad.includes("#morphedit-cropped"),
+              urlToLoad.includes("#morphedit-cropped")
             );
             console.log(
               "URL contains faded:",
-              urlToLoad.includes("#morphedit-faded"),
+              urlToLoad.includes("#morphedit-faded")
             );
             console.log("Is undo operation:", isUndoing);
             console.log("Current store splice markers:", currentSpliceMarkers);
             console.log("Current store locked markers:", currentLockedMarkers);
             console.log(
-              "Creating visual markers from store for processed audio or undo operation",
+              "Creating visual markers from store for processed audio or undo operation"
             );
 
             // Clear existing visual markers
             const allRegions = regions.getRegions();
             const existingSpliceMarkers = allRegions.filter((r: Region) =>
-              r.id.startsWith("splice-marker-"),
+              r.id.startsWith("splice-marker-")
             );
             console.log(
               "Clearing existing splice markers:",
-              existingSpliceMarkers.length,
+              existingSpliceMarkers.length
             );
             existingSpliceMarkers.forEach((marker: Region) => marker.remove());
 
@@ -374,7 +374,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             currentSpliceMarkers.forEach((markerTime, index) => {
               const isLocked = isMarkerLocked(markerTime, currentLockedMarkers);
               console.log(
-                `Creating visual marker ${index}: time=${markerTime}, locked=${isLocked}`,
+                `Creating visual marker ${index}: time=${markerTime}, locked=${isLocked}`
               );
               const markerId = isUndoing
                 ? `splice-marker-undo-${index}-${Date.now()}`
@@ -390,7 +390,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             });
 
             console.log(
-              `Created ${currentSpliceMarkers.length} visual markers from store for ${isUndoing ? "undo operation" : "processed audio"}`,
+              `Created ${currentSpliceMarkers.length} visual markers from store for ${isUndoing ? "undo operation" : "processed audio"}`
             );
             console.log("=== END PROCESSED AUDIO MARKER LOADING DEBUG ===");
           }
@@ -402,12 +402,12 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               if (existingCuePoints.length > 0) {
                 console.log(
                   "Found cue points, loading as splice markers:",
-                  existingCuePoints,
+                  existingCuePoints
                 );
                 loadExistingCuePoints(
                   regions,
                   existingCuePoints,
-                  setSpliceMarkersStore,
+                  setSpliceMarkersStore
                 );
               } else {
                 console.log("No cue points found in audio file");
@@ -431,7 +431,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             }, PLAYBACK_TIMING.READY_CALLBACK_DELAY);
           } else {
             console.log(
-              "Waveform ready - no onLoadingComplete callback provided",
+              "Waveform ready - no onLoadingComplete callback provided"
             );
           }
 
@@ -444,7 +444,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           // If we're currently processing audio, don't override the buffer
           if (isCurrentlyProcessing) {
             console.log(
-              "Ready event - audio processing in progress, skipping buffer update",
+              "Ready event - audio processing in progress, skipping buffer update"
             );
             return;
           }
@@ -453,10 +453,10 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           // since it was specifically set by the processing operations
           if (isProcessedAudio && currentStoredBuffer) {
             console.log(
-              "Ready event - processed audio detected, keeping existing buffer in store",
+              "Ready event - processed audio detected, keeping existing buffer in store"
             );
             console.log(
-              `Store buffer duration: ${currentStoredBuffer.length / currentStoredBuffer.sampleRate}s, WS duration: ${wsDuration}s`,
+              `Store buffer duration: ${currentStoredBuffer.length / currentStoredBuffer.sampleRate}s, WS duration: ${wsDuration}s`
             );
 
             // Double-check that our store buffer makes sense for processed audio
@@ -474,12 +474,12 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             currentStoredBuffer &&
             Math.abs(
               currentStoredBuffer.length / currentStoredBuffer.sampleRate -
-                wsDuration,
+                wsDuration
             ) < WAVEFORM_RENDERING.BUFFER_DURATION_TOLERANCE;
 
           if (bufferAlreadyCorrect) {
             console.log(
-              "Ready event - audio buffer already correctly set in store, skipping update",
+              "Ready event - audio buffer already correctly set in store, skipping update"
             );
             return;
           }
@@ -490,7 +490,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
           console.log(
             "Ready event - checking for backend buffer:",
-            !!(backend && backend.buffer),
+            !!(backend && backend.buffer)
           );
           console.log("Ready event - audio duration:", wsDuration);
 
@@ -498,14 +498,14 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             console.log(
               "Setting audio buffer from backend - duration:",
               backend.buffer.length / backend.buffer.sampleRate,
-              "seconds",
+              "seconds"
             );
             setAudioBuffer(backend.buffer);
             // Detect BPM in the background
             detectAndSetBPM(backend.buffer);
           } else {
             console.log(
-              "No backend buffer available, attempting manual decode",
+              "No backend buffer available, attempting manual decode"
             );
             // Fallback: load and decode the current audio file manually
             // Use cleaned URL to avoid fragment issues
@@ -527,7 +527,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
                   console.log(
                     "Audio buffer decoded successfully - duration:",
                     decodedBuffer.length / decodedBuffer.sampleRate,
-                    "seconds",
+                    "seconds"
                   );
                   setAudioBuffer(decodedBuffer);
                   // Detect BPM in the background
@@ -583,7 +583,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           shouldTruncate,
           state,
           actions,
-          setAudioBuffer,
+          setAudioBuffer
         );
       })();
 
@@ -603,10 +603,10 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         setRegions(
           regionList
             .filter((r) => r.end > r.start)
-            .map((r) => ({ start: r.start, end: r.end })),
+            .map((r) => ({ start: r.start, end: r.end }))
         );
         setMarkers(
-          regionList.filter((r) => r.end === r.start).map((r) => r.start),
+          regionList.filter((r) => r.end === r.start).map((r) => r.start)
         );
         // Trigger region info update for WaveformControls
         setRegionUpdateTrigger((prev) => prev + 1);
@@ -630,7 +630,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           "Region clicked:",
           region.id,
           "starts with splice-marker:",
-          region.id.startsWith("splice-marker-"),
+          region.id.startsWith("splice-marker-")
         );
         if (region.id.startsWith("splice-marker-")) {
           console.log("Splice marker selected:", region.id);
@@ -723,7 +723,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handlers[`handlePlaySplice${i}`] = createGenericSpliceHandler(
           wavesurferRef,
           spliceMarkersStore,
-          i,
+          i
         );
       }
 
@@ -797,7 +797,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleSnapToZeroCrossings,
         spliceHandlers,
         state.zoom,
-      ],
+      ]
     );
 
     // Handle mouse wheel zoom with passive: false
@@ -927,7 +927,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             state.selectedSpliceMarker
               ? isMarkerLocked(
                   state.selectedSpliceMarker.start,
-                  lockedSpliceMarkersStore,
+                  lockedSpliceMarkersStore
                 )
               : false
           }
@@ -952,7 +952,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         />
       </Container>
     );
-  },
+  }
 );
 
 Waveform.displayName = "Waveform";
