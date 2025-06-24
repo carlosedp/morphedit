@@ -1,12 +1,22 @@
-name: Version Update and Production PR
+name: Create Production PR
 
 on:
   push:
     tags:
       - "v*" # Triggers on version tags like v1.0.0, v2.1.3, etc.
+  workflow_dispatch:
+    inputs:
+      pr_title:
+        description: "Title for the PR (optional)"
+        required: false
+        default: "🚀 Release to Production"
+      pr_body:
+        description: "Additional description for the PR (optional)"
+        required: false
+        default: ""
 
 jobs:
-  update-version-and-create-pr:
+  create-production-pr:
     runs-on: ubuntu-latest
 
     permissions:
@@ -20,111 +30,156 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract version from tag
-        id: get_version
+      - name: Get current version and branch info
+        id: get_info
         run: |
-          # Get the tag name and remove the 'v' prefix if present
-          FULL_VERSION=${GITHUB_REF#refs/tags/}
-          # If version only contains major and minor (e.g., v1.2), append ".0" to make it a valid semver
-          if [[ $FULL_VERSION =~ ^v?[0-9]+\.[0-9]+$ ]]; then
-            FULL_VERSION="${FULL_VERSION}.0"
+          # Get current version from package.json
+          CURRENT_VERSION=$(jq -r '.version' package.json)
+          CURRENT_BRANCH=${GITHUB_REF_NAME}
+          TIMESTAMP=$(date '+%Y%m%d-%H%M%S')
+
+          # Check if triggered by tag or manually
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == refs/tags/* ]]; then
+            # Extract tag name for tag-triggered runs
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+            BRANCH_NAME="release/${TAG_NAME}-${TIMESTAMP}"
+            TRIGGER_TYPE="tag"
+            echo "Triggered by tag: $TAG_NAME"
+          else
+            # Manual trigger
+            BRANCH_NAME="release/${CURRENT_VERSION}-${TIMESTAMP}"
+            TRIGGER_TYPE="manual"
+            TAG_NAME=""
+            echo "Triggered manually"
           fi
-          VERSION_WITHOUT_V=${FULL_VERSION#v}
-          echo "full_version=$FULL_VERSION" >> $GITHUB_OUTPUT
-          echo "version_without_v=$VERSION_WITHOUT_V" >> $GITHUB_OUTPUT
-          echo "branch_name=release/$FULL_VERSION" >> $GITHUB_OUTPUT
-          echo "Full version extracted: $FULL_VERSION"
-          echo "Version without v: $VERSION_WITHOUT_V"
+
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "current_branch=$CURRENT_BRANCH" >> $GITHUB_OUTPUT
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+          echo "trigger_type=$TRIGGER_TYPE" >> $GITHUB_OUTPUT
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+
+          echo "Current version: $CURRENT_VERSION"
+          echo "Current branch: $CURRENT_BRANCH"
+          echo "Release branch: $BRANCH_NAME"
+          echo "Trigger type: $TRIGGER_TYPE"
 
       - name: Create release branch
         run: |
-          git checkout -b ${{ steps.get_version.outputs.branch_name }}
-          echo "Created branch: ${{ steps.get_version.outputs.branch_name }}"
-
-      - name: Update version in Version.ts
-        run: |
-          # Update the version in src/Version.ts
-          sed -i 's/export const version = ".*";/export const version = "${{ steps.get_version.outputs.version_without_v }}";/' src/Version.ts
-          echo "Updated version in src/Version.ts to ${{ steps.get_version.outputs.version_without_v }}"
-
-      - name: Update version in package.json
-        run: |
-          # Update the version in package.json (without 'v' prefix)
-          jq --arg version "${{ steps.get_version.outputs.version_without_v }}" '.version = $version' package.json > package.json.tmp && mv package.json.tmp package.json
-          echo "Updated version in package.json to ${{ steps.get_version.outputs.version_without_v }}"
-
-      - name: Verify package.json version update
-        run: |
-          echo "Current version in package.json:"
-          jq '.version' package.json
-
-      - name: Verify version update
-        run: |
-          echo "Current version line in src/Version.ts:"
-          grep 'const version' src/Version.ts
+          git checkout -b ${{ steps.get_info.outputs.branch_name }}
+          echo "Created branch: ${{ steps.get_info.outputs.branch_name }}"
 
       - name: Setup Git
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
-      - name: Commit version update and push
+      - name: Commit and push release branch
         run: |
-          git add src/Version.ts package.json
-          git commit -m "chore: update version to ${{ steps.get_version.outputs.full_version }}"
-          git push origin ${{ steps.get_version.outputs.branch_name }}
+          # Only commit if there are changes (in case any files were modified)
+          if ! git diff --quiet HEAD; then
+            git add .
+            git commit -m "chore: prepare release branch for production deployment"
+          fi
+          git push origin ${{ steps.get_info.outputs.branch_name }}
 
       - name: Create Pull Request to Production
         uses: actions/github-script@v7
         with:
           script: |
+            const triggerType = '${{ steps.get_info.outputs.trigger_type }}';
+            const tagName = '${{ steps.get_info.outputs.tag_name }}';
+            const currentVersion = '${{ steps.get_info.outputs.current_version }}';
+
+            // Determine PR title based on trigger type
+            let prTitle;
+            if (triggerType === 'tag') {
+              prTitle = `🚀 Release ${tagName} to Production`;
+            } else {
+              prTitle = `${{ github.event.inputs.pr_title }}` || `🚀 Release v${currentVersion} to Production`;
+            }
+
+            const userBody = `${{ github.event.inputs.pr_body }}`;
+
+            let prBody;
+            if (triggerType === 'tag') {
+              prBody = `## Release ${tagName} to Production
+
+              This PR was automatically created when tag \`${tagName}\` was pushed.
+
+              ### Release Information
+              - 🏷️ **Tag**: \`${tagName}\`
+              - 📦 **Version**: \`${currentVersion}\`
+              - 🌿 **Source Branch**: \`${{ steps.get_info.outputs.current_branch }}\`
+              - 🚀 **Target**: \`production\`
+              - ⏰ **Created**: \`${{ steps.get_info.outputs.timestamp }}\``;
+            } else {
+              prBody = `## Release v${currentVersion} to Production
+
+              This PR was manually triggered to deploy the current state of **${{ steps.get_info.outputs.current_branch }}** branch to production.
+
+              ### Release Information
+              - 📦 **Version**: \`${currentVersion}\`
+              - 🌿 **Source Branch**: \`${{ steps.get_info.outputs.current_branch }}\`
+              - 🚀 **Target**: \`production\`
+              - ⏰ **Created**: \`${{ steps.get_info.outputs.timestamp }}\``;
+            }
+
+            if (userBody && userBody.trim()) {
+              prBody += `\n\n### Additional Notes\n${userBody}`;
+            }
+
+            prBody += `
+
+            ### Deployment
+            Once this PR is merged to the \`production\` branch, the GitHub Pages deployment will automatically trigger.
+
+            ### Review Checklist
+            - [ ] Version number is correct
+            - [ ] All features are working as expected
+            - [ ] Ready for production deployment
+
+            ---
+            *This PR was created ${triggerType === 'tag' ? 'automatically' : 'manually'} using the Create Production PR workflow.*`;
+
             const { data: pullRequest } = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `🚀 Release ${{ steps.get_version.outputs.full_version }} to Production`,
-              head: '${{ steps.get_version.outputs.branch_name }}',
+              title: prTitle,
+              head: '${{ steps.get_info.outputs.branch_name }}',
               base: 'production',
-              body: `## Release ${{ steps.get_version.outputs.full_version }} to Production
-
-              This PR was automatically created when tag \`${{ steps.get_version.outputs.full_version }}\` was pushed.
-
-              ### Changes
-              - ✅ Merged all changes from tag \`${{ steps.get_version.outputs.full_version }}\` into production
-              - ✅ Updated version number to \`${{ steps.get_version.outputs.full_version }}\` in \`src/Version.ts\` and \`package.json\`
-              - 🏷️ Tagged as \`${{ steps.get_version.outputs.full_version }}\`
-
-              ### Deployment
-              Once this PR is merged to the \`production\` branch, the GitHub Pages deployment will automatically trigger.
-
-              ### Review Checklist
-              - [ ] Version number is correct
-              - [ ] All features are working as expected
-              - [ ] Ready for production deployment
-
-              ---
-              *This PR was created automatically by the Version Update workflow.*`
+              body: prBody
             });
 
             console.log(`Created PR #${pullRequest.number}: ${pullRequest.html_url}`);
 
             // Add labels if they exist
             try {
+              const labels = ['release', 'production', triggerType === 'tag' ? 'automated' : 'manual'];
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: pullRequest.number,
-                labels: ['release', 'production', 'automated']
+                labels: labels
               });
             } catch (error) {
               console.log('Note: Could not add labels (they may not exist):', error.message);
             }
 
+            return pullRequest.html_url;
+
       - name: Summary
         run: |
           echo "## Summary" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Version updated to \`${{ steps.get_version.outputs.full_version }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Created release branch \`${{ steps.get_version.outputs.branch_name }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Created PR to \`production\` branch" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ steps.get_info.outputs.trigger_type }}" == "tag" ]]; then
+            echo "✅ Triggered by tag: \`${{ steps.get_info.outputs.tag_name }}\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ Triggered manually" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "✅ Current version: \`v${{ steps.get_info.outputs.current_version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Created release branch: \`${{ steps.get_info.outputs.branch_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Created PR from \`${{ steps.get_info.outputs.current_branch }}\` to \`production\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Next steps:**" >> $GITHUB_STEP_SUMMARY
           echo "1. Review and merge the PR to deploy to production" >> $GITHUB_STEP_SUMMARY

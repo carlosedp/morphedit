@@ -1,8 +1,8 @@
 // Audio concatenation utilities for handling multiple files
 
-import { copyAudioData } from "./audioBufferUtils";
-import { concatenationLogger } from "./logger";
-import { deduplicateAndSortMarkers, limitSpliceMarkers } from "./regionHelpers";
+import { copyAudioData } from './audioBufferUtils';
+import { concatenationLogger } from './logger';
+import { deduplicateAndSortMarkers, limitSpliceMarkers } from './regionHelpers';
 
 export interface ConcatenationResult {
   concatenatedBuffer: AudioBuffer;
@@ -24,14 +24,14 @@ export const getMultipleAudioFilesDuration = async (
       const audio = new Audio();
       const url = URL.createObjectURL(file);
 
-      audio.addEventListener("loadedmetadata", () => {
+      audio.addEventListener('loadedmetadata', () => {
         URL.revokeObjectURL(url);
         resolve(audio.duration);
       });
 
-      audio.addEventListener("error", () => {
+      audio.addEventListener('error', () => {
         URL.revokeObjectURL(url);
-        reject(new Error("Failed to load audio metadata"));
+        reject(new Error('Failed to load audio metadata'));
       });
 
       audio.src = url;
@@ -62,7 +62,7 @@ const decodeAudioFilesWithCuePoints = async (
   const allCuePoints: { fileIndex: number; cuePoints: number[] }[] = [];
 
   // Import the parseWavCuePoints function
-  const { parseWavCuePoints } = await import("./audioProcessing");
+  const { parseWavCuePoints } = await import('./audioProcessing');
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -103,7 +103,7 @@ export const concatenateAudioFiles = async (
   maxDuration?: number
 ): Promise<ConcatenationResult> => {
   if (files.length === 0) {
-    throw new Error("No files provided for concatenation");
+    throw new Error('No files provided for concatenation');
   }
 
   // Decode all audio files and extract their cue points
@@ -117,7 +117,7 @@ export const concatenateAudioFiles = async (
 
   if (mismatchedSampleRates) {
     console.warn(
-      "Sample rate mismatch detected. All files should have the same sample rate for best results."
+      'Sample rate mismatch detected. All files should have the same sample rate for best results.'
     );
   }
 
@@ -190,7 +190,7 @@ export const concatenateAudioFiles = async (
   console.log(
     `Total splice markers after concatenation: ${finalMarkers.length}`
   );
-  console.log("Splice marker positions:", finalMarkers);
+  console.log('Splice marker positions:', finalMarkers);
 
   // Create the concatenated buffer
   const audioContext = new (window.AudioContext ||
@@ -250,7 +250,7 @@ export const concatenateAudioFiles = async (
  */
 export const filterAudioFiles = (files: FileList | File[]): File[] => {
   const fileArray = Array.from(files);
-  return fileArray.filter((file) => file.type.startsWith("audio/"));
+  return fileArray.filter((file) => file.type.startsWith('audio/'));
 };
 
 /**
@@ -268,10 +268,10 @@ export const audioBufferToWavBlob = async (
   cuePoints: number[] = []
 ): Promise<Blob> => {
   // Import the audioBufferToWavWithCues function
-  const { audioBufferToWavWithCues } = await import("./audioProcessing");
+  const { audioBufferToWavWithCues } = await import('./audioProcessing');
 
   const wavArrayBuffer = audioBufferToWavWithCues(buffer, cuePoints);
-  return new Blob([wavArrayBuffer], { type: "audio/wav" });
+  return new Blob([wavArrayBuffer], { type: 'audio/wav' });
 };
 
 /**
@@ -285,7 +285,7 @@ export const appendAudioToExisting = async (
   maxDuration?: number
 ): Promise<ConcatenationResult> => {
   if (newFiles.length === 0) {
-    throw new Error("No files provided for appending");
+    throw new Error('No files provided for appending');
   }
 
   // Decode the new audio files and extract their cue points
@@ -301,7 +301,7 @@ export const appendAudioToExisting = async (
 
   if (mismatchedSampleRates) {
     console.warn(
-      "Sample rate mismatch detected between existing audio and new files. Results may be unexpected."
+      'Sample rate mismatch detected between existing audio and new files. Results may be unexpected.'
     );
   }
 
@@ -493,7 +493,7 @@ export const truncateConcatenationResult = async (
   );
 
   concatenationLogger.markerOperation(
-    "Filtered markers after truncation",
+    'Filtered markers after truncation',
     truncatedSpliceMarkers.length,
     `(from ${spliceMarkerPositions.length})`
   );

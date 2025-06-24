@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -11,12 +11,12 @@ import {
   List,
   ListItem,
   ListItemText,
-} from "@mui/material";
-import InfoIcon from "@mui/icons-material/Info";
+} from '@mui/material';
+import InfoIcon from '@mui/icons-material/Info';
 import {
   formatDuration,
   MORPHAGENE_MAX_DURATION,
-} from "../utils/fileLengthUtils";
+} from '../utils/fileLengthUtils';
 
 interface MultipleFilesDialogProps {
   open: boolean;
@@ -45,13 +45,13 @@ export const MultipleFilesDialog: React.FC<MultipleFilesDialogProps> = ({
       maxWidth="md"
       fullWidth
       sx={{
-        "& .MuiDialog-paper": {
+        '& .MuiDialog-paper': {
           margin: { xs: 1, sm: 3 },
-          width: { xs: "calc(100% - 16px)", sm: "auto" },
+          width: { xs: 'calc(100% - 16px)', sm: 'auto' },
         },
       }}
     >
-      <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <InfoIcon color="info" />
         Multiple Audio Files Detected
       </DialogTitle>
@@ -69,9 +69,9 @@ export const MultipleFilesDialog: React.FC<MultipleFilesDialogProps> = ({
             dense
             sx={{
               maxHeight: 200,
-              overflow: "auto",
-              border: "1px solid",
-              borderColor: "divider",
+              overflow: 'auto',
+              border: '1px solid',
+              borderColor: 'divider',
               borderRadius: 1,
             }}
           >
@@ -96,7 +96,7 @@ export const MultipleFilesDialog: React.FC<MultipleFilesDialogProps> = ({
           </Typography>
           {exceedsMaxLength && (
             <Typography variant="body1" gutterBottom color="warning.main">
-              <strong>⚠️ Exceeds Morphagene maximum:</strong>{" "}
+              <strong>⚠️ Exceeds Morphagene maximum:</strong>{' '}
               {formatDuration(MORPHAGENE_MAX_DURATION)}
             </Typography>
           )}
@@ -104,16 +104,16 @@ export const MultipleFilesDialog: React.FC<MultipleFilesDialogProps> = ({
 
         {exceedsMaxLength && (
           <Alert severity="warning" sx={{ mb: 2 }}>
-            The total duration exceeds the Morphagene maximum of{" "}
+            The total duration exceeds the Morphagene maximum of{' '}
             {formatDuration(MORPHAGENE_MAX_DURATION)}. You can truncate the
-            {isAppendMode ? " appended" : " concatenated"} audio to fit the
+            {isAppendMode ? ' appended' : ' concatenated'} audio to fit the
             maximum length.
           </Alert>
         )}
 
         <Typography variant="body2" color="text.secondary">
-          Files will be{" "}
-          {isAppendMode ? "appended to the existing audio" : "concatenated"} in
+          Files will be{' '}
+          {isAppendMode ? 'appended to the existing audio' : 'concatenated'} in
           the order shown above (alphabetical). Splice markers will be
           automatically placed at the boundaries between files.
         </Typography>
@@ -128,17 +128,17 @@ export const MultipleFilesDialog: React.FC<MultipleFilesDialogProps> = ({
             color="primary"
             variant="outlined"
           >
-            Truncate & {isAppendMode ? "Append" : "Concatenate"}
+            Truncate & {isAppendMode ? 'Append' : 'Concatenate'}
           </Button>
         )}
         <Button onClick={onConcatenate} color="primary" variant="contained">
           {exceedsMaxLength
             ? isAppendMode
-              ? "Append Full Length"
-              : "Concatenate Full Length"
+              ? 'Append Full Length'
+              : 'Concatenate Full Length'
             : isAppendMode
-              ? "Append Files"
-              : "Concatenate Files"}
+              ? 'Append Files'
+              : 'Concatenate Files'}
         </Button>
       </DialogActions>
     </Dialog>

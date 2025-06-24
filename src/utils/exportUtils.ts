@@ -3,15 +3,15 @@ export interface ExportFormat {
   shortLabel: string;
   sampleRate: number;
   bitDepth: 16 | 32;
-  channels: "stereo" | "mono";
-  format: "int" | "float";
+  channels: 'stereo' | 'mono';
+  format: 'int' | 'float';
 }
 
 // Helper function to convert AudioBuffer to WAV with specific format options
 export const audioBufferToWavFormat = (
   buffer: AudioBuffer,
   format: ExportFormat,
-  spliceMarkersStore: number[],
+  spliceMarkersStore: number[]
 ): ArrayBuffer => {
   const originalSampleRate = buffer.sampleRate;
   const originalChannels = buffer.numberOfChannels;
@@ -22,7 +22,9 @@ export const audioBufferToWavFormat = (
     const audioContext = new (window.AudioContext ||
       (
         window as Window &
-          typeof globalThis & { webkitAudioContext?: typeof AudioContext }
+          typeof globalThis & {
+            webkitAudioContext?: typeof AudioContext;
+          }
       ).webkitAudioContext)();
     const resampleRatio = format.sampleRate / originalSampleRate;
     const newLength = Math.round(buffer.length * resampleRatio);
@@ -30,7 +32,7 @@ export const audioBufferToWavFormat = (
     processedBuffer = audioContext.createBuffer(
       originalChannels,
       newLength,
-      format.sampleRate,
+      format.sampleRate
     );
 
     for (let channel = 0; channel < originalChannels; channel++) {
@@ -59,20 +61,22 @@ export const audioBufferToWavFormat = (
   // Handle channel conversion (stereo to mono if needed)
   let finalBuffer = processedBuffer;
   const targetChannels =
-    format.channels === "mono"
+    format.channels === 'mono'
       ? 1
       : Math.min(processedBuffer.numberOfChannels, 2);
 
-  if (format.channels === "mono" && processedBuffer.numberOfChannels > 1) {
+  if (format.channels === 'mono' && processedBuffer.numberOfChannels > 1) {
     const audioContext = new (window.AudioContext ||
       (
         window as Window &
-          typeof globalThis & { webkitAudioContext?: typeof AudioContext }
+          typeof globalThis & {
+            webkitAudioContext?: typeof AudioContext;
+          }
       ).webkitAudioContext)();
     finalBuffer = audioContext.createBuffer(
       1,
       processedBuffer.length,
-      format.sampleRate,
+      format.sampleRate
     );
 
     const monoData = finalBuffer.getChannelData(0);
@@ -113,18 +117,18 @@ export const audioBufferToWavFormat = (
     }
   };
 
-  writeString(0, "RIFF");
+  writeString(0, 'RIFF');
   view.setUint32(4, bufferSize - 8, true);
-  writeString(8, "WAVE");
-  writeString(12, "fmt ");
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
   view.setUint32(16, 16, true);
-  view.setUint16(20, format.format === "float" ? 3 : 1, true); // 3 for float, 1 for int
+  view.setUint16(20, format.format === 'float' ? 3 : 1, true); // 3 for float, 1 for int
   view.setUint16(22, numberOfChannels, true);
   view.setUint32(24, sampleRate, true);
   view.setUint32(28, byteRate, true);
   view.setUint16(32, blockAlign, true);
   view.setUint16(34, bitsPerSample, true);
-  writeString(36, "data");
+  writeString(36, 'data');
   view.setUint32(40, dataSize, true);
 
   // Convert samples based on format
@@ -134,7 +138,7 @@ export const audioBufferToWavFormat = (
       const channelIndex = Math.min(channel, finalBuffer.numberOfChannels - 1);
       const sample = finalBuffer.getChannelData(channelIndex)[i];
 
-      if (format.format === "float" && format.bitDepth === 32) {
+      if (format.format === 'float' && format.bitDepth === 32) {
         view.setFloat32(offset, sample, true);
         offset += 4;
       } else if (format.bitDepth === 16) {
@@ -147,7 +151,7 @@ export const audioBufferToWavFormat = (
 
   // Add cue points if any
   if (hasCues) {
-    writeString(offset, "cue ");
+    writeString(offset, 'cue ');
     offset += 4;
     view.setUint32(offset, cueChunkSize - 8, true);
     offset += 4;
@@ -159,12 +163,12 @@ export const audioBufferToWavFormat = (
       const cueTime = spliceMarkersStore[i];
       const resampleRatio = format.sampleRate / originalSampleRate;
       const cueSample = Math.floor(
-        cueTime * originalSampleRate * resampleRatio,
+        cueTime * originalSampleRate * resampleRatio
       );
 
       view.setUint32(offset, i, true); // Cue point ID
       view.setUint32(offset + 4, cueSample, true); // Play order position
-      writeString(offset + 8, "data"); // Data chunk ID
+      writeString(offset + 8, 'data'); // Data chunk ID
       view.setUint32(offset + 12, 0, true); // Chunk start
       view.setUint32(offset + 16, 0, true); // Block start
       view.setUint32(offset + 20, cueSample, true); // Sample offset
@@ -178,12 +182,12 @@ export const audioBufferToWavFormat = (
 // Export handlers
 export const downloadWav = (
   arrayBuffer: ArrayBuffer,
-  filename: string = "morphedit-export.wav",
+  filename: string = 'morphedit-export.wav'
 ) => {
-  const blob = new Blob([arrayBuffer], { type: "audio/wav" });
+  const blob = new Blob([arrayBuffer], { type: 'audio/wav' });
   const url = URL.createObjectURL(blob);
 
-  const a = document.createElement("a");
+  const a = document.createElement('a');
   a.href = url;
   a.download = filename;
   document.body.appendChild(a);

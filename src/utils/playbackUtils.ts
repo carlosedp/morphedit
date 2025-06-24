@@ -1,9 +1,9 @@
 // Playback control utilities
-import type { Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
-import type RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
-import type WaveSurfer from "wavesurfer.js";
-import { SKIP_INCREMENTS } from "../constants";
-import { useAudioStore } from "../audioStore";
+import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
+import type RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
+import type WaveSurfer from 'wavesurfer.js';
+import { SKIP_INCREMENTS } from '../constants';
+import { useAudioStore } from '../audioStore';
 
 // Store the current splice stop listener to clean it up when needed
 let currentSpliceStopListener: ((time: number) => void) | null = null;
@@ -16,11 +16,11 @@ let currentSpliceStopListener: ((time: number) => void) | null = null;
 export const playSpliceMarker = (
   ws: WaveSurfer,
   spliceMarkers: number[],
-  index: number,
+  index: number
 ) => {
   if (!ws || !spliceMarkers || spliceMarkers.length === 0) {
     console.log(
-      "Cannot play splice marker: no wavesurfer or splice markers available",
+      'Cannot play splice marker: no wavesurfer or splice markers available'
     );
     return;
   }
@@ -30,14 +30,14 @@ export const playSpliceMarker = (
 
   if (markerIndex < 0 || markerIndex >= spliceMarkers.length) {
     console.log(
-      `Splice marker ${index} does not exist (only ${spliceMarkers.length} markers available)`,
+      `Splice marker ${index} does not exist (only ${spliceMarkers.length} markers available)`
     );
     return;
   }
 
   // Clean up any existing splice stop listener
   if (currentSpliceStopListener) {
-    ws.un("timeupdate", currentSpliceStopListener);
+    ws.un('timeupdate', currentSpliceStopListener);
     currentSpliceStopListener = null;
   }
 
@@ -52,8 +52,8 @@ export const playSpliceMarker = (
     `Playing splice marker ${index} at ${markerTime.toFixed(3)}s${
       nextMarkerTime
         ? ` (will stop at ${nextMarkerTime.toFixed(3)}s)`
-        : " (no next marker, will play to end)"
-    }`,
+        : ' (no next marker, will play to end)'
+    }`
   );
 
   // Seek to the marker position (normalized to 0-1)
@@ -67,30 +67,30 @@ export const playSpliceMarker = (
         if (time >= nextMarkerTime) {
           console.log(
             `Reached next splice marker at ${nextMarkerTime.toFixed(
-              3,
-            )}s, stopping playback`,
+              3
+            )}s, stopping playback`
           );
           ws.pause();
 
           // Clean up the listener
           if (currentSpliceStopListener) {
-            ws.un("timeupdate", currentSpliceStopListener);
+            ws.un('timeupdate', currentSpliceStopListener);
             currentSpliceStopListener = null;
           }
         }
       };
 
-      ws.on("timeupdate", currentSpliceStopListener);
+      ws.on('timeupdate', currentSpliceStopListener);
 
       // Also clean up listener when playback stops for other reasons
       const cleanupOnPause = () => {
         if (currentSpliceStopListener) {
-          ws.un("timeupdate", currentSpliceStopListener);
+          ws.un('timeupdate', currentSpliceStopListener);
           currentSpliceStopListener = null;
         }
-        ws.un("pause", cleanupOnPause);
+        ws.un('pause', cleanupOnPause);
       };
-      ws.on("pause", cleanupOnPause);
+      ws.on('pause', cleanupOnPause);
     }
 
     // Start playback if not already playing
@@ -104,14 +104,14 @@ export const playPause = (
   ws: WaveSurfer,
   regions: RegionsPlugin,
   isPlaying: boolean,
-  cropRegion: Region | null,
+  cropRegion: Region | null
 ) => {
   if (!ws) return;
 
   // Check if we have a crop region
   const region = regions
     ?.getRegions()
-    .find((r: Region) => r.id === "crop-loop");
+    .find((r: Region) => r.id === 'crop-loop');
 
   if (region && cropRegion) {
     // If we have a crop region, play/pause the region
@@ -129,14 +129,14 @@ export const playPause = (
 export const rewind = (
   ws: WaveSurfer,
   regions: RegionsPlugin,
-  cropRegion: Region | null,
+  cropRegion: Region | null
 ) => {
   if (!ws) return;
 
   // Check if we have a crop region
   const region = regions
     ?.getRegions()
-    .find((r: Region) => r.id === "crop-loop");
+    .find((r: Region) => r.id === 'crop-loop');
 
   if (region && cropRegion) {
     // If we have a crop region, rewind to the start of the region
@@ -204,31 +204,31 @@ export const undo = async (
     setFadeOutMode: (mode: boolean) => void;
     setSpliceMarkersStore?: (markers: number[]) => void;
     setLockedSpliceMarkersStore?: (markers: number[]) => void;
-  },
+  }
 ): Promise<void> => {
   if (!ws || !canUndo || !previousAudioUrl) {
     console.log(
-      "Cannot undo: no wavesurfer, undo not available, or no previous URL",
+      'Cannot undo: no wavesurfer, undo not available, or no previous URL'
     );
     return;
   }
 
-  console.log("Undoing to previous audio URL:", previousAudioUrl);
+  console.log('Undoing to previous audio URL:', previousAudioUrl);
 
   // Get the previous splice markers from the store before clearing them
   const store = useAudioStore.getState();
   const previousSpliceMarkers = store.previousSpliceMarkers;
   const previousLockedSpliceMarkers = store.previousLockedSpliceMarkers;
 
-  console.log("=== UNDO MARKER DEBUG ===");
-  console.log("Current markers in store:", store.spliceMarkers);
-  console.log("Current locked markers in store:", store.lockedSpliceMarkers);
-  console.log("Previous markers to restore:", previousSpliceMarkers);
+  console.log('=== UNDO MARKER DEBUG ===');
+  console.log('Current markers in store:', store.spliceMarkers);
+  console.log('Current locked markers in store:', store.lockedSpliceMarkers);
+  console.log('Previous markers to restore:', previousSpliceMarkers);
   console.log(
-    "Previous locked markers to restore:",
-    previousLockedSpliceMarkers,
+    'Previous locked markers to restore:',
+    previousLockedSpliceMarkers
   );
-  console.log("=== END UNDO MARKER DEBUG ===");
+  console.log('=== END UNDO MARKER DEBUG ===');
 
   // Set undo flag to prevent the ready event from overriding our restored markers
   store.setIsUndoing(true);
@@ -236,16 +236,16 @@ export const undo = async (
   // Restore splice markers BEFORE loading the audio so the ready event sees them
   if (callbacks.setSpliceMarkersStore) {
     console.log(
-      "Restoring splice markers to previous state BEFORE load:",
-      previousSpliceMarkers,
+      'Restoring splice markers to previous state BEFORE load:',
+      previousSpliceMarkers
     );
     callbacks.setSpliceMarkersStore([...previousSpliceMarkers]);
   }
 
   if (callbacks.setLockedSpliceMarkersStore) {
     console.log(
-      "Restoring locked splice markers to previous state BEFORE load:",
-      previousLockedSpliceMarkers,
+      'Restoring locked splice markers to previous state BEFORE load:',
+      previousLockedSpliceMarkers
     );
     callbacks.setLockedSpliceMarkersStore([...previousLockedSpliceMarkers]);
   }
@@ -253,7 +253,7 @@ export const undo = async (
   // Load the previous audio URL
   try {
     await ws.load(previousAudioUrl);
-    console.log("Undo successful");
+    console.log('Undo successful');
 
     // Update the current audio URL to the restored version
     callbacks.setCurrentAudioUrl(previousAudioUrl);
@@ -271,7 +271,7 @@ export const undo = async (
     callbacks.setFadeInMode(false);
     callbacks.setFadeOutMode(false);
   } catch (error) {
-    console.error("Error during undo:", error);
+    console.error('Error during undo:', error);
     // Clear undo flag even on error
     store.setIsUndoing(false);
   }

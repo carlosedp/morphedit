@@ -1,15 +1,36 @@
 {
   "name": "morphedit",
+  "description": "A desktop application for creating audio reels, samples and editing.",
+  "author": "Carlos Eduardo de Paula",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/carlosedp/morphedit.git"
+  },
+  "keywords": [
+    "audio",
+    "editor",
+    "desktop",
+    "react",
+    "electron"
+  ],
+  "homepage": "https://carlosedp.github.io/morphedit/",
+  "bugs": {
+    "url": "https://github.com/carlosedp/morphedit/issues"
+  },
   "private": true,
-  "version": "4.3.0",
+  "version": "4.5.1",
   "type": "module",
   "scripts": {
     "start": "vite",
     "dev": "vite",
     "build": "tsc -b && vite build && npm run build:manual",
     "build:manual": "node scripts/build-manual.js",
-    "lint": "eslint .",
+    "clean": "rimraf dist && rimraf node_modules",
+    "lint": "eslint . --fix",
     "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\"",
+    "format": "npm run pretty && npm run lint",
+    "depcheck": "knip",
     "preview": "vite preview",
     "electron:dev": "vite build && electron .",
     "electron:pack": "npm run build && electron-builder --dir",
@@ -29,23 +50,24 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
-    "@types/marked": "^5.0.2",
-    "@types/node": "^24.0.1",
+    "@types/node": "^24.0.3",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
-    "electron": "^36.4.0",
+    "electron": "^37.0.0",
     "electron-builder": "^26.0.0",
     "eslint": "^9.25.0",
+    "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "knip": "^5.61.2",
     "marked": "^15.0.12",
+    "prettier": "^3.6.0",
+    "rimraf": "^6.0.1",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
-    "unplugin-fonts": "^1.3.1",
-    "vite": "^6.3.5",
-    "web-audio-beat-detector": "^8.2.29"
+    "vite": "^7.0.0"
   },
   "main": "electron-main.cjs",
   "build": {

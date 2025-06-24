@@ -1,27 +1,27 @@
 // Transient detection utilities for automatic splice point detection
-import type WaveSurfer from "wavesurfer.js";
-import type RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
-import type { Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
-import { useAudioStore } from "../audioStore";
-import { isMarkerLocked } from "./spliceMarkerUtils";
+import type WaveSurfer from 'wavesurfer.js';
+import type RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
+import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
+import { useAudioStore } from '../audioStore';
+import { isMarkerLocked } from './spliceMarkerUtils';
 import {
   REGION_COLORS,
   TRANSIENT_DETECTION,
   MARKER_ICONS,
   MARKER_TOLERANCE,
-} from "../constants";
+} from '../constants';
 import {
   removeUnlockedMarkersAndClearSelection,
   removeAllSpliceMarkersAndClearSelection,
   clearSelectionAndUpdateColors,
   limitSpliceMarkers,
-} from "./regionHelpers";
+} from './regionHelpers';
 
 /**
  * Detects transients (sudden changes in energy) in audio buffer
  * Similar to Propellerhead ReCycle's functionality
  */
-export const detectTransients = (
+const detectTransients = (
   audioBuffer: AudioBuffer,
   sensitivity: number,
   frameSizeMs: number = TRANSIENT_DETECTION.DEFAULT_FRAME_SIZE_MS,
@@ -119,7 +119,7 @@ export const applyTransientDetection = (
   updateSpliceMarkerColors: (marker: Region | null) => void
 ): number => {
   if (!_ws || !regions || !audioBuffer) {
-    console.log("Cannot apply transient detection: missing dependencies");
+    console.log('Cannot apply transient detection: missing dependencies');
     return 0;
   }
 
@@ -184,7 +184,7 @@ export const applyTransientDetection = (
     // Clear all existing markers and recreate only the limited ones
     const existingRegions = regions
       .getRegions()
-      .filter((r: Region) => r.id.startsWith("splice-marker-"));
+      .filter((r: Region) => r.id.startsWith('splice-marker-'));
     existingRegions.forEach((region: Region) => region.remove());
 
     // Recreate visual markers for limited set
@@ -245,7 +245,7 @@ export const applyTransientDetection = (
     `Transient detection complete. Created ${detectedTransients} new markers${
       wasLimited
         ? ` (limited from ${allMarkers.length} to ${limitedMarkers.length})`
-        : ""
+        : ''
     }, total: ${limitedMarkers.length} (${lockedMarkers.length} locked)`
   );
   return detectedTransients;
@@ -307,7 +307,7 @@ export const snapToZeroCrossings = (
     return;
   }
 
-  console.log("Snapping splice markers to zero crossings...");
+  console.log('Snapping splice markers to zero crossings...');
 
   // Clear existing visual markers
   removeAllSpliceMarkersAndClearSelection(

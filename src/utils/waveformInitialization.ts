@@ -1,12 +1,12 @@
 // WaveformInitialization.ts - Handles WaveSurfer initialization logic
-import type { Theme } from "@mui/material/styles";
-import WaveSurfer from "wavesurfer.js";
-import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
-import TimelinePlugin from "wavesurfer.js/dist/plugins/timeline.esm.js";
-import Minimap from "wavesurfer.js/dist/plugins/minimap.esm.js";
-import Hover from "wavesurfer.js/dist/plugins/hover.esm.js";
+import type { Theme } from '@mui/material/styles';
+import WaveSurfer from 'wavesurfer.js';
+import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
+import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline.esm.js';
+import Minimap from 'wavesurfer.js/dist/plugins/minimap.esm.js';
+import Hover from 'wavesurfer.js/dist/plugins/hover.esm.js';
 
-import { UI_COLORS, WAVEFORM_RENDERING, MINIMAP_ENABLED } from "../constants";
+import { UI_COLORS, WAVEFORM_RENDERING, MINIMAP_ENABLED } from '../constants';
 
 interface DebugWindow extends Window {
   morpheditRegions?: RegionsPlugin;
@@ -30,7 +30,7 @@ export function createWaveSurferInstance(theme: Theme) {
 
   // Create wavesurfer instance
   const ws = WaveSurfer.create({
-    container: "#waveform-container",
+    container: '#waveform-container',
     waveColor: theme.palette.primary.main,
     // Use the primary main color but lightened for better contrast
     progressColor: theme.palette.primary.light,
@@ -45,12 +45,12 @@ export function createWaveSurferInstance(theme: Theme) {
         lineWidth: WAVEFORM_RENDERING.GRID_LINE_WIDTH,
         labelBackground: UI_COLORS.LABEL_BACKGROUND,
         labelColor: UI_COLORS.LABEL_TEXT,
-        labelSize: "11px",
+        labelSize: '11px',
         formatTimeCallback: (seconds: number) => {
           const minutes = Math.floor(seconds / 60);
           const secs = Math.floor(seconds % 60);
           const millis = Math.floor((seconds % 1) * 1000);
-          return `${minutes}:${secs < 10 ? "0" : ""}${secs}.${millis}`;
+          return `${minutes}:${secs < 10 ? '0' : ''}${secs}.${millis}`;
         },
       }),
     ],
@@ -67,7 +67,7 @@ export function createWaveSurferInstance(theme: Theme) {
 // Helper function to calculate initial zoom
 export function calculateInitialZoom(duration: number): number {
   // Get container width with multiple fallbacks
-  const container = document.getElementById("waveform-container");
+  const container = document.getElementById('waveform-container');
   let containerWidth = 800; // Default fallback
 
   if (container) {

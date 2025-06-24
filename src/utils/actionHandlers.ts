@@ -1,13 +1,13 @@
 // Generic handler factory to reduce repetitive switch case patterns
 
-import type { WaveformRef } from "../Waveform";
-import { MAX_KEYBOARD_SHORTCUT_MARKERS } from "../constants";
+import type { WaveformRef } from '../Waveform';
+import { MAX_KEYBOARD_SHORTCUT_MARKERS } from '../constants';
 
 // Type for action handlers
 type ActionHandler = () => void;
 
 // Create a mapping object for actions to avoid large switch statements
-export const createActionHandlers = (
+const createActionHandlers = (
   waveformRef: React.RefObject<WaveformRef | null>
 ) => {
   const handlers: Record<string, ActionHandler> = {

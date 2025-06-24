@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
 export interface AudioState {
   audioBuffer: AudioBuffer | null;
@@ -39,9 +39,9 @@ export const useAudioStore = create<AudioState>(
     audioBuffer: null,
     setAudioBuffer: (buffer) => {
       console.log(
-        "AudioStore - setAudioBuffer called with:",
+        'AudioStore - setAudioBuffer called with:',
         !!buffer,
-        buffer ? `duration: ${buffer.length / buffer.sampleRate}s` : "null"
+        buffer ? `duration: ${buffer.length / buffer.sampleRate}s` : 'null'
       );
       set({ audioBuffer: buffer });
     },

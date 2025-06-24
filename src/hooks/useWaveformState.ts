@@ -1,13 +1,13 @@
 // Custom hook for managing waveform state
-import { useState, useRef, useMemo } from "react";
-import type { Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
-import type RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
-import type WaveSurfer from "wavesurfer.js";
-import { FADE_CURVE_TYPES } from "../constants";
-import type { ExportFormat } from "../utils/exportUtils";
-import { EXPORT_FORMATS } from "../constants";
+import { useState, useRef, useMemo } from 'react';
+import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
+import type RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
+import type WaveSurfer from 'wavesurfer.js';
+import { FADE_CURVE_TYPES } from '../constants';
+import type { ExportFormat } from '../utils/exportUtils';
+import { EXPORT_FORMATS } from '../constants';
 
-export interface WaveformState {
+interface WaveformState {
   // Playback state
   isPlaying: boolean;
   isLooping: boolean;
@@ -44,7 +44,7 @@ export interface WaveformState {
   selectedExportFormat: ExportFormat;
 }
 
-export interface WaveformActions {
+interface WaveformActions {
   setIsPlaying: (playing: boolean) => void;
   setIsLooping: (looping: boolean | ((prev: boolean) => boolean)) => void;
   setCurrentTime: (time: number) => void;
@@ -69,7 +69,7 @@ export interface WaveformActions {
 }
 
 export const useWaveformState = (
-  initialAudioUrl: string,
+  initialAudioUrl: string
 ): [WaveformState, WaveformActions] => {
   // Playback state
   const [isPlaying, setIsPlaying] = useState(false);
@@ -83,10 +83,10 @@ export const useWaveformState = (
   const [fadeInMode, setFadeInMode] = useState(false);
   const [fadeOutMode, setFadeOutMode] = useState(false);
   const [fadeInCurveType, setFadeInCurveType] = useState<string>(
-    FADE_CURVE_TYPES.LINEAR,
+    FADE_CURVE_TYPES.LINEAR
   );
   const [fadeOutCurveType, setFadeOutCurveType] = useState<string>(
-    FADE_CURVE_TYPES.LINEAR,
+    FADE_CURVE_TYPES.LINEAR
   );
 
   // Splice marker state
@@ -106,16 +106,16 @@ export const useWaveformState = (
 
   // Audio URL state
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>(
-    initialAudioUrl,
+    initialAudioUrl
   );
 
   // Export state
   const [exportAnchorEl, setExportAnchorEl] = useState<HTMLElement | null>(
-    null,
+    null
   );
   const [selectedExportFormat, setSelectedExportFormat] =
     useState<ExportFormat>(
-      EXPORT_FORMATS[0], // Default to first format (48kHz 32-bit Float Stereo)
+      EXPORT_FORMATS[0] // Default to first format (48kHz 32-bit Float Stereo)
     );
 
   const state: WaveformState = {
@@ -188,7 +188,7 @@ export const useWaveformState = (
       setCurrentAudioUrl,
       setExportAnchorEl,
       setSelectedExportFormat,
-    ],
+    ]
   );
 
   return [state, actions];

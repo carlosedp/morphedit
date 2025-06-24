@@ -1,17 +1,17 @@
 // Waveform controls component - playback, zoom, and navigation
-import React from "react";
-import { IconButton, Slider, Stack, Typography, Tooltip } from "@mui/material";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import PauseIcon from "@mui/icons-material/Pause";
-import ZoomInIcon from "@mui/icons-material/ZoomIn";
-import ZoomOutIcon from "@mui/icons-material/ZoomOut";
-import ZoomResetIcon from "@mui/icons-material/ZoomOutMap";
-import RepeatIcon from "@mui/icons-material/Repeat";
-import FirstPageIcon from "@mui/icons-material/FirstPage";
-import { formatTime, formatSeconds } from "../utils/audioProcessing";
-import { formatBPM } from "../utils/bpmDetection";
-import { TOOLTIP_DELAYS, ZOOM_LEVELS, MARKER_ICONS } from "../constants";
-import type { RegionInfo } from "../utils/regionUtils";
+import * as React from 'react';
+import { IconButton, Slider, Stack, Typography, Tooltip } from '@mui/material';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import PauseIcon from '@mui/icons-material/Pause';
+import ZoomInIcon from '@mui/icons-material/ZoomIn';
+import ZoomOutIcon from '@mui/icons-material/ZoomOut';
+import ZoomResetIcon from '@mui/icons-material/ZoomOutMap';
+import RepeatIcon from '@mui/icons-material/Repeat';
+import FirstPageIcon from '@mui/icons-material/FirstPage';
+import { formatTime, formatSeconds } from '../utils/audioProcessing';
+import { formatBPM } from '../utils/bpmDetection';
+import { TOOLTIP_DELAYS, ZOOM_LEVELS, MARKER_ICONS } from '../constants';
+import type { RegionInfo } from '../utils/regionUtils';
 
 interface WaveformControlsProps {
   isPlaying: boolean;
@@ -55,10 +55,10 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
       direction="row"
       sx={{
         mt: 2,
-        width: "100%",
-        flexDirection: { xs: "column", md: "row" },
+        width: '100%',
+        flexDirection: { xs: 'column', md: 'row' },
         gap: { xs: 2, md: 0 },
-        alignItems: { xs: "stretch", md: "flex-start" },
+        alignItems: { xs: 'stretch', md: 'flex-start' },
       }}
     >
       {/* Left column - Controls */}
@@ -68,9 +68,9 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
         alignItems="center"
         sx={{
           flex: 1,
-          flexWrap: "wrap",
+          flexWrap: 'wrap',
           gap: { xs: 1, sm: 2 },
-          justifyContent: { xs: "center", md: "flex-start" },
+          justifyContent: { xs: 'center', md: 'flex-start' },
         }}
       >
         <Tooltip
@@ -83,8 +83,8 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
             color="primary"
             size="large"
             sx={{
-              fontSize: { xs: "1.5rem", sm: "1.5rem" },
-              padding: { xs: "12px", sm: "12px" },
+              fontSize: { xs: '1.5rem', sm: '1.5rem' },
+              padding: { xs: '12px', sm: '12px' },
             }}
           >
             {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
@@ -98,9 +98,9 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
         >
           <IconButton
             onClick={onLoop}
-            color={isLooping ? "primary" : "default"}
+            color={isLooping ? 'primary' : 'default'}
             sx={{
-              padding: { xs: "10px", sm: "8px" },
+              padding: { xs: '10px', sm: '8px' },
             }}
           >
             <RepeatIcon />
@@ -116,7 +116,7 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
             onClick={onRewind}
             color="default"
             sx={{
-              padding: { xs: "10px", sm: "8px" },
+              padding: { xs: '10px', sm: '8px' },
             }}
           >
             <FirstPageIcon />
@@ -130,8 +130,8 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           alignItems="center"
           sx={{
             ml: { xs: 0, sm: 2 },
-            minWidth: { xs: "100%", sm: "auto" },
-            justifyContent: { xs: "center", sm: "flex-start" },
+            minWidth: { xs: '100%', sm: 'auto' },
+            justifyContent: { xs: 'center', sm: 'flex-start' },
           }}
         >
           <ZoomOutIcon color="action" />
@@ -164,10 +164,10 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
         alignItems="flex-end"
         sx={{
           flex: 1,
-          justifyContent: "flex-end",
-          alignItems: { xs: "center", md: "flex-end" },
-          textAlign: { xs: "center", md: "right" },
-          minWidth: { xs: "100%", md: "auto" },
+          justifyContent: 'flex-end',
+          alignItems: { xs: 'center', md: 'flex-end' },
+          textAlign: { xs: 'center', md: 'right' },
+          minWidth: { xs: '100%', md: 'auto' },
         }}
       >
         {/* Permanent info line - Duration, Position, BPM, Splice Markers */}
@@ -176,13 +176,21 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           spacing={1}
           alignItems="center"
           sx={{
-            flexWrap: "wrap",
-            justifyContent: { xs: "center", md: "flex-end" },
+            flexWrap: 'nowrap', // Prevent wrapping to keep items on same line
+            justifyContent: { xs: 'center', md: 'flex-end' },
+            overflow: 'hidden', // Hide overflow instead of wrapping
+            '& > *': {
+              flexShrink: 1, // Allow items to shrink if needed
+              minWidth: 'max-content', // Prevent text from breaking
+            },
           }}
         >
           <Typography
             variant="body2"
-            sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
+            sx={{
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              whiteSpace: 'nowrap',
+            }}
           >
             🕒 {formatTime(currentTime)} / {formatTime(duration)}
           </Typography>
@@ -190,7 +198,10 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
             <Typography
               variant="body2"
               color="primary"
-              sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
+              sx={{
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                whiteSpace: 'nowrap',
+              }}
             >
               | 🎵 {formatBPM(bpm)}
             </Typography>
@@ -198,9 +209,12 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           <Typography
             variant="body2"
             color="primary"
-            sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
+            sx={{
+              fontSize: { xs: '0.75rem', sm: '0.875rem' }, // Smaller on mobile
+              whiteSpace: 'nowrap', // Prevent text wrapping
+            }}
           >
-            | ✂️ Splice markers: {spliceMarkersCount}
+            | ✂️ Splice: {spliceMarkersCount}
           </Typography>
         </Stack>
 
@@ -210,11 +224,12 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
             variant="caption"
             color="primary"
             sx={{
-              fontSize: { xs: "0.75rem", sm: "0.8rem" },
+              fontSize: { xs: '0.75rem', sm: '0.8rem' },
               fontWeight: 500,
             }}
           >
-            {MARKER_ICONS.SELECTED} Selected Marker: {formatTime(selectedSpliceMarkerTime)}
+            {MARKER_ICONS.SELECTED} Selected Marker:{' '}
+            {formatTime(selectedSpliceMarkerTime)}
           </Typography>
         )}
 
@@ -223,9 +238,10 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           <Typography
             variant="caption"
             color="warning.main"
-            sx={{ fontSize: { xs: "0.75rem", sm: "0.8rem" } }}
+            sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}
           >
-            Crop Region: {formatTime(regionInfo.cropRegion.start)} - {formatTime(regionInfo.cropRegion.end)}
+            Crop Region: {formatTime(regionInfo.cropRegion.start)} -{' '}
+            {formatTime(regionInfo.cropRegion.end)}
           </Typography>
         )}
 
@@ -233,9 +249,10 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           <Typography
             variant="caption"
             color="success.main"
-            sx={{ fontSize: { xs: "0.75rem", sm: "0.8rem" } }}
+            sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}
           >
-            Fade-In: {formatTime(regionInfo.fadeInRegion.start)} - {formatTime(regionInfo.fadeInRegion.end)}
+            Fade-In: {formatTime(regionInfo.fadeInRegion.start)} -{' '}
+            {formatTime(regionInfo.fadeInRegion.end)}
           </Typography>
         )}
 
@@ -243,9 +260,10 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           <Typography
             variant="caption"
             color="error.main"
-            sx={{ fontSize: { xs: "0.75rem", sm: "0.8rem" } }}
+            sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}
           >
-            Fade-Out: {formatTime(regionInfo.fadeOutRegion.start)} - {formatTime(regionInfo.fadeOutRegion.end)}
+            Fade-Out: {formatTime(regionInfo.fadeOutRegion.start)} -{' '}
+            {formatTime(regionInfo.fadeOutRegion.end)}
           </Typography>
         )}
 
@@ -254,8 +272,8 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           variant="caption"
           color="text.secondary"
           sx={{
-            fontSize: { xs: "0.7rem", sm: "0.75rem" },
-            fontStyle: "italic",
+            fontSize: { xs: '0.7rem', sm: '0.75rem' },
+            fontStyle: 'italic',
           }}
         >
           ⌨️ Arrow Skip: {formatSeconds(skipIncrement)}s

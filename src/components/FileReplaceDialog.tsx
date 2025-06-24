@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -8,8 +8,8 @@ import {
   Button,
   Box,
   Alert,
-} from "@mui/material";
-import QuestionMarkIcon from "@mui/icons-material/QuestionMark";
+} from '@mui/material';
+import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
 
 interface FileReplaceDialogProps {
   open: boolean;
@@ -36,26 +36,26 @@ export const FileReplaceDialog: React.FC<FileReplaceDialogProps> = ({
       maxWidth="sm"
       fullWidth
       sx={{
-        "& .MuiDialog-paper": {
+        '& .MuiDialog-paper': {
           margin: { xs: 1, sm: 3 },
-          width: { xs: "calc(100% - 16px)", sm: "auto" },
+          width: { xs: 'calc(100% - 16px)', sm: 'auto' },
         },
       }}
     >
-      <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <QuestionMarkIcon color="info" />
         Audio Already Loaded
       </DialogTitle>
       <DialogContent>
         <Alert severity="info" sx={{ mb: 2 }}>
           You have an audio file currently loaded. What would you like to do
-          with the {isMultipleFiles ? `${fileCount} new files` : "new file"}?
+          with the {isMultipleFiles ? `${fileCount} new files` : 'new file'}?
         </Alert>
 
         <Box sx={{ mb: 2 }}>
           <Typography variant="body1" gutterBottom>
             <strong>
-              {isMultipleFiles ? "Files to process:" : "File to process:"}
+              {isMultipleFiles ? 'Files to process:' : 'File to process:'}
             </strong>
           </Typography>
           <Typography variant="body2" color="text.secondary">
@@ -69,17 +69,17 @@ export const FileReplaceDialog: React.FC<FileReplaceDialogProps> = ({
 
         <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2 }}>
           <Typography component="li" variant="body2" color="text.secondary">
-            <strong>Replace:</strong> Remove the current audio and load the new{" "}
-            {isMultipleFiles ? "files" : "file"} (interface will be reset)
+            <strong>Replace:</strong> Remove the current audio and load the new{' '}
+            {isMultipleFiles ? 'files' : 'file'} (interface will be reset)
           </Typography>
           <Typography component="li" variant="body2" color="text.secondary">
-            <strong>Append:</strong> Add the new{" "}
-            {isMultipleFiles ? "files" : "file"} to the end of the current audio
+            <strong>Append:</strong> Add the new{' '}
+            {isMultipleFiles ? 'files' : 'file'} to the end of the current audio
             (existing splice markers will be preserved)
           </Typography>
           <Typography component="li" variant="body2" color="text.secondary">
-            <strong>Cancel:</strong> Keep the current audio and ignore the new{" "}
-            {isMultipleFiles ? "files" : "file"}
+            <strong>Cancel:</strong> Keep the current audio and ignore the new{' '}
+            {isMultipleFiles ? 'files' : 'file'}
           </Typography>
         </Box>
 
@@ -103,7 +103,7 @@ export const FileReplaceDialog: React.FC<FileReplaceDialogProps> = ({
           Cancel
         </Button>
         <Button onClick={onAppend} color="primary" variant="outlined">
-          Append {isMultipleFiles ? "Files" : "File"}
+          Append {isMultipleFiles ? 'Files' : 'File'}
         </Button>
         <Button onClick={onReplace} color="primary" variant="contained">
           Replace Current Audio
