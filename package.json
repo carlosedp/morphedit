@@ -42,6 +42,7 @@
     "@fontsource/roboto-mono": "^5.2.6",
     "@mui/icons-material": "^7.1.1",
     "@mui/material": "^7.1.1",
+    "electron-updater": "^6.3.9",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "wavesurfer.js": "^7.9.5",
@@ -79,8 +80,14 @@
       "package.json",
       "preload.js"
     ],
+    "publish": {
+      "provider": "github",
+      "owner": "carlosedp",
+      "repo": "morphedit"
+    },
     "directories": {
-      "buildResources": "public"
+      "buildResources": "public",
+      "output": "electron-dist"
     },
     "win": {
       "target": [
@@ -88,8 +95,29 @@
       ]
     },
     "mac": {
-      "target": [
-        "dmg"
+      "notarize": false,
+      "target": {
+        "target": "default",
+        "arch": [
+          "arm64",
+          "x64"
+        ]
+      },
+      "type": "distribution",
+      "gatekeeperAssess": false
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
       ]
     },
     "linux": {

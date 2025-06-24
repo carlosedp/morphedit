@@ -18,6 +18,7 @@ import { FileLengthWarningDialog } from './components/FileLengthWarningDialog';
 import { LoadingDialog } from './components/LoadingDialog';
 import { MultipleFilesDialog } from './components/MultipleFilesDialog';
 import { FileReplaceDialog } from './components/FileReplaceDialog';
+import { AutoUpdater } from './components/AutoUpdater';
 import {
   getAudioFileDuration,
   isFileTooLong,
@@ -1003,6 +1004,9 @@ function App() {
       />
 
       <LoadingDialog open={isLoading} message={loadingMessage} />
+
+      {/* Auto-updater component (only active in Electron) */}
+      <AutoUpdater />
     </ThemeProvider>
   );
 }

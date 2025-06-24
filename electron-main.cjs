@@ -1,6 +1,45 @@
 const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
+
+// Configure auto-updater
+autoUpdater.checkForUpdatesAndNotify();
+
+// Auto-updater event handlers
+autoUpdater.on('checking-for-update', () => {
+  console.log('Checking for update...');
+});
+
+autoUpdater.on('update-available', (info) => {
+  console.log('Update available:', info);
+});
+
+autoUpdater.on('update-not-available', (info) => {
+  console.log('Update not available:', info);
+});
+
+autoUpdater.on('error', (err) => {
+  console.log('Error in auto-updater:', err);
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+  let log_message = 'Download speed: ' + progressObj.bytesPerSecond;
+  log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
+  log_message =
+    log_message +
+    ' (' +
+    progressObj.transferred +
+    '/' +
+    progressObj.total +
+    ')';
+  console.log(log_message);
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+  console.log('Update downloaded:', info);
+  autoUpdater.quitAndInstall();
+});
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -191,11 +230,49 @@ function createWindow() {
     }
   });
 
+  // Auto-updater IPC handlers
+  ipcMain.handle('check-for-updates', async () => {
+    try {
+      const result = await autoUpdater.checkForUpdates();
+      return { success: true, result };
+    } catch (error) {
+      console.error('Check for updates error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('install-update', () => {
+    autoUpdater.quitAndInstall();
+  });
+
+  // Forward auto-updater events to renderer
+  autoUpdater.on('update-available', (info) => {
+    win.webContents.send('update-available', info);
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    win.webContents.send('update-downloaded', info);
+  });
+
+  autoUpdater.on('download-progress', (progressObj) => {
+    win.webContents.send('download-progress', progressObj);
+  });
+
   return win;
 }
 
 app.whenReady().then(() => {
   const mainWindow = createWindow();
+
+  // Check for updates after app is ready (only in production)
+  if (!require('electron').app.isPackaged) {
+    console.log('Development mode - skipping auto-updater');
+  } else {
+    // Check for updates 3 seconds after app start
+    setTimeout(() => {
+      autoUpdater.checkForUpdatesAndNotify();
+    }, 3000);
+  }
 
   // Clean up IPC handlers when app is quitting
   app.on('before-quit', () => {
