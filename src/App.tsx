@@ -41,7 +41,8 @@ import {
   UI_COLORS,
   PLAYBACK_TIMING,
 } from './constants';
-import { version } from './Version.ts';
+import packageJson from '../package.json';
+
 import { theme } from './styles/theme.tsx';
 import { WaveformContainer } from './styles/StyledComponents.tsx';
 
@@ -958,7 +959,7 @@ function App() {
             }}
           >
             <br />
-            Version {version} - Built with React and MUI
+            Version {packageJson.version} - Built with React and MUI
             <br />© 2025 - Carlos Eduardo de Paula -{' '}
             <a
               href="https://github.com/carlosedp/morphedit"
