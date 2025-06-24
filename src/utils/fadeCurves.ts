@@ -1,5 +1,5 @@
 // Fade curve calculation utilities
-import { FADE_CURVE_TYPES } from "../constants";
+import { FADE_CURVE_TYPES } from '../constants';
 
 /**
  * Calculate fade gain value based on curve type and position
@@ -11,7 +11,7 @@ import { FADE_CURVE_TYPES } from "../constants";
 export const calculateFadeGain = (
   position: number,
   curveType: string,
-  isFadeOut: boolean = false,
+  isFadeOut: boolean = false
 ): number => {
   // Clamp position to valid range
   position = Math.max(0, Math.min(1, position));
@@ -24,17 +24,17 @@ export const calculateFadeGain = (
   let gain: number;
 
   switch (curveType) {
-    case "exponential":
+    case 'exponential':
       // Exponential curve: gain = position^2 (smoother transition, more gradual at start)
       gain = position * position;
       break;
 
-    case "logarithmic":
+    case 'logarithmic':
       // Logarithmic curve: gain = sqrt(position) (steeper at start, more gradual at end)
       gain = Math.sqrt(position);
       break;
 
-    case "linear":
+    case 'linear':
     default:
       // Linear curve: gain = position (constant rate of change)
       gain = position;
@@ -49,14 +49,14 @@ export const calculateFadeGain = (
  */
 export const getFadeCurveDescription = (curveType: string): string => {
   switch (curveType) {
-    case "linear":
-      return "Linear - Constant fade rate";
-    case "exponential":
-      return "Exponential - Smooth, gradual start";
-    case "logarithmic":
-      return "Logarithmic - Quick start, gentle end";
+    case 'linear':
+      return 'Linear - Constant fade rate';
+    case 'exponential':
+      return 'Exponential - Smooth, gradual start';
+    case 'logarithmic':
+      return 'Logarithmic - Quick start, gentle end';
     default:
-      return "Unknown curve type";
+      return 'Unknown curve type';
   }
 };
 
@@ -66,17 +66,17 @@ export const getFadeCurveDescription = (curveType: string): string => {
 export const getFadeCurveOptions = () => [
   {
     value: FADE_CURVE_TYPES.LINEAR,
-    label: "Linear",
-    description: "Constant fade rate",
+    label: 'Linear',
+    description: 'Constant fade rate',
   },
   {
     value: FADE_CURVE_TYPES.EXPONENTIAL,
-    label: "Exponential",
-    description: "Smooth, gradual start",
+    label: 'Exponential',
+    description: 'Smooth, gradual start',
   },
   {
     value: FADE_CURVE_TYPES.LOGARITHMIC,
-    label: "Logarithmic",
-    description: "Quick start, gentle end",
+    label: 'Logarithmic',
+    description: 'Quick start, gentle end',
   },
 ];

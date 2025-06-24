@@ -1,5 +1,5 @@
-import "./ElectronApp.ts";
-import { useState, useRef, useEffect, useMemo } from "react";
+import './ElectronApp.ts';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import {
   Container,
   Typography,
@@ -9,20 +9,20 @@ import {
   ThemeProvider,
   Stack,
   Tooltip,
-} from "@mui/material";
-import Waveform, { type WaveformRef } from "./Waveform";
-import { useAudioStore } from "./audioStore";
-import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
-import { KeyboardShortcutsHelp } from "./KeyboardShortcutsHelp";
-import { FileLengthWarningDialog } from "./components/FileLengthWarningDialog";
-import { LoadingDialog } from "./components/LoadingDialog";
-import { MultipleFilesDialog } from "./components/MultipleFilesDialog";
-import { FileReplaceDialog } from "./components/FileReplaceDialog";
+} from '@mui/material';
+import Waveform, { type WaveformRef } from './Waveform';
+import { useAudioStore } from './audioStore';
+import { useKeyboardShortcuts } from './useKeyboardShortcuts';
+import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
+import { FileLengthWarningDialog } from './components/FileLengthWarningDialog';
+import { LoadingDialog } from './components/LoadingDialog';
+import { MultipleFilesDialog } from './components/MultipleFilesDialog';
+import { FileReplaceDialog } from './components/FileReplaceDialog';
 import {
   getAudioFileDuration,
   isFileTooLong,
   MORPHAGENE_MAX_DURATION,
-} from "./utils/fileLengthUtils";
+} from './utils/fileLengthUtils';
 import {
   concatenateAudioFiles,
   getMultipleAudioFilesDuration,
@@ -32,21 +32,21 @@ import {
   appendAudioToExisting,
   truncateConcatenationResult,
   type ConcatenationResult,
-} from "./utils/audioConcatenation";
-import { createActionDispatcher } from "./utils/actionHandlers";
-import { audioLogger, concatenationLogger, createLogger } from "./utils/logger";
+} from './utils/audioConcatenation';
+import { createActionDispatcher } from './utils/actionHandlers';
+import { audioLogger, concatenationLogger, createLogger } from './utils/logger';
 import {
   AUDIO_MAX_DURATION as CONST_MORPHAGENE_MAX_DURATION,
   FILE_HANDLING,
   UI_COLORS,
   PLAYBACK_TIMING,
-} from "./constants";
-import { version } from "./Version.ts";
-import { theme } from "./styles/theme.tsx";
-import { WaveformContainer } from "./styles/StyledComponents.tsx";
+} from './constants';
+import { version } from './Version.ts';
+import { theme } from './styles/theme.tsx';
+import { WaveformContainer } from './styles/StyledComponents.tsx';
 
 function App() {
-  const appLogger = createLogger("App");
+  const appLogger = createLogger('App');
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -58,7 +58,7 @@ function App() {
   const [pendingDuration, setPendingDuration] = useState(0);
   const [shouldTruncateAudio, setShouldTruncateAudio] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingMessage, setLoadingMessage] = useState("");
+  const [loadingMessage, setLoadingMessage] = useState('');
   const [fileReplaceDialogOpen, setFileReplaceDialogOpen] = useState(false);
   const [pendingReplaceFiles, setPendingReplaceFiles] = useState<File[]>([]);
   const [shouldResetZoomAfterLoad, setShouldResetZoomAfterLoad] =
@@ -73,7 +73,7 @@ function App() {
 
   // Function to open manual in a new window/tab
   const handleOpenManual = () => {
-    window.open("./manual.html", "_blank");
+    window.open('./manual.html', '_blank');
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,14 +100,14 @@ function App() {
       const spliceMarkers = useAudioStore.getState().spliceMarkers;
 
       if (!audioBuffer) {
-        appLogger.error("No existing audio buffer to append to");
+        appLogger.error('No existing audio buffer to append to');
         return;
       }
 
       // Calculate the boundary position before concatenation
 
       setIsLoading(true);
-      setLoadingMessage("Appending audio files...");
+      setLoadingMessage('Appending audio files...');
 
       try {
         const result = await appendAudioToExisting(
@@ -135,16 +135,16 @@ function App() {
           await finishAppendProcess(result);
         }
       } catch (error) {
-        appLogger.error("Error appending audio:", error);
+        appLogger.error('Error appending audio:', error);
         setIsLoading(false);
-        setLoadingMessage("");
+        setLoadingMessage('');
       }
     }
   };
 
   const handleMultipleFiles = async (files: File[]) => {
     setIsLoading(true);
-    setLoadingMessage("Analyzing multiple audio files...");
+    setLoadingMessage('Analyzing multiple audio files...');
 
     try {
       // Sort files alphabetically for consistent order
@@ -166,7 +166,7 @@ function App() {
       setPendingMultipleFilesDuration(totalDuration);
       setMultipleFilesDialogOpen(true);
     } catch (error) {
-      appLogger.error("Error analyzing multiple audio files:", error);
+      appLogger.error('Error analyzing multiple audio files:', error);
       setIsLoading(false);
       // Fallback: just load the first file
       loadAudioFile(files[FILE_HANDLING.FIRST_FILE_INDEX]);
@@ -179,7 +179,7 @@ function App() {
     if (pendingFiles.length === 0) return;
 
     setIsLoading(true);
-    setLoadingMessage("Concatenating audio files...");
+    setLoadingMessage('Concatenating audio files...');
 
     try {
       // Check if there's existing audio (append mode)
@@ -210,7 +210,7 @@ function App() {
           result.concatenatedBuffer,
           result.spliceMarkerPositions
         );
-        const url = URL.createObjectURL(wavBlob) + "#morphedit-concatenated";
+        const url = URL.createObjectURL(wavBlob) + '#morphedit-concatenated';
 
         setShouldTruncateAudio(false);
         setAudioUrl(url);
@@ -236,9 +236,9 @@ function App() {
       setPendingMultipleFilesDuration(FILE_HANDLING.NO_FILES);
       // Loading dialog will be closed when Waveform is ready
     } catch (error) {
-      appLogger.error("Error concatenating audio files:", error);
+      appLogger.error('Error concatenating audio files:', error);
       setIsLoading(false);
-      setLoadingMessage("");
+      setLoadingMessage('');
     }
   };
 
@@ -249,9 +249,9 @@ function App() {
   };
 
   const loadAudioFile = async (file: File) => {
-    if (file.type.startsWith("audio/")) {
+    if (file.type.startsWith('audio/')) {
       setIsLoading(true);
-      setLoadingMessage("Analyzing audio file...");
+      setLoadingMessage('Analyzing audio file...');
 
       try {
         // First, check the file duration
@@ -264,15 +264,15 @@ function App() {
           handleLengthWarning(duration);
         } else {
           // File is acceptable length, load it directly
-          setLoadingMessage("Loading audio file...");
+          setLoadingMessage('Loading audio file...');
           setShouldTruncateAudio(false);
           setAudioUrl(URL.createObjectURL(file));
           // Loading dialog will be closed when Waveform is ready
         }
       } catch (error) {
-        console.error("Error getting audio file duration:", error);
+        console.error('Error getting audio file duration:', error);
         // If we can't get duration, just load the file anyway
-        setLoadingMessage("Loading audio file...");
+        setLoadingMessage('Loading audio file...');
         setShouldTruncateAudio(false);
         setAudioUrl(URL.createObjectURL(file));
         // Loading dialog will be closed when Waveform is ready
@@ -298,7 +298,7 @@ function App() {
     if (pendingFile) {
       // Show loading dialog for truncation
       setIsLoading(true);
-      setLoadingMessage("Processing audio for truncation...");
+      setLoadingMessage('Processing audio for truncation...');
 
       // Load the file with truncation enabled
       setShouldTruncateAudio(true);
@@ -321,7 +321,7 @@ function App() {
     if (pendingFile) {
       // Show loading dialog for full file import
       setIsLoading(true);
-      setLoadingMessage("Loading full audio file...");
+      setLoadingMessage('Loading full audio file...');
 
       // Load the full file without truncation
       setShouldTruncateAudio(false);
@@ -334,12 +334,12 @@ function App() {
   // Append-specific handlers for length warning dialog
   const handleAppendTruncation = async () => {
     if (!pendingAppendResult) {
-      console.error("❌ No pendingAppendResult found for truncation");
+      console.error('❌ No pendingAppendResult found for truncation');
       return;
     }
 
     setIsLoading(true);
-    setLoadingMessage("Truncating appended audio...");
+    setLoadingMessage('Truncating appended audio...');
 
     try {
       // Truncate the existing result instead of re-appending
@@ -350,9 +350,9 @@ function App() {
 
       await finishAppendProcess(truncatedResult);
     } catch (error) {
-      console.error("Error truncating appended audio:", error);
+      console.error('Error truncating appended audio:', error);
       setIsLoading(false);
-      setLoadingMessage("");
+      setLoadingMessage('');
       setPendingReplaceFiles([]);
     } finally {
       // Reset append mode state
@@ -366,14 +366,14 @@ function App() {
     if (!pendingAppendResult) return;
 
     setIsLoading(true);
-    setLoadingMessage("Finishing append process...");
+    setLoadingMessage('Finishing append process...');
 
     try {
       await finishAppendProcess(pendingAppendResult);
     } catch (error) {
-      console.error("Error finishing append process:", error);
+      console.error('Error finishing append process:', error);
       setIsLoading(false);
-      setLoadingMessage("");
+      setLoadingMessage('');
       setPendingReplaceFiles([]);
     } finally {
       // Reset append mode state
@@ -431,13 +431,13 @@ function App() {
     const spliceMarkers = useAudioStore.getState().spliceMarkers;
 
     if (!audioBuffer) {
-      console.error("No existing audio buffer to append to");
+      console.error('No existing audio buffer to append to');
       setPendingReplaceFiles([]);
       return;
     }
 
     setIsLoading(true);
-    setLoadingMessage("Appending audio files...");
+    setLoadingMessage('Appending audio files...');
 
     try {
       const result = await appendAudioToExisting(
@@ -457,7 +457,7 @@ function App() {
 
         // Stop loading and show truncate dialog in append mode
         setIsLoading(false);
-        setLoadingMessage("");
+        setLoadingMessage('');
 
         // Store the result and enter append mode
         setPendingAppendResult(result);
@@ -471,9 +471,9 @@ function App() {
       // If duration is acceptable, proceed normally
       await finishAppendProcess(result);
     } catch (error) {
-      console.error("Error appending audio files:", error);
+      console.error('Error appending audio files:', error);
       setIsLoading(false);
-      setLoadingMessage("");
+      setLoadingMessage('');
       setPendingReplaceFiles([]);
     }
   };
@@ -485,7 +485,7 @@ function App() {
       result.concatenatedBuffer,
       result.spliceMarkerPositions
     );
-    const url = URL.createObjectURL(wavBlob) + "#morphedit-appended";
+    const url = URL.createObjectURL(wavBlob) + '#morphedit-appended';
 
     // Save current state for undo
     const { setPreviousAudioUrl, setCanUndo } = useAudioStore.getState();
@@ -504,7 +504,7 @@ function App() {
     // This ensures exports include the appended audio
     setAudioBuffer(result.concatenatedBuffer);
     audioLogger.audioOperation(
-      "Updated audio buffer in store with concatenated buffer"
+      'Updated audio buffer in store with concatenated buffer'
     );
 
     // Add the boundary markers as locked (including the start of the appended audio)
@@ -545,11 +545,11 @@ function App() {
 
   const handleLoadingComplete = () => {
     setIsLoading(false);
-    setLoadingMessage("");
+    setLoadingMessage('');
 
     // Reset zoom to show the entire waveform after append operations
     if (shouldResetZoomAfterLoad && waveformRef.current?.handleZoomReset) {
-      appLogger.debug("Auto-resetting zoom after append operation");
+      appLogger.debug('Auto-resetting zoom after append operation');
 
       // Add a small delay to ensure the waveform is fully loaded
       setTimeout(() => {
@@ -566,13 +566,13 @@ function App() {
 
   const handleProcessingComplete = () => {
     setIsLoading(false);
-    setLoadingMessage("");
+    setLoadingMessage('');
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.dataTransfer.types.includes("Files")) {
+    if (e.dataTransfer.types.includes('Files')) {
       setIsDragOver(true);
     }
   };
@@ -673,7 +673,7 @@ function App() {
         sx={{
           py: 4,
           px: { xs: 1, sm: 3 },
-          position: "relative",
+          position: 'relative',
         }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -684,30 +684,30 @@ function App() {
         {isDragOver && (
           <Box
             sx={{
-              position: "absolute",
+              position: 'absolute',
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
               backgroundColor: UI_COLORS.OVERLAY_BACKGROUND,
-              color: "white",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
+              color: 'white',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
               zIndex: 1000,
               borderRadius: 2,
-              border: "2px dashed",
-              borderColor: "primary.main",
+              border: '2px dashed',
+              borderColor: 'primary.main',
             }}
           >
-            <Typography variant="h4" sx={{ mb: 2, fontWeight: "bold" }}>
+            <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold' }}>
               Drop Audio File(s) Here
             </Typography>
             <Typography variant="body1" color="grey.300">
               {!audioUrl
-                ? "Drop single or multiple files to load/concatenate"
-                : "Replace current audio or append to existing audio"}
+                ? 'Drop single or multiple files to load/concatenate'
+                : 'Replace current audio or append to existing audio'}
             </Typography>
           </Box>
         )}
@@ -717,9 +717,9 @@ function App() {
           alignItems="center"
           mb={3}
           sx={{
-            flexDirection: { xs: "column", md: "row" },
+            flexDirection: { xs: 'column', md: 'row' },
             gap: { xs: 2, md: 0 },
-            textAlign: { xs: "center", md: "left" },
+            textAlign: { xs: 'center', md: 'left' },
             mx: { xs: 1, sm: 2 }, // Add horizontal margin
             mt: { xs: 1, sm: 0 }, // Add top margin on mobile
           }}
@@ -729,23 +729,23 @@ function App() {
             alignItems="center"
             gap={2}
             sx={{
-              flexDirection: { xs: "column", sm: "row" },
-              textAlign: { xs: "center", sm: "left" },
+              flexDirection: { xs: 'column', sm: 'row' },
+              textAlign: { xs: 'center', sm: 'left' },
             }}
           >
             <img
               src="MorphEdit-Logo-Small.png"
               alt="MorphEdit Logo"
               style={{
-                height: "96px",
-                width: "auto",
-                borderRadius: "20px",
+                height: '96px',
+                width: 'auto',
+                borderRadius: '20px',
               }}
             />
             <Typography
               variant="h4"
               sx={{
-                fontSize: { xs: "1.75rem", sm: "2.125rem" },
+                fontSize: { xs: '1.75rem', sm: '2.125rem' },
               }}
             >
               MorphEdit Audio Editor
@@ -756,10 +756,10 @@ function App() {
             spacing={2}
             alignItems="center"
             sx={{
-              flexDirection: "row", // Keep on same line for all breakpoints
+              flexDirection: 'row', // Keep on same line for all breakpoints
               gap: { xs: 1, sm: 2 },
-              alignItems: "center",
-              justifyContent: { xs: "center", sm: "flex-end" },
+              alignItems: 'center',
+              justifyContent: { xs: 'center', sm: 'flex-end' },
             }}
           >
             <Button
@@ -767,11 +767,11 @@ function App() {
               color="primary"
               onClick={handleOpenManual}
               sx={{
-                fontSize: { xs: "0.85rem", sm: "0.875rem" },
-                padding: { xs: "0.5em 1em", sm: "6px 16px" },
-                minHeight: { xs: "40px", sm: "36px" }, // Slightly smaller on mobile
-                width: "auto", // Don't stretch to full width
-                minWidth: { xs: "100px", sm: "120px" }, // Smaller minimum width
+                fontSize: { xs: '0.85rem', sm: '0.875rem' },
+                padding: { xs: '0.5em 1em', sm: '6px 16px' },
+                minHeight: { xs: '40px', sm: '36px' }, // Slightly smaller on mobile
+                width: 'auto', // Don't stretch to full width
+                minWidth: { xs: '100px', sm: '120px' }, // Smaller minimum width
               }}
             >
               User Manual
@@ -780,30 +780,30 @@ function App() {
           </Stack>
         </Box>
         <Box mb={2} sx={{ mx: { xs: 3, sm: 2 }, px: { xs: 2, sm: 0 } }}>
-          {" "}
+          {' '}
           {/* Add horizontal margin and padding */}
           <Stack
             direction="row"
             // spacing={2}
             sx={{
-              flexDirection: { xs: "column", sm: "row" },
+              flexDirection: { xs: 'column', sm: 'row' },
               gap: { xs: 1, sm: 2 },
-              alignItems: { xs: "stretch", sm: "center" },
+              alignItems: { xs: 'stretch', sm: 'center' },
             }}
           >
             <Button
               variant="contained"
               component="label"
               sx={{
-                flex: { xs: 1, sm: "none" },
-                minWidth: { sm: "160px" },
-                fontSize: { xs: "0.9rem", sm: "0.875rem" },
-                padding: { xs: "0.7em 1.2em", sm: "6px 16px" },
-                minHeight: { xs: "48px", sm: "36px" },
-                height: { xs: "48px", sm: "auto" }, // Force consistent height on mobile
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                flex: { xs: 1, sm: 'none' },
+                minWidth: { sm: '160px' },
+                fontSize: { xs: '0.9rem', sm: '0.875rem' },
+                padding: { xs: '0.7em 1.2em', sm: '6px 16px' },
+                minHeight: { xs: '48px', sm: '36px' },
+                height: { xs: '48px', sm: 'auto' }, // Force consistent height on mobile
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
               Open Audio File(s)
@@ -816,22 +816,28 @@ function App() {
               />
             </Button>
             <Tooltip title="Append audio to existing file(s)">
-              <Box component="span" sx={{ flex: { xs: 1, sm: "none" } }}>
+              <Box component="span" sx={{ flex: { xs: 1, sm: 'none' } }}>
                 <Button
                   variant="outlined"
                   component="label"
                   disabled={!audioUrl}
                   sx={{
                     opacity: !audioUrl ? 0.5 : 1,
-                    flex: { xs: 1, sm: "none" },
-                    minWidth: { sm: "160px" },
-                    fontSize: { xs: "0.9rem", sm: "0.875rem" },
-                    padding: { xs: "0.7em 1.2em", sm: "6px 16px" },
-                    minHeight: { xs: "48px", sm: "36px" },
-                    height: { xs: "48px", sm: "auto" }, // Force consistent height on mobile
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    flex: { xs: 1, sm: 'none' },
+                    minWidth: { sm: '160px' },
+                    fontSize: {
+                      xs: '0.9rem',
+                      sm: '0.875rem',
+                    },
+                    padding: {
+                      xs: '0.7em 1.2em',
+                      sm: '6px 16px',
+                    },
+                    minHeight: { xs: '48px', sm: '36px' },
+                    height: { xs: '48px', sm: 'auto' }, // Force consistent height on mobile
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
                   Append Audio
@@ -846,21 +852,27 @@ function App() {
               </Box>
             </Tooltip>
             <Tooltip title="Unload current audio and clear all data">
-              <Box component="span" sx={{ flex: { xs: 1, sm: "none" } }}>
+              <Box component="span" sx={{ flex: { xs: 1, sm: 'none' } }}>
                 <Button
                   variant="outlined"
                   onClick={handleReset}
                   disabled={!audioUrl}
                   sx={{
-                    width: { xs: "100%", sm: "auto" },
-                    minWidth: { sm: "80px" },
-                    fontSize: { xs: "0.85rem", sm: "0.8rem" },
-                    padding: { xs: "0.6em 1em", sm: "4px 12px" },
-                    minHeight: { xs: "44px", sm: "32px" },
-                    height: { xs: "44px", sm: "auto" }, // Consistent but smaller height
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    width: { xs: '100%', sm: 'auto' },
+                    minWidth: { sm: '80px' },
+                    fontSize: {
+                      xs: '0.85rem',
+                      sm: '0.8rem',
+                    },
+                    padding: {
+                      xs: '0.6em 1em',
+                      sm: '4px 12px',
+                    },
+                    minHeight: { xs: '44px', sm: '32px' },
+                    height: { xs: '44px', sm: 'auto' }, // Consistent but smaller height
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
                   Reset
@@ -874,39 +886,39 @@ function App() {
           id="waveform-container"
           onClick={handleWaveformClick}
           sx={{
-            cursor: !audioUrl ? "pointer" : "default",
+            cursor: !audioUrl ? 'pointer' : 'default',
             mx: { xs: 1, sm: 2 }, // Add horizontal margin
             mb: { xs: 2, sm: 0 }, // Add bottom margin on mobile
-            "&:hover": !audioUrl
+            '&:hover': !audioUrl
               ? {
-                  backgroundColor: "action.hover",
-                  borderColor: "primary.light",
+                  backgroundColor: 'action.hover',
+                  borderColor: 'primary.light',
                 }
               : {},
             // Add a subtle visual hint for mouse wheel zoom when audio is loaded
-            "&::after": audioUrl
+            '&::after': audioUrl
               ? {
                   content: '""',
-                  position: "absolute",
+                  position: 'absolute',
                   top: 0,
                   right: 0,
                   width: 0,
                   height: 0,
-                  borderLeft: "20px solid transparent",
-                  borderTop: "20px solid",
-                  borderColor: "action.disabled",
+                  borderLeft: '20px solid transparent',
+                  borderTop: '20px solid',
+                  borderColor: 'action.disabled',
                   opacity: 0.1,
-                  pointerEvents: "none",
+                  pointerEvents: 'none',
                 }
               : {},
           }}
         >
           {!audioUrl &&
-            "Click here, use the button above, or drag and drop audio file(s) to load/concatenate them"}
+            'Click here, use the button above, or drag and drop audio file(s) to load/concatenate them'}
         </WaveformContainer>
         {audioUrl && (
           <Box sx={{ mx: { xs: 1, sm: 2 } }}>
-            {" "}
+            {' '}
             {/* Add margin wrapper for waveform */}
             <Waveform
               audioUrl={audioUrl}
@@ -919,35 +931,35 @@ function App() {
           </Box>
         )}
         <Box mt={4} sx={{ mx: { xs: 1, sm: 2 } }}>
-          {" "}
+          {' '}
           {/* Add horizontal margin to footer */}
           <Typography
             variant="caption"
             color="text.primary"
             sx={{
-              textAlign: "center",
-              fontSize: { xs: "0.75rem", sm: "0.75rem" }, // Ensure readability on mobile
+              textAlign: 'center',
+              fontSize: { xs: '0.75rem', sm: '0.75rem' }, // Ensure readability on mobile
             }}
           >
             Morphedit Audio Editor - All audio is processed in the browser,
             client-side so <b>your files never leave your computer</b>.
-          </Typography>{" "}
+          </Typography>{' '}
           <Typography
             variant="caption"
             color="text.secondary"
             sx={{
-              textAlign: "center",
+              textAlign: 'center',
               opacity: 0.7,
-              fontSize: { xs: "0.7rem", sm: "0.75rem" }, // Slightly smaller on mobile
-              "& a": {
-                color: "text.secondary",
-                textDecoration: "underline",
+              fontSize: { xs: '0.7rem', sm: '0.75rem' }, // Slightly smaller on mobile
+              '& a': {
+                color: 'text.secondary',
+                textDecoration: 'underline',
               },
             }}
           >
             <br />
             Version {version} - Built with React and MUI
-            <br />© 2025 - Carlos Eduardo de Paula -{" "}
+            <br />© 2025 - Carlos Eduardo de Paula -{' '}
             <a
               href="https://github.com/carlosedp/morphedit"
               target="_blank"
@@ -980,7 +992,7 @@ function App() {
       <FileReplaceDialog
         open={fileReplaceDialogOpen}
         fileName={
-          pendingReplaceFiles.length > 0 ? pendingReplaceFiles[0].name : ""
+          pendingReplaceFiles.length > 0 ? pendingReplaceFiles[0].name : ''
         }
         isMultipleFiles={pendingReplaceFiles.length > 1}
         fileCount={pendingReplaceFiles.length}

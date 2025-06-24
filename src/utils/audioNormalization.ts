@@ -1,8 +1,8 @@
 // Audio normalization utilities for peak normalization
 
-import type WaveSurfer from "wavesurfer.js";
-import { useAudioStore } from "../audioStore";
-import { audioBufferToWavWithCues } from "./audioProcessing";
+import type WaveSurfer from 'wavesurfer.js';
+import { useAudioStore } from '../audioStore';
+import { audioBufferToWavWithCues } from './audioProcessing';
 
 /**
  * Find the peak amplitude in an AudioBuffer
@@ -32,14 +32,14 @@ export const findPeakAmplitude = (audioBuffer: AudioBuffer): number => {
  */
 export const normalizeAudioBuffer = (
   audioBuffer: AudioBuffer,
-  targetPeakDb: number = -1,
+  targetPeakDb: number = -1
 ): AudioBuffer => {
   // Find current peak amplitude
   const currentPeak = findPeakAmplitude(audioBuffer);
 
   // If audio is already silent or at very low levels, don't normalize
   if (currentPeak < 0.000001) {
-    console.log("Audio is too quiet to normalize effectively");
+    console.log('Audio is too quiet to normalize effectively');
     return audioBuffer;
   }
 
@@ -52,8 +52,8 @@ export const normalizeAudioBuffer = (
 
   console.log(
     `Normalizing audio: current peak ${currentPeak.toFixed(
-      4,
-    )}, target peak ${targetPeakLinear.toFixed(4)}, gain ${gain.toFixed(4)}`,
+      4
+    )}, target peak ${targetPeakLinear.toFixed(4)}, gain ${gain.toFixed(4)}`
   );
 
   // Create new normalized buffer
@@ -66,7 +66,7 @@ export const normalizeAudioBuffer = (
   const normalizedBuffer = audioContext.createBuffer(
     audioBuffer.numberOfChannels,
     audioBuffer.length,
-    audioBuffer.sampleRate,
+    audioBuffer.sampleRate
   );
 
   // Apply gain to all channels
@@ -99,49 +99,49 @@ export const applyNormalization = async (
     setSpliceMarkersStore: (markers: number[]) => void;
     setPreviousSpliceMarkers: (markers: number[]) => void;
     setPreviousLockedSpliceMarkers: (markers: number[]) => void;
-  },
+  }
 ): Promise<void> => {
   // Get the audio buffer from the audio store
   const audioBuffer = useAudioStore.getState().audioBuffer;
   console.log(
-    "applyNormalization - checking audio buffer in store:",
-    !!audioBuffer,
+    'applyNormalization - checking audio buffer in store:',
+    !!audioBuffer
   );
 
   if (!audioBuffer) {
-    console.log("No audio buffer found in store for normalization operation");
+    console.log('No audio buffer found in store for normalization operation');
     return;
   }
 
   if (!ws.getDuration() || ws.getDuration() === 0) {
-    console.log("Cannot normalize: no audio loaded or duration is 0");
+    console.log('Cannot normalize: no audio loaded or duration is 0');
     return;
   }
 
-  console.log("Applying normalization...");
+  console.log('Applying normalization...');
   console.log(
-    "Current audio URL passed to applyNormalization:",
-    currentAudioUrl,
+    'Current audio URL passed to applyNormalization:',
+    currentAudioUrl
   );
-  console.log("Audio buffer found:", audioBuffer.length, "samples");
+  console.log('Audio buffer found:', audioBuffer.length, 'samples');
   console.log(
-    "Audio buffer duration:",
+    'Audio buffer duration:',
     audioBuffer.length / audioBuffer.sampleRate,
-    "seconds",
+    'seconds'
   );
 
   // Normalize the audio buffer
   const normalizedBuffer = normalizeAudioBuffer(audioBuffer, targetPeakDb);
 
-  console.log("Normalization applied, converting to WAV...");
+  console.log('Normalization applied, converting to WAV...');
 
   // Convert to WAV blob and create new URL
   const wav = audioBufferToWavWithCues(normalizedBuffer, spliceMarkersStore);
-  const blob = new Blob([wav], { type: "audio/wav" });
-  const newUrl = URL.createObjectURL(blob) + "#morphedit-normalized";
+  const blob = new Blob([wav], { type: 'audio/wav' });
+  const newUrl = URL.createObjectURL(blob) + '#morphedit-normalized';
 
-  console.log("Loading new normalized URL:", newUrl);
-  console.log("Saving for undo - currentAudioUrl:", currentAudioUrl);
+  console.log('Loading new normalized URL:', newUrl);
+  console.log('Saving for undo - currentAudioUrl:', currentAudioUrl);
 
   // Save current audio URL and splice markers for undo before loading new one
   callbacks.setPreviousAudioUrl(currentAudioUrl);
@@ -159,36 +159,36 @@ export const applyNormalization = async (
   // Load the new normalized audio
   try {
     // Set the audio buffer BEFORE loading to ensure it's in the store
-    console.log("Setting normalized buffer in store BEFORE WS load");
+    console.log('Setting normalized buffer in store BEFORE WS load');
     callbacks.setAudioBuffer(normalizedBuffer);
 
     await ws.load(newUrl);
-    console.log("Normalization applied successfully");
+    console.log('Normalization applied successfully');
     console.log(
-      "New audio duration after normalization:",
+      'New audio duration after normalization:',
       ws.getDuration(),
-      "seconds",
+      'seconds'
     );
 
     // Update the current audio URL to the new normalized version
     callbacks.setCurrentAudioUrl(newUrl);
 
     // Set the audio buffer AGAIN after loading to ensure it's correct
-    console.log("Setting normalized buffer in store AFTER WS load");
+    console.log('Setting normalized buffer in store AFTER WS load');
     callbacks.setAudioBuffer(normalizedBuffer);
     console.log(
-      "Updated audio buffer in store with normalized version - duration:",
+      'Updated audio buffer in store with normalized version - duration:',
       normalizedBuffer.length / normalizedBuffer.sampleRate,
-      "seconds",
+      'seconds'
     );
 
     // Clear processing flag
-    console.log("Clearing processing flag (success)");
+    console.log('Clearing processing flag (success)');
     store.setIsProcessingAudio(false);
   } catch (error) {
-    console.error("Error loading normalized audio:", error);
+    console.error('Error loading normalized audio:', error);
     // Clear processing flag on error too
-    console.log("Clearing processing flag (error)");
+    console.log('Clearing processing flag (error)');
     store.setIsProcessingAudio(false);
   }
 };

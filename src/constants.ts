@@ -1,4 +1,4 @@
-import { ExportFormat } from "./utils/exportUtils";
+import { ExportFormat } from './utils/exportUtils';
 
 // Shared constants to avoid magic numbers and duplicate values throughout the codebase
 
@@ -20,91 +20,91 @@ export const MINIMAP_ENABLED = true;
 
 // Region colors (hex with alpha)
 export const REGION_COLORS = {
-  SPLICE_MARKER: "rgba(0, 255, 255, 0.8)",
-  CROP_REGION: "rgba(255, 208, 0, 0.2)",
-  FADE_IN: "rgba(0, 255, 0, 0.2)",
-  FADE_OUT: "rgba(255, 0, 0, 0.2)",
-  LOCKED_MARKER: "rgba(255, 165, 0, 0.8)",
+  SPLICE_MARKER: 'rgba(0, 255, 255, 0.8)',
+  CROP_REGION: 'rgba(255, 208, 0, 0.2)',
+  FADE_IN: 'rgba(0, 255, 0, 0.2)',
+  FADE_OUT: 'rgba(255, 0, 0, 0.2)',
+  LOCKED_MARKER: 'rgba(255, 165, 0, 0.8)',
 } as const;
 
 // Icons for different marker states
 export const MARKER_ICONS = {
-  LOCKED: "🔒",
-  UNLOCKED: "🔶",
-  SELECTED: "🔵",
+  LOCKED: '🔒',
+  UNLOCKED: '🔶',
+  SELECTED: '🔵',
 } as const;
 
 // Available export formats
 export const EXPORT_FORMATS: ExportFormat[] = [
   {
-    label: "48kHz 32-bit Float Stereo",
-    shortLabel: "48kHz/32-bit",
+    label: '48kHz 32-bit Float Stereo',
+    shortLabel: '48kHz/32-bit',
     sampleRate: 48000,
     bitDepth: 32,
-    channels: "stereo",
-    format: "float",
+    channels: 'stereo',
+    format: 'float',
   },
   {
-    label: "44.1kHz 32-bit Float Stereo",
-    shortLabel: "44.1kHz/32-bit",
+    label: '44.1kHz 32-bit Float Stereo',
+    shortLabel: '44.1kHz/32-bit',
     sampleRate: 44100,
     bitDepth: 32,
-    channels: "stereo",
-    format: "float",
+    channels: 'stereo',
+    format: 'float',
   },
   {
-    label: "48kHz 16-bit Stereo",
-    shortLabel: "48kHz/16-bit",
+    label: '48kHz 16-bit Stereo',
+    shortLabel: '48kHz/16-bit',
     sampleRate: 48000,
     bitDepth: 16,
-    channels: "stereo",
-    format: "int",
+    channels: 'stereo',
+    format: 'int',
   },
   {
-    label: "44.1kHz 16-bit Stereo",
-    shortLabel: "44.1kHz/16-bit",
+    label: '44.1kHz 16-bit Stereo',
+    shortLabel: '44.1kHz/16-bit',
     sampleRate: 44100,
     bitDepth: 16,
-    channels: "stereo",
-    format: "int",
+    channels: 'stereo',
+    format: 'int',
   },
   {
-    label: "44.1kHz 16-bit Mono",
-    shortLabel: "44.1kHz/16-bit Mono",
+    label: '44.1kHz 16-bit Mono',
+    shortLabel: '44.1kHz/16-bit Mono',
     sampleRate: 44100,
     bitDepth: 16,
-    channels: "mono",
-    format: "int",
+    channels: 'mono',
+    format: 'int',
   },
   {
-    label: "22.05kHz 16-bit Mono",
-    shortLabel: "22.05kHz/16-bit Mono",
+    label: '22.05kHz 16-bit Mono',
+    shortLabel: '22.05kHz/16-bit Mono',
     sampleRate: 22050,
     bitDepth: 16,
-    channels: "mono",
-    format: "int",
+    channels: 'mono',
+    format: 'int',
   },
 ];
 
 export const FADE_CURVE_TYPES = {
-  LINEAR: "linear",
-  EXPONENTIAL: "exponential",
-  LOGARITHMIC: "logarithmic",
+  LINEAR: 'linear',
+  EXPONENTIAL: 'exponential',
+  LOGARITHMIC: 'logarithmic',
 } as const;
 
 export const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 
 // UI colors and styling
 export const UI_COLORS = {
-  OVERLAY_BACKGROUND: "rgba(0, 0, 0, 0.7)",
-  LOCKED_MARKER_GLOW: "rgba(255, 152, 0, 0.5)",
-  LOCKED_MARKER_BACKGROUND: "rgba(255, 152, 0, 0.15)",
-  LOCKED_MARKER_BORDER: "#ff9800",
-  SELECTED_MARKER_BACKGROUND_UNLOCKED: "rgba(0, 123, 255, 0.1)",
-  SELECTED_MARKER_BACKGROUND_LOCKED: "rgba(255, 152, 0, 0.2)",
-  DEFAULT_MARKER_BACKGROUND: "rgba(0, 255, 255, 0.1)",
-  LABEL_BACKGROUND: "#555",
-  LABEL_TEXT: "#fff",
+  OVERLAY_BACKGROUND: 'rgba(0, 0, 0, 0.7)',
+  LOCKED_MARKER_GLOW: 'rgba(255, 152, 0, 0.5)',
+  LOCKED_MARKER_BACKGROUND: 'rgba(255, 152, 0, 0.15)',
+  LOCKED_MARKER_BORDER: '#ff9800',
+  SELECTED_MARKER_BACKGROUND_UNLOCKED: 'rgba(0, 123, 255, 0.1)',
+  SELECTED_MARKER_BACKGROUND_LOCKED: 'rgba(255, 152, 0, 0.2)',
+  DEFAULT_MARKER_BACKGROUND: 'rgba(0, 255, 255, 0.1)',
+  LABEL_BACKGROUND: '#555',
+  LABEL_TEXT: '#fff',
 } as const;
 
 // Tooltip delays

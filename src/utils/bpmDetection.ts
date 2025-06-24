@@ -1,8 +1,8 @@
 // BPM detection utility using web-audio-beat-detector
-import { analyze } from "web-audio-beat-detector";
-import { createLogger } from "./logger";
+import { analyze } from 'web-audio-beat-detector';
+import { createLogger } from './logger';
 
-const bpmLogger = createLogger("BPMDetection");
+const bpmLogger = createLogger('BPMDetection');
 
 /**
  * Detects the BPM of an audio buffer using web-audio-beat-detector
@@ -10,10 +10,10 @@ const bpmLogger = createLogger("BPMDetection");
  * @returns Promise that resolves to the detected BPM or null if detection fails
  */
 export async function detectBPM(
-  audioBuffer: AudioBuffer,
+  audioBuffer: AudioBuffer
 ): Promise<number | null> {
   try {
-    bpmLogger.debug("Starting BPM detection...", {
+    bpmLogger.debug('Starting BPM detection...', {
       duration: audioBuffer.duration,
       sampleRate: audioBuffer.sampleRate,
       channels: audioBuffer.numberOfChannels,
@@ -24,21 +24,21 @@ export async function detectBPM(
 
     // Extract the tempo from the result
     const bpm =
-      typeof result === "object" && result !== null && "tempo" in result
+      typeof result === 'object' && result !== null && 'tempo' in result
         ? (result as { tempo: number }).tempo
-        : typeof result === "number"
+        : typeof result === 'number'
           ? result
           : null;
 
     if (bpm === null) {
-      bpmLogger.warn("BPM detection returned no valid result");
+      bpmLogger.warn('BPM detection returned no valid result');
       return null;
     }
 
     // Round to one decimal place for display
     const roundedBpm = Math.round(bpm * 10) / 10;
 
-    bpmLogger.debug("BPM detection completed", {
+    bpmLogger.debug('BPM detection completed', {
       detectedBpm: roundedBpm,
       originalBpm: bpm,
       result: result,
@@ -46,7 +46,7 @@ export async function detectBPM(
 
     return roundedBpm;
   } catch (error) {
-    bpmLogger.error("BPM detection failed:", error);
+    bpmLogger.error('BPM detection failed:', error);
     return null;
   }
 }
@@ -59,13 +59,13 @@ export async function detectBPM(
  */
 export async function detectBPMWithTimeout(
   audioBuffer: AudioBuffer,
-  timeoutMs: number = 30000,
+  timeoutMs: number = 30000
 ): Promise<number | null> {
   try {
     const bpmPromise = detectBPM(audioBuffer);
     const timeoutPromise = new Promise<null>((resolve) => {
       setTimeout(() => {
-        bpmLogger.warn("BPM detection timed out");
+        bpmLogger.warn('BPM detection timed out');
         resolve(null);
       }, timeoutMs);
     });
@@ -73,7 +73,7 @@ export async function detectBPMWithTimeout(
     const result = await Promise.race([bpmPromise, timeoutPromise]);
     return result;
   } catch (error) {
-    bpmLogger.error("BPM detection with timeout failed:", error);
+    bpmLogger.error('BPM detection with timeout failed:', error);
     return null;
   }
 }
@@ -85,7 +85,7 @@ export async function detectBPMWithTimeout(
  */
 export function formatBPM(bpm: number | null): string {
   if (bpm === null) {
-    return "--";
+    return '--';
   }
   return `${bpm} BPM`;
 }

@@ -1,26 +1,26 @@
 #!/usr/bin/env node
 
-import fs from "fs";
-import path from "path";
-import { marked } from "marked";
-import { fileURLToPath } from "url";
+import fs from 'fs';
+import path from 'path';
+import { marked } from 'marked';
+import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = path.resolve(__dirname, "..");
+const rootDir = path.resolve(__dirname, '..');
 
 // Theme colors from the MUI theme (based on the theme.tsx file)
 const themeColors = {
-  primary: "rgb(255, 208, 0)",
-  primaryDark: "#1565c0",
-  background: "#121212",
-  paper: "#232323",
-  text: "rgb(255, 208, 0)",
-  textDark: "rgb(255, 180, 0)",
-  textSecondary: "#b0b0b0",
-  grey50: "#fafafa",
-  grey300: "#e0e0e0",
-  grey700: "#616161",
-  grey900: "#212121",
+  primary: 'rgb(255, 208, 0)',
+  primaryDark: '#1565c0',
+  background: '#121212',
+  paper: '#232323',
+  text: 'rgb(255, 208, 0)',
+  textDark: 'rgb(255, 180, 0)',
+  textSecondary: '#b0b0b0',
+  grey50: '#fafafa',
+  grey300: '#e0e0e0',
+  grey700: '#616161',
+  grey900: '#212121',
 };
 
 // HTML template
@@ -299,11 +299,11 @@ const htmlTemplate = `<!DOCTYPE html>
 
 async function buildManual() {
   try {
-    console.log("Building manual...");
+    console.log('Building manual...');
 
     // Read the markdown file
-    const manualPath = path.join(rootDir, "public", "USER_MANUAL.md");
-    const markdownContent = fs.readFileSync(manualPath, "utf8");
+    const manualPath = path.join(rootDir, 'public', 'USER_MANUAL.md');
+    const markdownContent = fs.readFileSync(manualPath, 'utf8');
 
     // Configure marked options
     marked.setOptions({
@@ -315,31 +315,31 @@ async function buildManual() {
     const htmlContent = await marked(markdownContent);
 
     // Replace the content placeholder in the template
-    const finalHtml = htmlTemplate.replace("{{CONTENT}}", htmlContent);
+    const finalHtml = htmlTemplate.replace('{{CONTENT}}', htmlContent);
 
     // When image has alt=Logo, add the .logo class
     const finalHtmlWithLogoClass = finalHtml.replace(
       /<img\s+([^>]*?)alt="Logo"([^>]*)>/g,
-      '<img class="logo" $1$2>',
+      '<img class="logo" $1$2>'
     );
 
     // Ensure dist directory exists
-    const distDir = path.join(rootDir, "dist");
+    const distDir = path.join(rootDir, 'dist');
     if (!fs.existsSync(distDir)) {
       fs.mkdirSync(distDir, { recursive: true });
     }
 
     // Write the final HTML file to dist directory
-    const outputPath = path.join(distDir, "manual.html");
+    const outputPath = path.join(distDir, 'manual.html');
     fs.writeFileSync(outputPath, finalHtmlWithLogoClass);
 
     // Also write to public directory for development server
-    const publicOutputPath = path.join(rootDir, "public", "manual.html");
+    const publicOutputPath = path.join(rootDir, 'public', 'manual.html');
     fs.writeFileSync(publicOutputPath, finalHtmlWithLogoClass);
 
     // Copy images to dist directory
-    const publicImgDir = path.join(rootDir, "public", "img");
-    const distImgDir = path.join(distDir, "img");
+    const publicImgDir = path.join(rootDir, 'public', 'img');
+    const distImgDir = path.join(distDir, 'img');
 
     if (fs.existsSync(publicImgDir)) {
       // Ensure dist/img directory exists
@@ -359,9 +359,9 @@ async function buildManual() {
     }
 
     // Copy logo images
-    const logoFiles = ["MorphEdit-Logo-Small.png", "MorphEdit-Logo.png"];
+    const logoFiles = ['MorphEdit-Logo-Small.png', 'MorphEdit-Logo.png'];
     logoFiles.forEach((logoFile) => {
-      const srcPath = path.join(rootDir, "public", logoFile);
+      const srcPath = path.join(rootDir, 'public', logoFile);
       const destPath = path.join(distDir, logoFile);
       if (fs.existsSync(srcPath)) {
         fs.copyFileSync(srcPath, destPath);
@@ -369,9 +369,9 @@ async function buildManual() {
     });
 
     console.log(`Manual generated successfully at: ${outputPath}`);
-    console.log("Manual assets copied to dist directory");
+    console.log('Manual assets copied to dist directory');
   } catch (error) {
-    console.error("Error building manual:", error);
+    console.error('Error building manual:', error);
     process.exit(1);
   }
 }

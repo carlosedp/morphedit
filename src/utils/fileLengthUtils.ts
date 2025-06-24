@@ -11,14 +11,14 @@ export const getAudioFileDuration = (file: File): Promise<number> => {
     const audio = new Audio();
     const url = URL.createObjectURL(file);
 
-    audio.addEventListener("loadedmetadata", () => {
+    audio.addEventListener('loadedmetadata', () => {
       URL.revokeObjectURL(url);
       resolve(audio.duration);
     });
 
-    audio.addEventListener("error", () => {
+    audio.addEventListener('error', () => {
       URL.revokeObjectURL(url);
-      reject(new Error("Failed to load audio metadata"));
+      reject(new Error('Failed to load audio metadata'));
     });
 
     audio.src = url;
@@ -37,7 +37,7 @@ export const isFileTooLong = (duration: number): boolean => {
  */
 export const truncateAudioBuffer = (
   buffer: AudioBuffer,
-  maxDuration: number,
+  maxDuration: number
 ): AudioBuffer => {
   const sampleRate = buffer.sampleRate;
   const maxSamples = Math.floor(maxDuration * sampleRate);
@@ -54,7 +54,7 @@ export const truncateAudioBuffer = (
   const truncatedBuffer = audioContext.createBuffer(
     buffer.numberOfChannels,
     maxSamples,
-    sampleRate,
+    sampleRate
   );
 
   for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
@@ -75,5 +75,5 @@ export const truncateAudioBuffer = (
 export const formatDuration = (seconds: number): string => {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = Math.floor(seconds % 60);
-  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 };

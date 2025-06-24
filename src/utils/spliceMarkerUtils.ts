@@ -1,11 +1,11 @@
 // Splice marker utilities and handlers
-import type { Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
-import type RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
-import type WaveSurfer from "wavesurfer.js";
-import { useAudioStore } from "../audioStore";
-import { findNearestZeroCrossing } from "./transientDetection";
-import { getAudioBuffer, getLockedSpliceMarkers } from "./storeHelpers";
-import { spliceLogger } from "./logger";
+import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
+import type RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
+import type WaveSurfer from 'wavesurfer.js';
+import { useAudioStore } from '../audioStore';
+import { findNearestZeroCrossing } from './transientDetection';
+import { getAudioBuffer, getLockedSpliceMarkers } from './storeHelpers';
+import { spliceLogger } from './logger';
 import {
   MARKER_TOLERANCE,
   REGION_COLORS,
@@ -13,7 +13,7 @@ import {
   UI_COLORS,
   REGION_POSITIONING,
   MAX_TOTAL_SPLICE_POINTS,
-} from "../constants";
+} from '../constants';
 import {
   getSpliceMarkerRegions,
   getUnlockedSpliceMarkers,
@@ -23,7 +23,7 @@ import {
   isMarkerTooCloseToExisting,
   combineAndSortMarkers,
   limitSpliceMarkers,
-} from "./regionHelpers";
+} from './regionHelpers';
 
 // Helper functions for locked markers
 export const isMarkerLocked = (
@@ -50,7 +50,7 @@ export const toggleMarkerLock = (
     );
     setLockedSpliceMarkers(newLockedMarkers);
     spliceLogger.markerOperation(
-      "Marker unlocked",
+      'Marker unlocked',
       1,
       `at ${markerTime.toFixed(3)}s`
     );
@@ -65,7 +65,7 @@ export const toggleMarkerLock = (
     const newLockedMarkers = [...lockedMarkers, markerTime];
     setLockedSpliceMarkers(newLockedMarkers);
     spliceLogger.markerOperation(
-      "Marker locked",
+      'Marker locked',
       1,
       `at ${markerTime.toFixed(3)}s`
     );
@@ -141,15 +141,15 @@ export const addSpliceMarker = (
     // Snap to nearest zero crossing to avoid audio artifacts
     adjustedTime = findNearestZeroCrossing(audioBuffer, currentTime);
     console.log(
-      "Splice marker snapped to zero crossing:",
+      'Splice marker snapped to zero crossing:',
       `${currentTime} -> ${adjustedTime}`
     );
   } else {
-    console.log("No audio buffer available, using original time");
+    console.log('No audio buffer available, using original time');
   }
 
   spliceLogger.markerOperation(
-    "Adding splice marker",
+    'Adding splice marker',
     1,
     `at time: ${adjustedTime}`
   );
@@ -170,7 +170,7 @@ export const addSpliceMarker = (
   );
   setSpliceMarkersStore(allSpliceMarkers);
 
-  console.log("Splice marker added. Total markers:", allSpliceMarkers.length);
+  console.log('Splice marker added. Total markers:', allSpliceMarkers.length);
 };
 
 export const removeSpliceMarker = (
@@ -191,11 +191,11 @@ export const removeSpliceMarker = (
 
     // Check if the selected marker is locked
     if (isMarkerLocked(markerTime, lockedMarkers)) {
-      console.log("Cannot remove locked marker at time:", markerTime);
+      console.log('Cannot remove locked marker at time:', markerTime);
       return;
     }
 
-    console.log("Removing selected splice marker");
+    console.log('Removing selected splice marker');
 
     // Remove from regions
     selectedSpliceMarker.remove();
@@ -212,7 +212,7 @@ export const removeSpliceMarker = (
     setSpliceMarkersStore(updatedMarkers);
 
     console.log(
-      "Splice marker removed. Remaining markers:",
+      'Splice marker removed. Remaining markers:',
       updatedMarkers.length
     );
   } else {
@@ -221,7 +221,7 @@ export const removeSpliceMarker = (
     const spliceRegions = getSpliceMarkerRegions(regions);
 
     if (spliceRegions.length === 0) {
-      console.log("No splice markers to remove");
+      console.log('No splice markers to remove');
       return;
     }
 
@@ -240,12 +240,12 @@ export const removeSpliceMarker = (
     }
 
     if (!closestMarker) {
-      console.log("No unlocked splice markers found to remove");
+      console.log('No unlocked splice markers found to remove');
       return;
     }
 
     console.log(
-      "Removing closest unlocked splice marker at time:",
+      'Removing closest unlocked splice marker at time:',
       closestMarker.start
     );
     const markerTime = closestMarker.start;
@@ -265,7 +265,7 @@ export const removeSpliceMarker = (
     setSpliceMarkersStore(updatedMarkers);
 
     console.log(
-      "Closest unlocked splice marker removed. Remaining markers:",
+      'Closest unlocked splice marker removed. Remaining markers:',
       updatedMarkers.length
     );
   }
@@ -283,7 +283,7 @@ export const autoSlice = (
 
   const duration = ws.getDuration();
   if (duration <= 0) {
-    console.log("Audio duration not available");
+    console.log('Audio duration not available');
     return;
   }
 
@@ -294,7 +294,7 @@ export const autoSlice = (
   spliceLogger.markerOperation(
     `Creating ${numberOfSlices} equally distributed splice markers`,
     lockedMarkers.length,
-    "locked preserved"
+    'locked preserved'
   );
 
   // Clear existing unlocked splice markers first
@@ -416,9 +416,9 @@ export const autoSlice = (
     `Auto-slice complete. Created ${
       originalCount - lockedMarkers.length
     } new markers${
-      wasLimited ? ` (limited from ${originalCount} to ${finalCount})` : ""
+      wasLimited ? ` (limited from ${originalCount} to ${finalCount})` : ''
     }, total: ${finalCount} (${lockedMarkers.length} locked)${
-      audioBuffer ? " with zero-crossing adjustment" : ""
+      audioBuffer ? ' with zero-crossing adjustment' : ''
     }`
   );
 };
@@ -435,7 +435,7 @@ export const halfMarkers = (
   const lockedMarkers = useAudioStore.getState().lockedSpliceMarkers;
 
   if (spliceRegions.length === 0) {
-    console.log("No splice markers to process");
+    console.log('No splice markers to process');
     return;
   }
 
@@ -443,13 +443,13 @@ export const halfMarkers = (
   const unlockedRegions = getUnlockedSpliceMarkers(regions, lockedMarkers);
 
   if (unlockedRegions.length === 0) {
-    console.log("No unlocked splice markers to process");
+    console.log('No unlocked splice markers to process');
     return;
   }
 
   if (unlockedRegions.length === 1) {
     // When there's only one unlocked marker, remove it
-    console.log("Removing single unlocked splice marker");
+    console.log('Removing single unlocked splice marker');
     unlockedRegions[0].remove();
 
     // Update store: keep locked markers, remove the unlocked one
@@ -458,7 +458,7 @@ export const halfMarkers = (
       setSelectedSpliceMarker,
       updateSpliceMarkerColors
     );
-    console.log("Single unlocked splice marker removed");
+    console.log('Single unlocked splice marker removed');
     return;
   }
 
@@ -522,7 +522,7 @@ export const clearAllMarkers = (
   );
 
   if (unlockedRegions.length === 0) {
-    console.log("No unlocked splice markers to clear");
+    console.log('No unlocked splice markers to clear');
     return;
   }
 
@@ -546,7 +546,7 @@ export const updateSpliceMarkerColors = (
   if (!regions) return;
 
   spliceLogger.debug(
-    "Updating splice marker colors and icons, selected marker:",
+    'Updating splice marker colors and icons, selected marker:',
     selectedMarker?.id
   );
 
@@ -556,7 +556,7 @@ export const updateSpliceMarkerColors = (
   const lockedMarkers = useAudioStore.getState().lockedSpliceMarkers;
 
   spliceLogger.debug(
-    "Found splice regions:",
+    'Found splice regions:',
     spliceRegions.map((r) => r.id)
   );
 
@@ -621,7 +621,7 @@ export const loadExistingCuePoints = (
   // Clear all existing visual splice markers first to avoid duplicates
   const allRegions = regions.getRegions();
   const existingSpliceMarkers = allRegions.filter((r: Region) =>
-    r.id.startsWith("splice-marker-")
+    r.id.startsWith('splice-marker-')
   );
   console.log(
     `Removing ${existingSpliceMarkers.length} existing visual markers`
@@ -632,7 +632,7 @@ export const loadExistingCuePoints = (
   // This prevents overwriting manually added markers when files are reloaded
   if (currentStoreMarkers.length > 0) {
     console.log(
-      "Store has existing markers, recreating visual markers from store instead of loading cue points"
+      'Store has existing markers, recreating visual markers from store instead of loading cue points'
     );
 
     // Recreate visual markers from store
@@ -657,7 +657,7 @@ export const loadExistingCuePoints = (
 
   // No existing markers in store, proceed with loading cue points
   console.log(
-    "No existing markers in store, loading cue points as new splice markers:",
+    'No existing markers in store, loading cue points as new splice markers:',
     existingCuePoints
   );
 
@@ -707,7 +707,7 @@ export const loadExistingCuePoints = (
     // Clear existing visual markers and recreate with limited set
     const allRegions = regions.getRegions();
     const existingCueMarkers = allRegions.filter((r: Region) =>
-      r.id.startsWith("splice-marker-cue-")
+      r.id.startsWith('splice-marker-cue-')
     );
     existingCueMarkers.forEach((marker: Region) => marker.remove());
 
@@ -728,7 +728,7 @@ export const loadExistingCuePoints = (
   setSpliceMarkersStore(finalCuePoints);
   console.log(
     `Loaded ${finalCuePoints.length} cue points as splice markers${
-      wasLimited ? ` (limited from ${adjustedCuePoints.length})` : ""
+      wasLimited ? ` (limited from ${adjustedCuePoints.length})` : ''
     }`
   );
 };
@@ -752,7 +752,7 @@ export const updateMarkerIcons = (
 
     console.log(
       `Updated marker icon at ${markerTime.toFixed(3)}s: ${
-        isLocked ? "🔒 (locked)" : "🔶 (unlocked)"
+        isLocked ? '🔒 (locked)' : '🔶 (unlocked)'
       }`
     );
   });

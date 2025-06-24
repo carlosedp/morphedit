@@ -1,12 +1,12 @@
 // Region controls component - crop, fade in/out, apply operations
-import { useState } from "react";
-import { Box, Button, ButtonGroup, Stack, Tooltip } from "@mui/material";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import TrendingDownIcon from "@mui/icons-material/TrendingDown";
-import CutIcon from "@mui/icons-material/ContentCut";
-import UndoIcon from "@mui/icons-material/Undo";
-import { TOOLTIP_DELAYS } from "../constants";
-import { FadeCurveSelector } from "./FadeCurveSelector";
+import { useState } from 'react';
+import { Box, Button, ButtonGroup, Stack, Tooltip } from '@mui/material';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import CutIcon from '@mui/icons-material/ContentCut';
+import UndoIcon from '@mui/icons-material/Undo';
+import { TOOLTIP_DELAYS } from '../constants';
+import { FadeCurveSelector } from './FadeCurveSelector';
 
 interface RegionControlsProps {
   cropMode: boolean;
@@ -52,7 +52,7 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
       direction="column"
       spacing={2}
       sx={{
-        width: "100%",
+        width: '100%',
       }}
     >
       {/* Region controls row */}
@@ -61,7 +61,7 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
         spacing={1}
         alignItems="center"
         sx={{
-          flexWrap: "wrap",
+          flexWrap: 'wrap',
           gap: { xs: 0.5, sm: 1 },
         }}
       >
@@ -71,7 +71,7 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
           leaveDelay={TOOLTIP_DELAYS.LEAVE}
         >
           <Button
-            variant={cropMode ? "contained" : "outlined"}
+            variant={cropMode ? 'contained' : 'outlined'}
             color="primary"
             onClick={onCropRegion}
             startIcon={<CutIcon />}
@@ -101,7 +101,7 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
         spacing={1}
         alignItems="center"
         sx={{
-          flexWrap: "wrap",
+          flexWrap: 'wrap',
           gap: { xs: 0.5, sm: 1 },
         }}
       >
@@ -114,7 +114,7 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
               leaveDelay={TOOLTIP_DELAYS.LEAVE}
             >
               <Button
-                variant={fadeInMode ? "contained" : "outlined"}
+                variant={fadeInMode ? 'contained' : 'outlined'}
                 color="primary"
                 onClick={onFadeInRegion}
                 startIcon={<TrendingUpIcon />}
@@ -156,7 +156,7 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
               leaveDelay={TOOLTIP_DELAYS.LEAVE}
             >
               <Button
-                variant={fadeOutMode ? "contained" : "outlined"}
+                variant={fadeOutMode ? 'contained' : 'outlined'}
                 color="primary"
                 onClick={onFadeOutRegion}
                 startIcon={<TrendingDownIcon />}
@@ -212,7 +212,7 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
         spacing={1}
         alignItems="center"
         sx={{
-          flexWrap: "wrap",
+          flexWrap: 'wrap',
           gap: { xs: 0.5, sm: 1 },
         }}
       >

@@ -1,5 +1,5 @@
-import { useEffect, useCallback } from "react";
-import { keyboardShortcuts, type ShortcutAction } from "./keyboardShortcuts";
+import { useEffect, useCallback } from 'react';
+import { keyboardShortcuts, type ShortcutAction } from './keyboardShortcuts';
 
 export interface UseKeyboardShortcutsProps {
   onAction: (action: ShortcutAction) => void;
@@ -17,7 +17,7 @@ export const useKeyboardShortcuts = ({
         event.target instanceof HTMLInputElement ||
         event.target instanceof HTMLTextAreaElement ||
         event.target instanceof HTMLSelectElement ||
-        (event.target as HTMLElement)?.contentEditable === "true"
+        (event.target as HTMLElement)?.contentEditable === 'true'
       ) {
         return;
       }
@@ -27,12 +27,12 @@ export const useKeyboardShortcuts = ({
         // Allow Ctrl+Z or Cmd+Z for undo
         if (
           (event.ctrlKey || event.metaKey) &&
-          event.key === "z" &&
+          event.key === 'z' &&
           !event.shiftKey &&
           !event.altKey
         ) {
           event.preventDefault();
-          onAction("undo");
+          onAction('undo');
           return;
         }
         return;
@@ -44,15 +44,15 @@ export const useKeyboardShortcuts = ({
         onAction(shortcut.action as ShortcutAction);
       }
     },
-    [onAction, enabled],
+    [onAction, enabled]
   );
 
   useEffect(() => {
     if (!enabled) return;
 
-    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [handleKeyDown, enabled]);
 

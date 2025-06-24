@@ -1,11 +1,11 @@
-import React from "react";
+import React from 'react';
 import {
   Dialog,
   DialogContent,
   CircularProgress,
   Typography,
   Box,
-} from "@mui/material";
+} from '@mui/material';
 
 interface LoadingDialogProps {
   open: boolean;
@@ -24,9 +24,9 @@ export const LoadingDialog: React.FC<LoadingDialogProps> = ({
       disableEscapeKeyDown
       PaperProps={{
         sx: {
-          minHeight: "150px",
+          minHeight: '150px',
           margin: { xs: 1, sm: 3 },
-          width: { xs: "calc(100% - 16px)", sm: "auto" },
+          width: { xs: 'calc(100% - 16px)', sm: 'auto' },
         },
       }}
     >

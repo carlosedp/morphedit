@@ -12,14 +12,14 @@ declare global {
           extensions: string[];
         }>;
         properties?: Array<
-          | "openFile"
-          | "openDirectory"
-          | "multiSelections"
-          | "showHiddenFiles"
-          | "createDirectory"
-          | "promptToCreate"
-          | "noResolveAliases"
-          | "treatPackageAsDirectory"
+          | 'openFile'
+          | 'openDirectory'
+          | 'multiSelections'
+          | 'showHiddenFiles'
+          | 'createDirectory'
+          | 'promptToCreate'
+          | 'noResolveAliases'
+          | 'treatPackageAsDirectory'
         >;
       }) => Promise<{ canceled: boolean; filePaths: string[] }>;
       readFile: (filePath: string) => Promise<{

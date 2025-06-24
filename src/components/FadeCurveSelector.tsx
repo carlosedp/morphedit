@@ -1,14 +1,14 @@
 // Fade curve selector dropdown button component
-import React from "react";
-import { Button, Menu, MenuItem, Tooltip, Typography } from "@mui/material";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import { getFadeCurveOptions } from "../utils/fadeCurves";
-import { TOOLTIP_DELAYS } from "../constants";
+import React from 'react';
+import { Button, Menu, MenuItem, Tooltip, Typography } from '@mui/material';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import { getFadeCurveOptions } from '../utils/fadeCurves';
+import { TOOLTIP_DELAYS } from '../constants';
 
 interface FadeCurveSelectorProps {
   selectedCurve: string;
   onCurveChange: (curveType: string) => void;
-  fadeType: "in" | "out";
+  fadeType: 'in' | 'out';
   disabled?: boolean;
   anchorEl: HTMLElement | null;
   onSetAnchorEl: (element: HTMLElement | null) => void;
@@ -24,7 +24,7 @@ export const FadeCurveSelector: React.FC<FadeCurveSelectorProps> = ({
 }) => {
   const curveOptions = getFadeCurveOptions();
   const selectedOption = curveOptions.find(
-    (option) => option.value === selectedCurve,
+    (option) => option.value === selectedCurve
   );
   const menuOpen = Boolean(anchorEl);
 
@@ -36,7 +36,7 @@ export const FadeCurveSelector: React.FC<FadeCurveSelectorProps> = ({
   return (
     <>
       <Tooltip
-        title={`Select fade ${fadeType} curve type (current: ${selectedOption?.label || "Linear"})`}
+        title={`Select fade ${fadeType} curve type (current: ${selectedOption?.label || 'Linear'})`}
         enterDelay={TOOLTIP_DELAYS.ENTER}
         leaveDelay={TOOLTIP_DELAYS.LEAVE}
       >
@@ -46,7 +46,7 @@ export const FadeCurveSelector: React.FC<FadeCurveSelectorProps> = ({
           disabled={disabled}
           sx={{
             px: 1,
-            minWidth: "auto",
+            minWidth: 'auto',
             borderTopLeftRadius: 0,
             borderBottomLeftRadius: 0,
             // display: 'flex',
@@ -57,12 +57,12 @@ export const FadeCurveSelector: React.FC<FadeCurveSelectorProps> = ({
           <Typography
             variant="caption"
             sx={{
-              fontSize: "0.6rem",
+              fontSize: '0.6rem',
               lineHeight: 1,
-              textAlign: "center",
+              textAlign: 'center',
             }}
           >
-            {selectedOption ? selectedOption.label.slice(0, 3) : "Lin"}
+            {selectedOption ? selectedOption.label.slice(0, 3) : 'Lin'}
           </Typography>
           <ArrowDropDownIcon />
         </Button>
@@ -73,7 +73,7 @@ export const FadeCurveSelector: React.FC<FadeCurveSelectorProps> = ({
         open={menuOpen}
         onClose={() => onSetAnchorEl(null)}
         MenuListProps={{
-          "aria-labelledby": `fade-${fadeType}-curve-button`,
+          'aria-labelledby': `fade-${fadeType}-curve-button`,
         }}
       >
         {curveOptions.map((option) => (

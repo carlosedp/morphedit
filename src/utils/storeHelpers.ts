@@ -1,5 +1,5 @@
 // Audio store access utilities to reduce repeated getState() calls
-import { useAudioStore } from "../audioStore";
+import { useAudioStore } from '../audioStore';
 
 // Common store state getters
 export const getAudioStoreState = () => useAudioStore.getState();

@@ -1,5 +1,5 @@
 // Export controls component
-import React from "react";
+import React from 'react';
 import {
   Button,
   ButtonGroup,
@@ -8,13 +8,13 @@ import {
   Tooltip,
   Typography,
   Stack,
-} from "@mui/material";
-import DownloadIcon from "@mui/icons-material/Download";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import NormalizeIcon from "@mui/icons-material/TuneOutlined";
-import { type ExportFormat } from "../utils/exportUtils";
-import { EXPORT_FORMATS } from "../constants";
-import { TOOLTIP_DELAYS } from "../constants";
+} from '@mui/material';
+import DownloadIcon from '@mui/icons-material/Download';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import NormalizeIcon from '@mui/icons-material/TuneOutlined';
+import { type ExportFormat } from '../utils/exportUtils';
+import { EXPORT_FORMATS } from '../constants';
+import { TOOLTIP_DELAYS } from '../constants';
 
 interface ExportControlsProps {
   exportAnchorEl: HTMLElement | null;
@@ -47,9 +47,9 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
       alignItems="center"
       sx={{
         flex: 1,
-        flexWrap: "wrap",
+        flexWrap: 'wrap',
         gap: { xs: 1, sm: 2 },
-        justifyContent: { xs: "center", md: "flex-start" },
+        justifyContent: { xs: 'center', md: 'flex-start' },
       }}
     >
       <ButtonGroup variant="outlined" sx={{ ml: 2 }}>
@@ -74,7 +74,7 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
           <Button
             size="small"
             onClick={(event) => onSetExportAnchorEl(event.currentTarget)}
-            sx={{ fontSize: "0.6rem", px: 1 }}
+            sx={{ fontSize: '0.6rem', px: 1 }}
           >
             {selectedExportFormat.shortLabel}
             <ArrowDropDownIcon />
@@ -87,7 +87,7 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
         open={exportMenuOpen}
         onClose={() => onSetExportAnchorEl(null)}
         MenuListProps={{
-          "aria-labelledby": "export-split-button",
+          'aria-labelledby': 'export-split-button',
         }}
       >
         {EXPORT_FORMATS.map((format, index) => (

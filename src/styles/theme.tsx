@@ -1,4 +1,4 @@
-import { createTheme } from "@mui/material/styles";
+import { createTheme } from '@mui/material/styles';
 
 // Define custom breakpoints and responsive values
 const theme = createTheme({
@@ -13,74 +13,74 @@ const theme = createTheme({
     },
   },
   palette: {
-    mode: "dark",
+    mode: 'dark',
     background: {
-      default: "#242424",
-      paper: "#333",
+      default: '#242424',
+      paper: '#333',
     },
     primary: {
-      main: "#ffd000",
-      light: "#fbf0bf",
-      dark: "#ffd0003d",
-      contrastText: "#242424",
+      main: '#ffd000',
+      light: '#fbf0bf',
+      dark: '#ffd0003d',
+      contrastText: '#242424',
     },
     secondary: {
-      main: "#333",
-      contrastText: "#ccb034",
+      main: '#333',
+      contrastText: '#ccb034',
     },
     text: {
-      primary: "#ffd000",
-      secondary: "#fff",
+      primary: '#ffd000',
+      secondary: '#fff',
     },
   },
   typography: {
-    fontFamily: "Roboto Mono, monospace",
+    fontFamily: 'Roboto Mono, monospace',
   },
   components: {
     // Global responsive styles
     MuiCssBaseline: {
       styleOverrides: (theme) => ({
         // Root container styling (replacement for #root in CSS)
-        "#root": {
-          width: "100%",
-          margin: "0 auto",
-          padding: "2rem",
-          textAlign: "center",
-          [theme.breakpoints.down("md")]: {
-            padding: "1.5rem 1rem", // Less aggressive horizontal padding reduction
+        '#root': {
+          width: '100%',
+          margin: '0 auto',
+          padding: '2rem',
+          textAlign: 'center',
+          [theme.breakpoints.down('md')]: {
+            padding: '1.5rem 1rem', // Less aggressive horizontal padding reduction
           },
-          [theme.breakpoints.down("sm")]: {
-            padding: "1rem 0.5rem", // Still responsive but with more horizontal space
+          [theme.breakpoints.down('sm')]: {
+            padding: '1rem 0.5rem', // Still responsive but with more horizontal space
           },
         },
         // Logo styling (if still needed)
-        ".logo": {
-          height: "6em",
-          padding: "1.5em",
-          willChange: "filter",
-          transition: "filter 300ms",
-          borderRadius: "50%",
-          "&:hover": {
-            filter: "drop-shadow(0 0 2em #646cffaa)",
+        '.logo': {
+          height: '6em',
+          padding: '1.5em',
+          willChange: 'filter',
+          transition: 'filter 300ms',
+          borderRadius: '50%',
+          '&:hover': {
+            filter: 'drop-shadow(0 0 2em #646cffaa)',
           },
-          "&.react:hover": {
-            filter: "drop-shadow(0 0 2em #61dafbaa)",
+          '&.react:hover': {
+            filter: 'drop-shadow(0 0 2em #61dafbaa)',
           },
         },
         // Animation
-        "@keyframes logo-spin": {
+        '@keyframes logo-spin': {
           from: {
-            transform: "rotate(0deg)",
+            transform: 'rotate(0deg)',
           },
           to: {
-            transform: "rotate(360deg)",
+            transform: 'rotate(360deg)',
           },
         },
         // Prevent horizontal scrolling on very small screens
-        [theme.breakpoints.down("sm")]: {
-          "*": {
-            maxWidth: "100% !important",
-            boxSizing: "border-box !important",
+        [theme.breakpoints.down('sm')]: {
+          '*': {
+            maxWidth: '100% !important',
+            boxSizing: 'border-box !important',
           },
         },
       }),
@@ -89,14 +89,14 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: ({ theme }) => ({
-          [theme.breakpoints.down("md")]: {
-            fontSize: "0.9rem",
-            padding: "0.6em 1em",
-            minWidth: "auto",
+          [theme.breakpoints.down('md')]: {
+            fontSize: '0.9rem',
+            padding: '0.6em 1em',
+            minWidth: 'auto',
           },
-          [theme.breakpoints.down("sm")]: {
-            fontSize: "0.85rem",
-            padding: "0.5em 0.8em",
+          [theme.breakpoints.down('sm')]: {
+            fontSize: '0.85rem',
+            padding: '0.5em 0.8em',
           },
         }),
       },
@@ -105,8 +105,8 @@ const theme = createTheme({
     MuiIconButton: {
       styleOverrides: {
         root: ({ theme }) => ({
-          [theme.breakpoints.down("sm")]: {
-            padding: "8px",
+          [theme.breakpoints.down('sm')]: {
+            padding: '8px',
           },
         }),
       },
@@ -115,8 +115,8 @@ const theme = createTheme({
     MuiTextField: {
       styleOverrides: {
         root: ({ theme }) => ({
-          [theme.breakpoints.down("md")]: {
-            minWidth: "80px",
+          [theme.breakpoints.down('md')]: {
+            minWidth: '80px',
           },
         }),
       },
@@ -125,8 +125,8 @@ const theme = createTheme({
     MuiSlider: {
       styleOverrides: {
         root: ({ theme }) => ({
-          [theme.breakpoints.down("md")]: {
-            minWidth: "120px",
+          [theme.breakpoints.down('md')]: {
+            minWidth: '120px',
           },
         }),
       },
@@ -135,9 +135,9 @@ const theme = createTheme({
     MuiContainer: {
       styleOverrides: {
         root: ({ theme }) => ({
-          [theme.breakpoints.down("sm")]: {
-            paddingLeft: "8px",
-            paddingRight: "8px",
+          [theme.breakpoints.down('sm')]: {
+            paddingLeft: '8px',
+            paddingRight: '8px',
           },
         }),
       },
