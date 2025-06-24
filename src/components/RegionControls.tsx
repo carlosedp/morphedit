@@ -1,5 +1,5 @@
 // Region controls component - crop, fade in/out, apply operations
-import React, { useState } from "react";
+import { useState } from "react";
 import { Box, Button, ButtonGroup, Stack, Tooltip } from "@mui/material";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TrendingDownIcon from "@mui/icons-material/TrendingDown";
@@ -42,10 +42,10 @@ export const RegionControls: React.FC<RegionControlsProps> = ({
   onSetFadeOutCurveType,
 }) => {
   const [fadeInAnchorEl, setFadeInAnchorEl] = useState<HTMLElement | null>(
-    null,
+    null
   );
   const [fadeOutAnchorEl, setFadeOutAnchorEl] = useState<HTMLElement | null>(
-    null,
+    null
   );
   return (
     <Stack
