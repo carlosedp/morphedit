@@ -34,6 +34,8 @@ jobs:
             - name: Build Electron app (Ubuntu/Mac)
               if: matrix.os != 'windows-latest'
               run: npm run electron:dist
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Build Electron app (Windows)
               if: matrix.os == 'windows-latest'

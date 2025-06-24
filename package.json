@@ -1,5 +1,23 @@
 {
   "name": "morphedit",
+  "description": "A desktop application for creating audio reels, samples and editing.",
+  "author": "Carlos Eduardo de Paula",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/carlosedp/morphedit.git"
+  },
+  "keywords": [
+    "audio",
+    "editor",
+    "desktop",
+    "react",
+    "electron"
+  ],
+  "homepage": "https://carlosedp.github.io/morphedit/",
+  "bugs": {
+    "url": "https://github.com/carlosedp/morphedit/issues"
+  },
   "private": true,
   "version": "4.3.0",
   "type": "module",
