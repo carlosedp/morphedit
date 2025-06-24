@@ -1,7 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import { keyboardShortcuts, type ShortcutAction } from './keyboardShortcuts';
 
-export interface UseKeyboardShortcutsProps {
+interface UseKeyboardShortcutsProps {
   onAction: (action: ShortcutAction) => void;
   enabled?: boolean;
 }

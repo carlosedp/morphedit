@@ -9,9 +9,7 @@ const bpmLogger = createLogger('BPMDetection');
  * @param audioBuffer - The AudioBuffer to analyze
  * @returns Promise that resolves to the detected BPM or null if detection fails
  */
-export async function detectBPM(
-  audioBuffer: AudioBuffer
-): Promise<number | null> {
+async function detectBPM(audioBuffer: AudioBuffer): Promise<number | null> {
   try {
     bpmLogger.debug('Starting BPM detection...', {
       duration: audioBuffer.duration,

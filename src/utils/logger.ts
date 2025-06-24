@@ -52,5 +52,4 @@ export const waveformLogger = createLogger('Waveform');
 export const spliceLogger = createLogger('SpliceMarkers');
 export const audioLogger = createLogger('AudioProcessing');
 export const regionLogger = createLogger('Regions');
-export const exportLogger = createLogger('Export');
 export const concatenationLogger = createLogger('Concatenation');

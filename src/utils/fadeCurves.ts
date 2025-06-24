@@ -45,22 +45,6 @@ export const calculateFadeGain = (
 };
 
 /**
- * Get a human-readable description of the fade curve type
- */
-export const getFadeCurveDescription = (curveType: string): string => {
-  switch (curveType) {
-    case 'linear':
-      return 'Linear - Constant fade rate';
-    case 'exponential':
-      return 'Exponential - Smooth, gradual start';
-    case 'logarithmic':
-      return 'Logarithmic - Quick start, gentle end';
-    default:
-      return 'Unknown curve type';
-  }
-};
-
-/**
  * Get all available fade curve types with descriptions
  */
 export const getFadeCurveOptions = () => [

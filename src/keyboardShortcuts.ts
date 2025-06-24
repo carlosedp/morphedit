@@ -1,6 +1,6 @@
 // Keyboard shortcuts configuration for the audio editor
 
-export interface KeyboardShortcut {
+interface KeyboardShortcut {
   key: string;
   description: string;
   action: string;

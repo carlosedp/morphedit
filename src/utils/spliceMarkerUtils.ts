@@ -78,44 +78,6 @@ export const toggleMarkerLock = (
   }
 };
 
-export interface SpliceMarkerUtils {
-  addSpliceMarker: (
-    ws: WaveSurfer,
-    regions: RegionsPlugin,
-    currentTime: number,
-    spliceMarkersStore: number[],
-    setSpliceMarkersStore: (markers: number[]) => void
-  ) => void;
-  removeSpliceMarker: (
-    ws: WaveSurfer,
-    regions: RegionsPlugin,
-    selectedSpliceMarker: Region | null,
-    spliceMarkersStore: number[],
-    setSpliceMarkersStore: (markers: number[]) => void,
-    setSelectedSpliceMarker: (marker: Region | null) => void,
-    updateSpliceMarkerColors: (marker: Region | null) => void
-  ) => void;
-  autoSlice: (
-    ws: WaveSurfer,
-    regions: RegionsPlugin,
-    numberOfSlices: number,
-    setSpliceMarkersStore: (markers: number[]) => void,
-    setSelectedSpliceMarker: (marker: Region | null) => void,
-    updateSpliceMarkerColors: (marker: Region | null) => void
-  ) => void;
-  halfMarkers: (
-    regions: RegionsPlugin,
-    setSpliceMarkersStore: (markers: number[]) => void,
-    setSelectedSpliceMarker: (marker: Region | null) => void,
-    updateSpliceMarkerColors: (marker: Region | null) => void
-  ) => void;
-  updateSpliceMarkerColors: (
-    regions: RegionsPlugin,
-    selectedMarker: Region | null,
-    theme: { palette: { primary: { main: string } } }
-  ) => void;
-}
-
 export const addSpliceMarker = (
   ws: WaveSurfer,
   regions: RegionsPlugin,
@@ -734,7 +696,7 @@ export const loadExistingCuePoints = (
 };
 
 // Helper function to update marker icons based on locked state
-export const updateMarkerIcons = (
+const updateMarkerIcons = (
   regions: RegionsPlugin,
   lockedMarkers: number[]
 ): void => {
@@ -759,7 +721,7 @@ export const updateMarkerIcons = (
 };
 
 // Helper function to update drag property of all splice markers based on locked state
-export const updateMarkersDragProperty = (
+const updateMarkersDragProperty = (
   regions: RegionsPlugin,
   lockedMarkers: number[]
 ): void => {

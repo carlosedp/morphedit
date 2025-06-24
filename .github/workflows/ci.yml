@@ -36,4 +36,4 @@ jobs:
               run: npm run build
 
             - name: Check for unused dependencies
-              run: npx depcheck --ignores="@types/*,eslint-*,prettier,rimraf,typescript,vite,@vitejs/*"
+              run: npm run depcheck

@@ -6,6 +6,8 @@ Morphedit is a browser-based audio editor built with React, TypeScript, Vite, an
 
 There is a [full manual](./public/USER_MANUAL.md) available, which includes detailed instructions on how to use the editor.
 
+[![Security Scan](https://github.com/carlosedp/morphedit/actions/workflows/security.yml/badge.svg)](https://github.com/carlosedp/morphedit/actions/workflows/security.yml) [![CI](https://github.com/carlosedp/morphedit/actions/workflows/ci.yml/badge.svg)](https://github.com/carlosedp/morphedit/actions/workflows/ci.yml)
+
 ## Features
 
 - Drag or open audio files

@@ -14,18 +14,9 @@ export const getSpliceMarkerRegions = (regions: RegionsPlugin): Region[] => {
 };
 
 /**
- * Get all non-splice marker regions from regions plugin
- */
-export const getNonSpliceMarkerRegions = (regions: RegionsPlugin): Region[] => {
-  return regions
-    .getRegions()
-    .filter((r: Region) => !r.id.startsWith('splice-marker-'));
-};
-
-/**
  * Filter splice marker regions by locked state
  */
-export const filterSpliceMarkersByLocked = (
+const filterSpliceMarkersByLocked = (
   regions: Region[],
   lockedMarkers: number[],
   includeLocked: boolean = false
@@ -45,17 +36,6 @@ export const getUnlockedSpliceMarkers = (
 ): Region[] => {
   const spliceRegions = getSpliceMarkerRegions(regions);
   return filterSpliceMarkersByLocked(spliceRegions, lockedMarkers, false);
-};
-
-/**
- * Get locked splice marker regions
- */
-export const getLockedSpliceMarkers = (
-  regions: RegionsPlugin,
-  lockedMarkers: number[]
-): Region[] => {
-  const spliceRegions = getSpliceMarkerRegions(regions);
-  return filterSpliceMarkersByLocked(spliceRegions, lockedMarkers, true);
 };
 
 /**
@@ -127,7 +107,7 @@ export const isMarkerTooCloseToExisting = (
 /**
  * Sort marker times in chronological order
  */
-export const sortMarkerTimes = (markers: number[]): number[] => {
+const sortMarkerTimes = (markers: number[]): number[] => {
   return [...markers].sort((a, b) => a - b);
 };
 
@@ -146,27 +126,6 @@ export const combineAndSortMarkers = (
  */
 export const deduplicateAndSortMarkers = (markers: number[]): number[] => {
   return [...new Set(markers)].sort((a, b) => a - b);
-};
-
-/**
- * Filter markers to only include those within a time range
- */
-export const filterMarkersInTimeRange = (
-  markers: number[],
-  startTime: number,
-  endTime: number
-): number[] => {
-  return markers.filter((marker) => marker >= startTime && marker <= endTime);
-};
-
-/**
- * Filter markers to only include those within max duration
- */
-export const filterMarkersWithinDuration = (
-  markers: number[],
-  maxDuration: number
-): number[] => {
-  return markers.filter((marker) => marker <= maxDuration);
 };
 
 /**

@@ -21,7 +21,7 @@ import {
  * Detects transients (sudden changes in energy) in audio buffer
  * Similar to Propellerhead ReCycle's functionality
  */
-export const detectTransients = (
+const detectTransients = (
   audioBuffer: AudioBuffer,
   sensitivity: number,
   frameSizeMs: number = TRANSIENT_DETECTION.DEFAULT_FRAME_SIZE_MS,

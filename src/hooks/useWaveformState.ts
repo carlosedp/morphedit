@@ -7,7 +7,7 @@ import { FADE_CURVE_TYPES } from '../constants';
 import type { ExportFormat } from '../utils/exportUtils';
 import { EXPORT_FORMATS } from '../constants';
 
-export interface WaveformState {
+interface WaveformState {
   // Playback state
   isPlaying: boolean;
   isLooping: boolean;
@@ -44,7 +44,7 @@ export interface WaveformState {
   selectedExportFormat: ExportFormat;
 }
 
-export interface WaveformActions {
+interface WaveformActions {
   setIsPlaying: (playing: boolean) => void;
   setIsLooping: (looping: boolean | ((prev: boolean) => boolean)) => void;
   setCurrentTime: (time: number) => void;

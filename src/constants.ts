@@ -6,9 +6,7 @@ import { ExportFormat } from './utils/exportUtils';
 export const AUDIO_MAX_DURATION = 174; // seconds
 
 // UI timing constants
-export const DEBOUNCE_DELAY = 300; // ms
 export const POSITION_UPDATE_INTERVAL = 100; // ms
-export const LOADING_DIALOG_DELAY = 500; // ms
 
 // Splice marker constants
 export const MAX_KEYBOARD_SHORTCUT_MARKERS = 20; // Number of markers accessible via keyboard shortcuts
@@ -91,8 +89,6 @@ export const FADE_CURVE_TYPES = {
   EXPONENTIAL: 'exponential',
   LOGARITHMIC: 'logarithmic',
 } as const;
-
-export const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 
 // UI colors and styling
 export const UI_COLORS = {
