@@ -18,6 +18,7 @@ import { FileLengthWarningDialog } from './components/FileLengthWarningDialog';
 import { LoadingDialog } from './components/LoadingDialog';
 import { MultipleFilesDialog } from './components/MultipleFilesDialog';
 import { FileReplaceDialog } from './components/FileReplaceDialog';
+import { AutoUpdater } from './components/AutoUpdater';
 import {
   getAudioFileDuration,
   isFileTooLong,
@@ -780,12 +781,10 @@ function App() {
             <KeyboardShortcutsHelp />
           </Stack>
         </Box>
-        <Box mb={2} sx={{ mx: { xs: 3, sm: 2 }, px: { xs: 2, sm: 0 } }}>
+        <Box mb={2} sx={{ mx: { xs: 0.5, sm: 1 } }}>
           {' '}
-          {/* Add horizontal margin and padding */}
           <Stack
             direction="row"
-            // spacing={2}
             sx={{
               flexDirection: { xs: 'column', sm: 'row' },
               gap: { xs: 1, sm: 2 },
@@ -1003,6 +1002,9 @@ function App() {
       />
 
       <LoadingDialog open={isLoading} message={loadingMessage} />
+
+      {/* Auto-updater component (only active in Electron) */}
+      <AutoUpdater />
     </ThemeProvider>
   );
 }

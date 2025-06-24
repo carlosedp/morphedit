@@ -34,6 +34,8 @@ Although primarily focused on Morphagene users, MorphEdit can also be used for g
 - **Splice Marker Management**: Add, remove, lock, and automatically detect splice points
 - **Direct Splice Playback**: Play individual splice markers with keyboard shortcuts (1-0, Q-P)
 - **Audio Processing**: Crop, fade in/out, and concatenate multiple files
+- **Audio Normalization**: Professional-grade normalization to -1dB peak for optimal levels
+- **BPM Detection**: Automatic tempo detection and display for musical content
 - **File Appending**: Add new audio files to existing compositions with preserved markers
 - **Transient Detection**: Automatically detect audio transients for splice placement
 - **Zero-Crossing Snap**: Align markers to zero crossings to prevent audio artifacts
@@ -76,7 +78,7 @@ The MorphEdit interface consists of several main sections:
 - **Timeline**: Displays time markers and current position
 - **Hover Information**: Shows precise time information when hovering
 
-![alt text](img/waveform.png)
+![waveform view](img/waveform.png)
 
 ### 2. Playback Controls (Top Section)
 
@@ -86,6 +88,7 @@ The MorphEdit interface consists of several main sections:
 - **Zoom Controls**: Adjust waveform zoom level and reset zoom
 - **Skip Controls**: Navigate forward/backward with adjustable increments
 - **Time Display**: Shows current time, duration, and zoom level
+- **BPM Display**: Shows detected BPM (tempo) of the loaded audio file
 - **Region Information**: Displays active crop and fade region details
 
 ![alt text](img/playback.png)
@@ -168,6 +171,9 @@ When you already have audio loaded in MorphEdit, you can append additional audio
 
 - **Zoom In/Out**: Use the zoom slider or keyboard shortcuts (=/-)
 - **Mouse Wheel Zoom**: Scroll mouse wheel over waveform to zoom in/out smoothly
+  - **Enhanced Performance**: Smooth zooming with optimized step calculation
+  - **Context-Aware**: Zoom steps adjust based on current zoom level for better control
+  - **Precise Control**: 10% increments based on current zoom for fine adjustments
 - **Zoom Reset**: Double-click zoom slider or use reset button to fit audio to window
 - **Auto-Zoom**: New audio files automatically zoom to fit the container
 
@@ -338,6 +344,25 @@ Each fade region (in/out) has its own curve selector dropdown next to the fade b
 With fades applied:
 
 ![alt text](img/fades-applied.png)
+
+### Audio Normalization
+
+MorphEdit includes audio normalization to optimize your audio levels for consistent playback and processing.
+
+#### What is Normalization?
+
+Audio normalization adjusts the gain of your audio so that the loudest peak reaches a target level (in MorphEdit, this is -1dB). This:
+
+- **Maximizes Dynamic Range**: Uses the full available headroom without clipping
+- **Ensures Consistency**: Multiple files will have similar perceived loudness
+- **Prevents Distortion**: Leaves 1dB of headroom to avoid digital clipping
+- **Optimizes for Hardware**: Provides optimal levels for the Morphagene and other hardware
+
+#### How to Apply Normalization
+
+1. **Load Audio**: First load your audio file with splice markers if desired
+2. **Access Feature**: Look for the "Normalize" button in the processing controls
+3. **Apply**: Click "Normalize" to process the audio to -1dB peak level
 
 ### Undo Functionality
 
@@ -542,6 +567,22 @@ When audio exceeds the Morphagene's 174-second limit, options are presented:
 - **Automatic**: All marker placement automatically snaps to zero crossings
 - **Manual Tool**: "Snap All to Zero" button adjusts existing markers
 - **Algorithm**: Finds nearest point where waveform crosses zero amplitude
+
+### BPM Detection
+
+MorphEdit automatically detects the BPM (Beats Per Minute) of loaded audio files and displays it in the interface.
+
+#### How BPM Detection Works
+
+- **Automatic Analysis**: BPM detection runs in the background when audio is loaded
+- **Real-Time Display**: Detected BPM appears in the playback controls section as "🎵 XXX BPM"
+
+#### BPM Display
+
+- **Format**: Shows as "🎵 120 BPM" in the interface (example)
+- **Fallback**: Displays "🎵 -- BPM" if detection fails or times out
+- **Precision**: Results are rounded to one decimal place for readability
+- **Update**: BPM is recalculated when new audio is loaded
 
 ### Concatenation Support
 

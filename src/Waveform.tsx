@@ -21,7 +21,7 @@ import { loadAudioIntoWaveform } from './utils/waveformAudioLoader';
 
 import { useAudioStore } from './audioStore';
 import type { AudioState } from './audioStore';
-import { Container, Stack } from '@mui/material';
+import { Container } from '@mui/material';
 
 // Import separated utilities and components
 import { parseWavCuePoints } from './utils/audioProcessing';
@@ -50,8 +50,7 @@ import {
 import { useWaveformState, useWaveformRefs } from './hooks/useWaveformState';
 import { useWaveformHandlers } from './hooks/useWaveformHandlers';
 import { WaveformControls } from './components/WaveformControls';
-import { ExportControls } from './components/ExportControls';
-import { RegionControls } from './components/RegionControls';
+import { WaveformActionControls } from './components/WaveformActionControls';
 import { SpliceMarkerControls } from './components/SpliceMarkerControls';
 import { setupWaveformDebugUtils } from './utils/waveformDebugUtils';
 
@@ -858,66 +857,28 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         />
 
         {/* Export and Region controls */}
-        <Stack
-          direction="row"
-          alignItems="left"
-          sx={{
-            mt: 2,
-            width: '100%',
-            flexDirection: { xs: 'column', lg: 'row' },
-            gap: { xs: 2, lg: 0 },
-          }}
-        >
-          {/* Left column - Export controls */}
-          <Stack
-            direction="row"
-            spacing={1}
-            alignItems="center"
-            sx={{
-              flex: 1,
-              justifyContent: { xs: 'center', lg: 'flex-start' },
-            }}
-          >
-            <ExportControls
-              exportAnchorEl={state.exportAnchorEl}
-              selectedExportFormat={state.selectedExportFormat}
-              onExport={handleExport}
-              onExportFormatChange={handleExportFormatChange}
-              onSetExportAnchorEl={actions.setExportAnchorEl}
-              onNormalize={handleNormalize}
-            />
-          </Stack>
-
-          {/* Right column - Region controls */}
-          <Stack
-            direction="row"
-            spacing={1}
-            alignItems="center"
-            sx={{
-              flex: 1,
-              justifyContent: { xs: 'center', lg: 'flex-end' },
-              flexWrap: 'wrap',
-              gap: { xs: 1, sm: 1 },
-            }}
-          >
-            <RegionControls
-              cropMode={state.cropMode}
-              fadeInMode={state.fadeInMode}
-              fadeOutMode={state.fadeOutMode}
-              fadeInCurveType={state.fadeInCurveType}
-              fadeOutCurveType={state.fadeOutCurveType}
-              canUndo={canUndo}
-              onCropRegion={handleCropRegion}
-              onFadeInRegion={handleFadeInRegion}
-              onFadeOutRegion={handleFadeOutRegion}
-              onApplyCrop={handleApplyCrop}
-              onApplyFades={handleApplyFades}
-              onUndo={handleUndo}
-              onSetFadeInCurveType={actions.setFadeInCurveType}
-              onSetFadeOutCurveType={actions.setFadeOutCurveType}
-            />
-          </Stack>
-        </Stack>
+        <WaveformActionControls
+          selectedExportFormat={state.selectedExportFormat}
+          exportAnchorEl={state.exportAnchorEl}
+          cropMode={state.cropMode}
+          fadeInMode={state.fadeInMode}
+          fadeOutMode={state.fadeOutMode}
+          fadeInCurveType={state.fadeInCurveType}
+          fadeOutCurveType={state.fadeOutCurveType}
+          canUndo={canUndo}
+          onExport={handleExport}
+          onExportFormatChange={handleExportFormatChange}
+          onSetExportAnchorEl={actions.setExportAnchorEl}
+          onNormalize={handleNormalize}
+          onCropRegion={handleCropRegion}
+          onApplyCrop={handleApplyCrop}
+          onFadeInRegion={handleFadeInRegion}
+          onFadeOutRegion={handleFadeOutRegion}
+          onApplyFades={handleApplyFades}
+          onUndo={handleUndo}
+          onSetFadeInCurveType={actions.setFadeInCurveType}
+          onSetFadeOutCurveType={actions.setFadeOutCurveType}
+        />
 
         {/* Splice marker controls */}
         <SpliceMarkerControls

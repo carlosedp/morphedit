@@ -1,33 +1,134 @@
-# Morphedit Audio Editor
+# MorphEdit Audio Editor
 
-![Logo](./public/MorphEdit-Logo-Small.png)
+<div align="center">
 
-Morphedit is a browser-based audio editor built with React, TypeScript, Vite, and wavesurfer.js. It supports waveform visualization, zoom, markers, and regions. State management is handled by Zustand, and the UI uses Material-UI (MUI).
+![MorphEdit Logo](./public/MorphEdit-Logo.png)
 
-There is a [full manual](./public/USER_MANUAL.md) available, which includes detailed instructions on how to use the editor.
+## Professional audio editing for the MakeNoise Morphagene and beyond
 
-[![Security Scan](https://github.com/carlosedp/morphedit/actions/workflows/security.yml/badge.svg)](https://github.com/carlosedp/morphedit/actions/workflows/security.yml) [![CI](https://github.com/carlosedp/morphedit/actions/workflows/ci.yml/badge.svg)](https://github.com/carlosedp/morphedit/actions/workflows/ci.yml)
+[![Version](https://img.shields.io/github/v/release/carlosedp/morphedit)](https://github.com/carlosedp/morphedit/releases) [![Security Scan](https://github.com/carlosedp/morphedit/actions/workflows/security.yml/badge.svg)](https://github.com/carlosedp/morphedit/actions/workflows/security.yml) [![CI](https://github.com/carlosedp/morphedit/actions/workflows/ci.yml/badge.svg)](https://github.com/carlosedp/morphedit/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Features
+[Download](https://github.com/carlosedp/morphedit/releases) • [Documentation](./public/USER_MANUAL.md) • [Report Bug](https://github.com/carlosedp/morphedit/issues) • [Request Feature](https://github.com/carlosedp/morphedit/issues)
 
-- Drag or open audio files
-- Waveform visualization (mono)
-- Zoom, markers, and region selection
-- State management with Zustand
-- Modern UI with MUI
-- Placeholders for beat detection and audio export (coming soon)
-- All processing in the browser
-- Ready for future Electron packaging
+</div>
 
-## Getting Started
+## 🎵 About
 
-```sh
+MorphEdit is a powerful, browser-based audio editor designed for preparing audio files for the **MakeNoise Morphagene** granular synthesis module. While optimized for Morphagene workflows, it serves as a versatile tool for general audio editing tasks including splicing, cropping, fading, and concatenation making it perfect for audio sample manipulation.
+
+**No installation required** - runs entirely in your browser with professional-grade audio processing capabilities.
+
+**Complete privacy** - all audio processing happens locally in your browser, ensuring your files never leave your device and **never get uploaded to a server**.
+
+![MorphEdit Screenshot](./public/img/overview.png)
+
+## ✨ Key Features
+
+### 🎯 **Splice Marker Management**
+
+- Add, remove, and lock splice points with precision
+- Automatic transient detection with adjustable sensitivity
+- Zero-crossing snap to prevent audio artifacts
+- Play individual splice markers with keyboard shortcuts (1-0, Q-P)
+- Import existing cue points from audio files
+
+### 🎛️ **Professional Audio Processing**
+
+- Multiple fade curve types (linear, exponential, logarithmic)
+- Crop regions with sample-accurate precision
+- Audio concatenation with preserved splice markers
+- Normalization and gain adjustment
+- BPM detection and display
+
+### 📤 **Flexible Export Options**
+
+- Optimized Morphagene format (48kHz, 16-bit WAV)
+- Multiple sample rates and bit depths
+- Export individual splice segments
+- Batch processing support
+
+### 🖥️ **Modern Interface**
+
+- Responsive design for desktop, tablet, and mobile
+- High-resolution waveform visualization
+- Mouse wheel zoom with smooth navigation
+- Material-UI components for professional appearance
+- Comprehensive keyboard shortcuts
+
+### 🔧 **Advanced Workflow**
+
+- Drag-and-drop file loading
+- Multiple file concatenation
+- Undo/redo functionality
+- Background processing indicators
+- File length warnings and truncation options
+
+## 🚀 Quick Start
+
+### Option 1: Use Online (Recommended)
+
+Visit the [live application](https://carlosedp.github.io/morphedit/) - no installation required!
+
+### Option 2: Download Desktop App
+
+Download the latest release for your platform from [GitHub Releases](https://github.com/carlosedp/morphedit/releases).
+
+### Option 3: Run from Source
+
+```bash
+git clone https://github.com/carlosedp/morphedit.git
+cd morphedit
 npm install
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) to view the app.
+Open [http://localhost:5173](http://localhost:5173) to view the application.
+
+## 📖 Documentation
+
+- **[Complete User Manual](./public/USER_MANUAL.md)** - Comprehensive guide with screenshots
+- **[Feature List](./docs/FeatureList.md)** - Detailed feature tracking and roadmap
+- **[Auto-Update Setup](./docs/AUTO_UPDATE_SETUP.md)** - Desktop app update configuration
+
+## 🎯 Perfect for Morphagene Users
+
+MorphEdit streamlines the Morphagene workflow by:
+
+- **Optimal File Preparation**: Exports in Morphagene's preferred 48kHz/16-bit format
+- **Splice Point Precision**: Zero-crossing alignment prevents clicks and pops
+- **Length Management**: Automatic 174-second length optimization
+- **Cue Point Support**: Imports and exports standard cue points
+- **Preview Playback**: Test splice points before transferring to hardware
+
+## 🛠️ Technology Stack
+
+- **Frontend**: React 19, TypeScript, Material-UI
+- **Audio Processing**: WaveSurfer.js, Web Audio API
+- **State Management**: Zustand
+- **Build Tool**: Vite
+- **Desktop**: Electron
+- **Deployment**: GitHub Pages
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with [WaveSurfer.js](https://wavesurfer-js.org/) for audio visualization
+- Designed for the [MakeNoise Morphagene](https://www.makenoisemusic.com/modules/morphagene) community
+- Icons from [Material-UI Icons](https://mui.com/material-ui/material-icons/)
 
 ---
 
-This project was bootstrapped with Vite + React + TypeScript.
+<div align="center">
+
+Made with ❤️ for the modular synthesis community
+
+[⭐ Star this repo](https://github.com/carlosedp/morphedit) if you find it useful!
+
+</div>
