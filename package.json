@@ -83,7 +83,10 @@
     "publish": {
       "provider": "github",
       "owner": "carlosedp",
-      "repo": "morphedit"
+      "repo": "morphedit",
+      "releaseType": "release",
+      "releaseChannel": "latest",
+      "publishAutoUpdate": true
     },
     "directories": {
       "buildResources": "public",
@@ -99,8 +102,7 @@
       "target": {
         "target": "default",
         "arch": [
-          "arm64",
-          "x64"
+          "universal"
         ]
       },
       "type": "distribution",
