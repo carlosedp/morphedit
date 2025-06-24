@@ -69,7 +69,7 @@ The auto-update system allows your Electron app to automatically check for updat
 
 ## File Structure
 
-```
+```sh
 src/
 ├── components/
 │   └── AutoUpdater.tsx          # Update UI component
