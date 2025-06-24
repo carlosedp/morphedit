@@ -48,21 +48,21 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                   name: linux-build
-                  path: dist-electron/*.AppImage
+                  path: dist/*.AppImage
 
             - name: Upload Windows artifacts
               if: matrix.os == 'windows-latest'
               uses: actions/upload-artifact@v4
               with:
                   name: windows-build
-                  path: dist-electron/*.exe
+                  path: dist/*.exe
 
             - name: Upload macOS artifacts
               if: matrix.os == 'macos-latest'
               uses: actions/upload-artifact@v4
               with:
                   name: macos-build
-                  path: dist-electron/*.dmg
+                  path: dist/*.dmg
 
     release:
         if: startsWith(github.ref, 'refs/tags/')
