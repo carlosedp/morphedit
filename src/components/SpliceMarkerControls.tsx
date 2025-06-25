@@ -76,7 +76,7 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
         }}
       >
         <Typography variant="subtitle2" gutterBottom>
-          Manual Splice Marker Controls
+          Splice Marker Controls
         </Typography>
 
         {/* First row: Add/Remove/Lock buttons (Manual Controls) */}
@@ -88,6 +88,7 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             flexWrap: 'wrap',
             gap: { xs: 0.5, sm: 1 },
             mb: 1.5,
+            mt: 2,
             justifyContent: { xs: 'center', sm: 'flex-start' },
           }}
         >
@@ -159,6 +160,31 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
                 }}
               >
                 {selectedSpliceMarkerLocked ? <LockIcon /> : <LockOpenIcon />}
+              </Button>
+            </Box>
+          </Tooltip>
+          <Tooltip
+            title="Clear all splice markers (manual and detected) except locked"
+            enterDelay={TOOLTIP_DELAYS.ENTER}
+            leaveDelay={TOOLTIP_DELAYS.LEAVE}
+          >
+            <Box component="span">
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={onClearAllMarkers}
+                startIcon={<ClearIcon />}
+                disabled={spliceMarkersCount === 0}
+                sx={{
+                  fontSize: { xs: '0.9rem', sm: '0.875rem' },
+                  padding: {
+                    xs: '0.6em 1em',
+                    sm: '6px 16px',
+                  },
+                  minHeight: { xs: '48px', sm: '36px' },
+                }}
+              >
+                Clear All
               </Button>
             </Box>
           </Tooltip>
@@ -274,32 +300,6 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
           }}
         >
           <Tooltip
-            title="Clear all splice markers"
-            enterDelay={TOOLTIP_DELAYS.ENTER}
-            leaveDelay={TOOLTIP_DELAYS.LEAVE}
-          >
-            <Box component="span">
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={onClearAllMarkers}
-                startIcon={<ClearIcon />}
-                disabled={spliceMarkersCount === 0}
-                sx={{
-                  fontSize: { xs: '0.9rem', sm: '0.875rem' },
-                  padding: {
-                    xs: '0.6em 1em',
-                    sm: '6px 16px',
-                  },
-                  minHeight: { xs: '48px', sm: '36px' },
-                }}
-              >
-                Clear All
-              </Button>
-            </Box>
-          </Tooltip>
-
-          <Tooltip
             title="Snap all existing markers to zero crossings (reduces audio artifacts)"
             enterDelay={TOOLTIP_DELAYS.ENTER}
             leaveDelay={TOOLTIP_DELAYS.LEAVE}
@@ -326,17 +326,17 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             </Box>
           </Tooltip>
         </Stack>
-      </Box>
-
-      {/* Transient detection controls */}
-      <Box
-        sx={{
-          p: 2,
-          border: 1,
-          borderColor: 'divider',
-          borderRadius: 1,
-        }}
-      >
+        <Box sx={{ my: 2 }}>
+          <hr
+            style={{
+              border: '1px solid',
+              borderColor: 'divider',
+              marginTop: '20px',
+              marginBottom: '20px',
+            }}
+          />
+        </Box>
+        {/* Transient detection controls */}
         <Typography variant="subtitle2" gutterBottom>
           Splice Detection
         </Typography>

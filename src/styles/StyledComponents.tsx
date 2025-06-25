@@ -35,11 +35,12 @@ export const WaveformContainer = styled(Box)(({ theme }) => ({
 
   // Waveform-specific styles
   '& ::part(cursor):after': {
-    content: '"▶"',
-    fontSize: '1.3em',
+    content: '"▼"',
+    fontSize: '1.5em',
     color: '#ff990a',
     position: 'absolute',
-    top: '-5px',
+    top: '-13px',
+    left: '-4px',
     zIndex: 4,
   },
 

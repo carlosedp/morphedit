@@ -19,7 +19,7 @@
     "url": "https://github.com/carlosedp/morphedit/issues"
   },
   "private": true,
-  "version": "4.6.0",
+  "version": "4.7.0",
   "type": "module",
   "scripts": {
     "start": "vite",
@@ -45,7 +45,7 @@
     "electron-updater": "^6.3.9",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "wavesurfer.js": "^7.9.5",
+    "wavesurfer.js": "^7.9.8",
     "web-audio-beat-detector": "^8.2.29",
     "zustand": "^5.0.5"
   },
@@ -83,7 +83,10 @@
     "publish": {
       "provider": "github",
       "owner": "carlosedp",
-      "repo": "morphedit"
+      "repo": "morphedit",
+      "releaseType": "release",
+      "releaseChannel": "latest",
+      "publishAutoUpdate": true
     },
     "directories": {
       "buildResources": "public",
@@ -99,8 +102,7 @@
       "target": {
         "target": "default",
         "arch": [
-          "arm64",
-          "x64"
+          "universal"
         ]
       },
       "type": "distribution",

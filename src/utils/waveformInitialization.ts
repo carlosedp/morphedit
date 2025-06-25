@@ -78,5 +78,5 @@ export function calculateInitialZoom(duration: number): number {
   // Calculate appropriate zoom to fill the container
   const minPxPerSec = containerWidth / duration;
   // Allow very low zoom values for long audio files, but ensure minimum usability
-  return Math.min(1000, Math.max(1, minPxPerSec));
+  return Math.min(1000, Math.max(1, minPxPerSec * 0.99));
 }

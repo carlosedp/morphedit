@@ -542,21 +542,21 @@ export const updateSpliceMarkerColors = (
 
     if (region.element) {
       region.setContent(newIcon); // Update content property directly
-    }
 
-    if (isSelected) {
-      // Selected marker: use primary theme color for selection
-      region.element.style.borderLeft = `2px solid ${theme.palette.primary.main}`;
-      region.element.style.backgroundColor = isLocked
-        ? UI_COLORS.SELECTED_MARKER_BACKGROUND_LOCKED // Orange background if locked
-        : UI_COLORS.SELECTED_MARKER_BACKGROUND_UNLOCKED; // Blue background if unlocked
-    } else {
-      // Unselected markers (both locked and unlocked): use same default cyan color
-      // Only the icon will differ between locked (🔒) and unlocked (🔶) markers
-      region.element.style.borderLeft = `2px solid ${REGION_COLORS.SPLICE_MARKER}`;
-      region.element.style.backgroundColor =
-        UI_COLORS.DEFAULT_MARKER_BACKGROUND;
-      region.element.style.boxShadow = `none`; // Remove any existing glow
+      if (isSelected) {
+        // Selected marker: use primary theme color for selection
+        region.element.style.borderLeft = `2px solid ${theme.palette.primary.main}`;
+        region.element.style.backgroundColor = isLocked
+          ? UI_COLORS.SELECTED_MARKER_BACKGROUND_LOCKED // Orange background if locked
+          : UI_COLORS.SELECTED_MARKER_BACKGROUND_UNLOCKED; // Blue background if unlocked
+      } else {
+        // Unselected markers (both locked and unlocked): use same default cyan color
+        // Only the icon will differ between locked (🔒) and unlocked (🔶) markers
+        region.element.style.borderLeft = `2px solid ${REGION_COLORS.SPLICE_MARKER}`;
+        region.element.style.backgroundColor =
+          UI_COLORS.DEFAULT_MARKER_BACKGROUND;
+        region.element.style.boxShadow = `none`; // Remove any existing glow
+      }
     }
   });
 };

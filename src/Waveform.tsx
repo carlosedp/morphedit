@@ -130,6 +130,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     const lockedSpliceMarkersStore = useAudioStore(
       (s: AudioState) => s.lockedSpliceMarkers
     );
+    const setLockedSpliceMarkersStore = useAudioStore(
+      (s: AudioState) => s.setLockedSpliceMarkers
+    );
 
     const canUndo = useAudioStore((s: AudioState) => s.canUndo);
 
@@ -606,6 +609,65 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         setMarkers(
           regionList.filter((r) => r.end === r.start).map((r) => r.start)
         );
+
+        // Synchronize splice marker positions back to the store when they are moved
+        const spliceMarkerRegions = regionList.filter((r: Region) =>
+          r.id.startsWith('splice-marker-')
+        );
+        
+        if (spliceMarkerRegions.length > 0) {
+          // Get current marker positions from visual regions
+          const currentVisualMarkerPositions = spliceMarkerRegions
+            .map((r: Region) => r.start)
+            .sort((a, b) => a - b);
+          
+          // Get current store positions
+          const currentStorePositions = [...spliceMarkersStore].sort((a, b) => a - b);
+          
+          // Check if positions have changed (tolerance check to avoid infinite updates)
+          const positionsChanged = currentVisualMarkerPositions.length !== currentStorePositions.length ||
+            currentVisualMarkerPositions.some((pos, index) => 
+              Math.abs(pos - (currentStorePositions[index] || 0)) > 0.001
+            );
+          
+          if (positionsChanged) {
+            console.log('Splice marker positions changed, synchronizing store...');
+            console.log('Old positions:', currentStorePositions);
+            console.log('New positions:', currentVisualMarkerPositions);
+            setSpliceMarkersStore(currentVisualMarkerPositions);
+            
+            // Also synchronize locked markers - check which visual markers are locked
+            // and update the locked markers store accordingly
+            const currentLockedMarkers = useAudioStore.getState().lockedSpliceMarkers;
+            const newLockedMarkers: number[] = [];
+            
+            spliceMarkerRegions.forEach((region: Region) => {
+              // Check if this marker was previously locked by finding the closest match in old locked markers
+              const markerPosition = region.start;
+              const wasLocked = currentLockedMarkers.some(lockedPos => 
+                currentStorePositions.some(oldPos => 
+                  Math.abs(oldPos - lockedPos) < 0.001 && Math.abs(oldPos - markerPosition) < 0.1
+                )
+              );
+              
+              if (wasLocked) {
+                newLockedMarkers.push(markerPosition);
+              }
+            });
+            
+            // Update locked markers store if needed
+            const lockedPositionsChanged = newLockedMarkers.length !== currentLockedMarkers.length ||
+              newLockedMarkers.some(pos => !currentLockedMarkers.some(locked => Math.abs(pos - locked) < 0.001));
+            
+            if (lockedPositionsChanged) {
+              console.log('Locked marker positions changed, synchronizing locked store...');
+              console.log('Old locked positions:', currentLockedMarkers);
+              console.log('New locked positions:', newLockedMarkers);
+              setLockedSpliceMarkersStore(newLockedMarkers);
+            }
+          }
+        }
+        
         // Trigger region info update for WaveformControls
         setRegionUpdateTrigger((prev) => prev + 1);
       };
