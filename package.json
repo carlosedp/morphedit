@@ -19,7 +19,7 @@
     "url": "https://github.com/carlosedp/morphedit/issues"
   },
   "private": true,
-  "version": "4.6.0",
+  "version": "4.7.0",
   "type": "module",
   "scripts": {
     "start": "vite",
