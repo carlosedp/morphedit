@@ -45,7 +45,7 @@
     "electron-updater": "^6.3.9",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "wavesurfer.js": "^7.9.5",
+    "wavesurfer.js": "^7.9.8",
     "web-audio-beat-detector": "^8.2.29",
     "zustand": "^5.0.5"
   },
