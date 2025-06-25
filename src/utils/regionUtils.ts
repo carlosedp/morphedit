@@ -318,18 +318,73 @@ export const applyCrop = async (
     lockedSpliceMarkersStore
   );
 
-  // Also check visual markers for comparison
+  // Get current visual markers to ensure we use the most up-to-date positions
+  // This is important because markers might have been moved by dragging but not yet synchronized to store
   const visualSpliceMarkers = getSpliceMarkerRegions(regions);
+  console.log('=== CROP OPERATION MARKER CHECK ===');
   console.log('Visual splice markers count:', visualSpliceMarkers.length);
+  console.log('Store splice markers count:', spliceMarkersStore.length);
+  console.log('Store locked markers count:', lockedSpliceMarkersStore.length);
+
+  // If there are no visual markers (all were cleared), ensure we use empty arrays
+  // This prevents the crop operation from embedding old markers from the store
+  const currentSpliceMarkerPositions =
+    visualSpliceMarkers.length > 0
+      ? visualSpliceMarkers.map((marker) => marker.start)
+      : []; // Force empty array if no visual markers
+
+  const currentLockedSpliceMarkers =
+    useAudioStore.getState().lockedSpliceMarkers;
+
+  // Determine which visual markers are locked (only if there are visual markers)
+  // IMPORTANT: Only consider locked markers that actually exist as visual markers
+  // This prevents old locked cue points from being included after markers are cleared
+  const currentLockedMarkerPositions =
+    visualSpliceMarkers.length > 0
+      ? currentSpliceMarkerPositions.filter((position) =>
+          currentLockedSpliceMarkers.some(
+            (locked) => Math.abs(locked - position) < 0.001
+          )
+        )
+      : []; // Force empty array if no visual markers exist
+
+  // CRITICAL FIX: If no visual markers exist, force clear the stores as well
+  // This ensures that old cue point data cannot be embedded in cropped audio
+  if (visualSpliceMarkers.length === 0) {
+    console.log(
+      'NO VISUAL MARKERS DETECTED - Forcing store cleanup to prevent embedding old markers'
+    );
+    console.log(
+      'Clearing splice markers store and locked markers store during crop'
+    );
+    callbacks.setSpliceMarkersStore([]);
+    callbacks.setLockedSpliceMarkersStore([]);
+  }
+
+  console.log('Using marker positions for crop:', currentSpliceMarkerPositions);
+  console.log(
+    'Using locked marker positions for crop:',
+    currentLockedMarkerPositions
+  );
+  console.log('=== END CROP OPERATION MARKER CHECK ===');
+
+  console.log('=== CROP MARKER SOURCE DEBUG ===');
+  console.log('Store splice markers:', spliceMarkersStore);
+  console.log('Visual splice marker positions:', currentSpliceMarkerPositions);
+  console.log('Store locked markers:', lockedSpliceMarkersStore);
+  console.log('Visual locked marker positions:', currentLockedMarkerPositions);
+  console.log('=== END CROP MARKER SOURCE DEBUG ===');
 
   // Filter and adjust splice markers to only include those within the cropped region
-  const filteredSpliceMarkers = spliceMarkersStore.filter(
+  // Use visual marker positions as source of truth
+  const filteredSpliceMarkers = currentSpliceMarkerPositions.filter(
     (markerTime) =>
       markerTime >= adjustedStartTime && markerTime <= adjustedEndTime
   );
 
   // Filter and adjust locked splice markers to only include those within the cropped region
-  const filteredLockedSpliceMarkers = lockedSpliceMarkersStore.filter(
+  // Use visual locked marker positions as source of truth
+  const filteredLockedSpliceMarkers = currentLockedMarkerPositions.filter(
     (markerTime) =>
       markerTime >= adjustedStartTime && markerTime <= adjustedEndTime
   );
