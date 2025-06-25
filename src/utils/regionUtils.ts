@@ -359,6 +359,7 @@ export const applyCrop = async (
     );
     callbacks.setSpliceMarkersStore([]);
     callbacks.setLockedSpliceMarkersStore([]);
+    // All arrays will be set to [] below
   }
 
   console.log('Using marker positions for crop:', currentSpliceMarkerPositions);
@@ -372,33 +373,36 @@ export const applyCrop = async (
   console.log('Store splice markers:', spliceMarkersStore);
   console.log('Visual splice marker positions:', currentSpliceMarkerPositions);
   console.log('Store locked markers:', lockedSpliceMarkersStore);
-  console.log('Visual locked marker positions:', currentLockedMarkerPositions);
+  console.log('Visual locked marker positions:', currentLockedSpliceMarkers);
   console.log('=== END CROP MARKER SOURCE DEBUG ===');
 
   // Filter and adjust splice markers to only include those within the cropped region
   // Use visual marker positions as source of truth
-  const filteredSpliceMarkers = currentSpliceMarkerPositions.filter(
-    (markerTime) =>
-      markerTime >= adjustedStartTime && markerTime <= adjustedEndTime
-  );
+  let filteredSpliceMarkers: number[] = [];
+  let filteredLockedSpliceMarkers: number[] = [];
+  let adjustedSpliceMarkers: number[] = [];
+  let adjustedLockedSpliceMarkers: number[] = [];
 
-  // Filter and adjust locked splice markers to only include those within the cropped region
-  // Use visual locked marker positions as source of truth
-  const filteredLockedSpliceMarkers = currentLockedMarkerPositions.filter(
-    (markerTime) =>
-      markerTime >= adjustedStartTime && markerTime <= adjustedEndTime
-  );
+  if (visualSpliceMarkers.length === 0) {
+    // All arrays remain empty
+  } else {
+    filteredSpliceMarkers = currentSpliceMarkerPositions.filter(
+      (markerTime) =>
+        markerTime >= adjustedStartTime && markerTime <= adjustedEndTime
+    );
+    filteredLockedSpliceMarkers = currentLockedMarkerPositions.filter(
+      (markerTime) =>
+        markerTime >= adjustedStartTime && markerTime <= adjustedEndTime
+    );
+    adjustedSpliceMarkers = filteredSpliceMarkers.map(
+      (markerTime) => markerTime - adjustedStartTime
+    );
+    adjustedLockedSpliceMarkers = filteredLockedSpliceMarkers.map(
+      (markerTime) => markerTime - adjustedStartTime
+    );
+  }
 
-  // Adjust marker times relative to the new start time (subtract crop start)
-  const adjustedSpliceMarkers = filteredSpliceMarkers.map(
-    (markerTime) => markerTime - adjustedStartTime
-  );
-
-  // Adjust locked marker times relative to the new start time (subtract crop start)
-  const adjustedLockedSpliceMarkers = filteredLockedSpliceMarkers.map(
-    (markerTime) => markerTime - adjustedStartTime
-  );
-
+  // Now that all arrays are initialized, log their values
   console.log('=== CROP MARKER ADJUSTMENT DEBUG ===');
   console.log(
     'Original crop region:',
@@ -413,9 +417,12 @@ export const applyCrop = async (
     adjustedEndTime
   );
   console.log('Original splice markers:', spliceMarkersStore);
-  console.log('Filtered splice markers (within crop):', filteredSpliceMarkers);
   console.log(
-    'Adjusted splice markers (relative to crop start):',
+    'Filtered splice markers (locked only within crop):',
+    filteredSpliceMarkers
+  );
+  console.log(
+    'Adjusted splice markers (locked only, relative to crop start):',
     adjustedSpliceMarkers
   );
   console.log('Original locked markers:', lockedSpliceMarkersStore);
@@ -436,9 +443,27 @@ export const applyCrop = async (
     `Crop locked markers: ${lockedSpliceMarkersStore.length} -> ${filteredLockedSpliceMarkers.length} (filtered) -> ${adjustedLockedSpliceMarkers.length} (adjusted)`
   );
 
+  console.log(
+    'About to write WAV with locked markers:',
+    adjustedLockedSpliceMarkers
+  );
   // Convert to WAV blob and create new URL
-  const wav = audioBufferToWavWithCues(newBuffer, adjustedSpliceMarkers);
+  // Only locked markers should be embedded as cue points in the cropped audio
+  const wav = audioBufferToWavWithCues(newBuffer, adjustedLockedSpliceMarkers);
   const blob = new Blob([wav], { type: 'audio/wav' });
+
+  // Revoke previous blob URL to prevent browser caching issues
+  if (currentAudioUrl && currentAudioUrl.startsWith('blob:')) {
+    try {
+      URL.revokeObjectURL(currentAudioUrl);
+      console.log(
+        'Revoked previous blob URL to prevent caching:',
+        currentAudioUrl
+      );
+    } catch (e) {
+      console.warn('Failed to revoke previous blob URL:', currentAudioUrl, e);
+    }
+  }
 
   // Preserve existing URL flags and add cropped flag
   let newUrl = URL.createObjectURL(blob);
