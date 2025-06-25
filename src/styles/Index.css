@@ -1,4 +1,4 @@
-@import "@fontsource/roboto-mono/400.css";
+@import '@fontsource/roboto-mono/latin-400.css';
 
 :root {
   line-height: 1.5;
@@ -20,7 +20,9 @@ html {
   width: 100%;
 }
 
-*, *:before, *:after {
+*,
+*:before,
+*:after {
   box-sizing: inherit;
 }
 
