@@ -19,7 +19,7 @@
     "url": "https://github.com/carlosedp/morphedit/issues"
   },
   "private": true,
-  "version": "4.7.0",
+  "version": "4.8.0",
   "type": "module",
   "scripts": {
     "start": "vite",
@@ -30,6 +30,7 @@
     "lint": "eslint . --fix",
     "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\"",
     "format": "npm run pretty && npm run lint",
+    "check": "npm run lint && npm run pretty && npm run depcheck",
     "depcheck": "knip",
     "preview": "vite preview",
     "electron:dev": "vite build && electron .",

@@ -49,6 +49,7 @@ import {
 } from '../utils/exportUtils';
 import { createGenericSpliceHandler } from '../utils/spliceMarkerHandlers';
 import { calculateInitialZoom } from '../utils/waveformInitialization';
+import { exportSlicesWithProgress } from '../utils/sliceExportUtils';
 
 interface MarkerData {
   id: string;
@@ -675,6 +676,93 @@ export const useWaveformHandlers = ({
     state.selectedExportFormat,
   ]);
 
+  const handleExportSlices = useCallback(async (): Promise<
+    'no-slices' | 'no-audio' | 'success' | 'error'
+  > => {
+    const audioBuffer = useAudioStore.getState().audioBuffer;
+
+    if (!audioBuffer) {
+      console.log('No audio buffer found for slice export');
+      return 'no-audio';
+    }
+
+    // Get current marker positions directly from visual regions (most up-to-date)
+    const regions = regionsRef.current;
+    let currentSpliceMarkers: number[] = [];
+
+    if (regions) {
+      const allRegions = regions.getRegions();
+      currentSpliceMarkers = allRegions
+        .filter((r: Region) => r.id.startsWith('splice-marker-'))
+        .map((r: Region) => r.start)
+        .sort((a, b) => a - b);
+    }
+
+    // Fallback to store if no visual regions found
+    if (currentSpliceMarkers.length === 0) {
+      currentSpliceMarkers = useAudioStore.getState().spliceMarkers;
+    }
+
+    if (currentSpliceMarkers.length === 0) {
+      console.log('No splice markers found - cannot export slices');
+      return 'no-slices';
+    }
+
+    console.log('=================== SLICE EXPORT DEBUG ===================');
+    console.log('Slice Export - Current audio URL:', state.currentAudioUrl);
+    console.log('Exporting slices with splice markers:', currentSpliceMarkers);
+    console.log('Export format:', state.selectedExportFormat);
+    console.log('Number of splice markers:', currentSpliceMarkers.length);
+    console.log('==========================================================');
+
+    if (onProcessingStart) {
+      onProcessingStart('Exporting individual slices...');
+    }
+
+    try {
+      const results = await exportSlicesWithProgress(
+        audioBuffer,
+        currentSpliceMarkers,
+        state.selectedExportFormat,
+        'morphedit-slice',
+        (current, total) => {
+          if (onProcessingStart) {
+            onProcessingStart(`Exporting slice ${current} of ${total}...`);
+          }
+        }
+      );
+
+      const successCount = results.filter((r) => r.success).length;
+      const errorCount = results.filter((r) => !r.success).length;
+
+      console.log(
+        `Slice export completed: ${successCount} successful, ${errorCount} failed`
+      );
+
+      if (errorCount > 0) {
+        console.warn(
+          'Some slices failed to export:',
+          results.filter((r) => !r.success)
+        );
+      }
+
+      return successCount > 0 ? 'success' : 'error';
+    } catch (error) {
+      console.error('Error during slice export:', error);
+      return 'error';
+    } finally {
+      if (onProcessingComplete) {
+        onProcessingComplete();
+      }
+    }
+  }, [
+    state.selectedExportFormat,
+    state.currentAudioUrl,
+    onProcessingStart,
+    onProcessingComplete,
+    regionsRef,
+  ]);
+
   const handleExportFormatChange = useCallback(
     (format: ExportFormat) => {
       console.log('Changing export format to:', format);
@@ -731,6 +819,7 @@ export const useWaveformHandlers = ({
 
     // Export handlers
     handleExport,
+    handleExportSlices,
     handleExportFormatChange,
 
     // Splice playback handlers
