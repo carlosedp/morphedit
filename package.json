@@ -86,7 +86,7 @@
       "owner": "carlosedp",
       "repo": "morphedit",
       "releaseType": "release",
-      "releaseChannel": "latest",
+      "channel": "latest",
       "publishAutoUpdate": true
     },
     "directories": {
