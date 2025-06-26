@@ -36,23 +36,28 @@ const extractSliceFromBuffer = (
           webkitAudioContext?: typeof AudioContext;
         }
     ).webkitAudioContext)();
-  const sliceBuffer = audioContext.createBuffer(
-    numberOfChannels,
-    sliceLength,
-    sampleRate
-  );
+  let sliceBuffer: AudioBuffer;
+  try {
+    sliceBuffer = audioContext.createBuffer(
+      numberOfChannels,
+      sliceLength,
+      sampleRate
+    );
 
-  // Copy audio data for each channel
-  for (let channel = 0; channel < numberOfChannels; channel++) {
-    const sourceChannelData = audioBuffer.getChannelData(channel);
-    const sliceChannelData = sliceBuffer.getChannelData(channel);
+    // Copy audio data for each channel
+    for (let channel = 0; channel < numberOfChannels; channel++) {
+      const sourceChannelData = audioBuffer.getChannelData(channel);
+      const sliceChannelData = sliceBuffer.getChannelData(channel);
 
-    for (let i = 0; i < sliceLength; i++) {
-      const sourceIndex = startSample + i;
-      if (sourceIndex < sourceChannelData.length) {
-        sliceChannelData[i] = sourceChannelData[sourceIndex];
+      for (let i = 0; i < sliceLength; i++) {
+        const sourceIndex = startSample + i;
+        if (sourceIndex < sourceChannelData.length) {
+          sliceChannelData[i] = sourceChannelData[sourceIndex];
+        }
       }
     }
+  } finally {
+    audioContext.close();
   }
 
   return sliceBuffer;
