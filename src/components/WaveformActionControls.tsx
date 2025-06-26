@@ -1,5 +1,6 @@
 // Separated action controls for the Waveform component
 
+import { useState } from 'react';
 import {
   Stack,
   Button,
@@ -9,8 +10,11 @@ import {
   Menu,
   MenuItem,
   Typography,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
+import ContentCutIcon from '@mui/icons-material/ContentCut';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
@@ -35,6 +39,7 @@ interface WaveformActionControlsProps {
 
   // Action props
   onExport: () => void;
+  onExportSlices: () => Promise<'no-slices' | 'no-audio' | 'success' | 'error'>;
   onExportFormatChange: (format: ExportFormat) => void;
   onSetExportAnchorEl: (element: HTMLElement | null) => void;
   onNormalize: () => void;
@@ -61,6 +66,7 @@ export const WaveformActionControls = ({
 
   // Action props
   onExport,
+  onExportSlices,
   onExportFormatChange,
   onSetExportAnchorEl,
   onNormalize,
@@ -73,9 +79,22 @@ export const WaveformActionControls = ({
   onSetFadeInCurveType,
   onSetFadeOutCurveType,
 }: WaveformActionControlsProps) => {
+  const [noSlicesSnackbarOpen, setNoSlicesSnackbarOpen] = useState(false);
+
   const handleExportFormatSelect = (format: ExportFormat) => {
     onExportFormatChange(format);
     onSetExportAnchorEl(null);
+  };
+
+  const handleExportSlicesClick = async () => {
+    const result = await onExportSlices();
+    if (result === 'no-slices') {
+      setNoSlicesSnackbarOpen(true);
+    }
+  };
+
+  const handleSnackbarClose = () => {
+    setNoSlicesSnackbarOpen(false);
   };
 
   return (
@@ -94,7 +113,7 @@ export const WaveformActionControls = ({
         direction="column"
         spacing={1}
         sx={{
-          width: { xs: '100%', lg: '30%' },
+          width: { xs: '100%', lg: '50%' },
           alignItems: { xs: 'center', lg: 'flex-start' },
         }}
       >
@@ -108,11 +127,27 @@ export const WaveformActionControls = ({
             <Button
               onClick={onExport}
               startIcon={<DownloadIcon />}
-              sx={{ minWidth: 140 }}
+              sx={{ width: 160 }}
             >
-              Export WAV
+              Save WAV
             </Button>
           </Tooltip>
+          {/* Export Slices button */}
+          <Tooltip
+            title={`Export each slice as separate ${selectedExportFormat.label} file`}
+            enterDelay={TOOLTIP_DELAYS.ENTER}
+            leaveDelay={TOOLTIP_DELAYS.LEAVE}
+          >
+            <Button
+              variant="outlined"
+              onClick={handleExportSlicesClick}
+              startIcon={<ContentCutIcon />}
+              sx={{ width: 160 }}
+            >
+              Save Slices
+            </Button>
+          </Tooltip>
+          {/* Export format selector */}
           <Tooltip
             title="Select export format"
             enterDelay={TOOLTIP_DELAYS.ENTER}
@@ -367,6 +402,23 @@ export const WaveformActionControls = ({
           </Tooltip>
         </Stack>
       </Stack>
+
+      {/* Snackbar for no slices notification */}
+      <Snackbar
+        open={noSlicesSnackbarOpen}
+        autoHideDuration={3000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity="info"
+          sx={{ width: '100%' }}
+        >
+          No slices found in the audio. Add splice markers to create slices for
+          export.
+        </Alert>
+      </Snackbar>
     </Stack>
   );
 };

@@ -30,6 +30,7 @@
     "lint": "eslint . --fix",
     "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\"",
     "format": "npm run pretty && npm run lint",
+    "check": "npm run lint && npm run pretty && npm run depcheck",
     "depcheck": "knip",
     "preview": "vite preview",
     "electron:dev": "vite build && electron .",
