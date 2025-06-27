@@ -31,6 +31,9 @@ export interface AudioState {
   // Undo state to prevent marker overrides during undo operations
   isUndoing: boolean;
   setIsUndoing: (undoing: boolean) => void;
+  // Pending callbacks for tempo/pitch processing
+  pendingTempoCallbacks: (() => void)[] | null;
+  setPendingTempoCallbacks: (callbacks: (() => void)[] | null) => void;
   reset: () => void;
 }
 
@@ -57,7 +60,10 @@ export const useAudioStore = create<AudioState>(
     setLockedSpliceMarkers: (markers) => set({ lockedSpliceMarkers: markers }),
     // BPM detection
     bpm: null,
-    setBpm: (bpm) => set({ bpm }),
+    setBpm: (bpm) => {
+      console.log('🎵 AudioStore - setBpm called with:', bpm);
+      set({ bpm });
+    },
     // Undo functionality
     previousAudioUrl: null,
     setPreviousAudioUrl: (url) => set({ previousAudioUrl: url }),
@@ -76,6 +82,10 @@ export const useAudioStore = create<AudioState>(
     // Undo state
     isUndoing: false,
     setIsUndoing: (undoing) => set({ isUndoing: undoing }),
+    // Pending callbacks for tempo/pitch processing
+    pendingTempoCallbacks: null,
+    setPendingTempoCallbacks: (callbacks) =>
+      set({ pendingTempoCallbacks: callbacks }),
     reset: () =>
       set({
         audioBuffer: null,
@@ -90,6 +100,7 @@ export const useAudioStore = create<AudioState>(
         isProcessingAudio: false,
         isUndoing: false,
         bpm: null,
+        pendingTempoCallbacks: null,
       }),
   })
 );

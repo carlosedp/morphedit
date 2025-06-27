@@ -34,6 +34,7 @@ MorphEdit is a powerful, browser-based audio editor designed for preparing audio
 
 ### 🎛️ **Professional Audio Processing**
 
+- **Tempo and Pitch Processing**: Professional-grade tempo and pitch shifting with RubberBand
 - Multiple fade curve types (linear, exponential, logarithmic)
 - Crop regions with sample-accurate precision
 - Audio concatenation with preserved splice markers
@@ -97,13 +98,15 @@ MorphEdit streamlines the Morphagene workflow by:
 - **Optimal File Preparation**: Exports in Morphagene's preferred 48kHz/16-bit format
 - **Splice Point Precision**: Zero-crossing alignment prevents clicks and pops
 - **Length Management**: Automatic 174-second length optimization
+- **Tempo Matching**: Adjust audio tempo to fit your composition timing
+- **Pitch Correction**: Transpose samples to match your musical key
 - **Cue Point Support**: Imports and exports standard cue points
 - **Preview Playback**: Test splice points before transferring to hardware
 
 ## 🛠️ Technology Stack
 
 - **Frontend**: React 19, TypeScript, Material-UI
-- **Audio Processing**: WaveSurfer.js, Web Audio API
+- **Audio Processing**: WaveSurfer.js, Web Audio API, RubberBand WASM
 - **State Management**: Zustand
 - **Build Tool**: Vite
 - **Desktop**: Electron
@@ -120,6 +123,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - Built with [WaveSurfer.js](https://wavesurfer-js.org/) for audio visualization
+- Audio processing powered by [RubberBand](https://breakfastquay.com/rubberband/) for tempo and pitch shifting
 - Designed for the [MakeNoise Morphagene](https://www.makenoisemusic.com/modules/morphagene) community
 - Icons from [Material-UI Icons](https://mui.com/material-ui/material-icons/)
 

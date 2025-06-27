@@ -2,7 +2,7 @@
 import WaveSurfer from 'wavesurfer.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
 
 import { useAudioStore } from '../audioStore';
@@ -30,6 +30,8 @@ import {
   applyFades,
 } from '../utils/regionUtils';
 import { applyNormalization } from '../utils/audioNormalization';
+import { applyTempoAndPitch } from '../utils/tempoAndPitchProcessing';
+import type { TempoAndPitchOptions } from '../utils/rubberbandProcessor';
 import {
   addSpliceMarker,
   removeSpliceMarker,
@@ -115,6 +117,9 @@ export const useWaveformHandlers = ({
   onProcessingStart,
   onProcessingComplete,
 }: WaveformHandlersProps) => {
+  // Ref to prevent rapid zoom reset clicks
+  const isZoomResetInProgress = useRef(false);
+
   // Audio store hooks
   const spliceMarkersStore = useAudioStore((s: AudioState) => s.spliceMarkers);
   const lockedSpliceMarkersStore = useAudioStore(
@@ -137,6 +142,11 @@ export const useWaveformHandlers = ({
   );
   const setCanUndo = useAudioStore((s: AudioState) => s.setCanUndo);
   const setAudioBuffer = useAudioStore((s: AudioState) => s.setAudioBuffer);
+  const bpm = useAudioStore((s: AudioState) => s.bpm);
+  const setBpm = useAudioStore((s: AudioState) => s.setBpm);
+  const setIsProcessingAudio = useAudioStore(
+    (s: AudioState) => s.setIsProcessingAudio
+  );
   const previousAudioUrl = useAudioStore((s: AudioState) => s.previousAudioUrl);
   const canUndo = useAudioStore((s: AudioState) => s.canUndo);
 
@@ -168,20 +178,65 @@ export const useWaveformHandlers = ({
   );
 
   const handleZoomReset = useCallback(() => {
-    if (!wavesurferRef.current) return;
+    console.log('🔍 handleZoomReset called');
+
+    // Prevent rapid clicking issues
+    if (isZoomResetInProgress.current) {
+      console.log('🔍 Zoom reset already in progress, ignoring click');
+      return;
+    }
+
+    if (!wavesurferRef.current) {
+      console.log('🔍 No WaveSurfer instance available');
+      return;
+    }
 
     const duration = wavesurferRef.current.getDuration();
-    if (duration <= 0) return;
+    if (duration <= 0) {
+      console.log('🔍 Duration is 0 or negative:', duration);
+      return;
+    }
 
-    // Calculate appropriate zoom to fill the container
-    const resetZoom = calculateInitialZoom(duration);
+    // Set flag to prevent rapid clicks
+    isZoomResetInProgress.current = true;
 
-    console.log('Zoom reset:', { duration, resetZoom });
+    // Use the stored resetZoom value consistently - don't recalculate on every call
+    // Only calculate if resetZoom is at default or invalid state OR if duration has changed significantly
+    let zoomToApply = state.resetZoom;
+
+    // Calculate expected zoom for current duration
+    const expectedZoomForDuration = calculateInitialZoom(duration);
+
+    // Check if we need to calculate the initial zoom:
+    // 1. First time or invalid state (resetZoom <= MIN or default value)
+    // 2. Duration has changed significantly (suggesting tempo/pitch processing or other major change)
+    const durationMismatch =
+      Math.abs(zoomToApply - expectedZoomForDuration) >
+      expectedZoomForDuration * 0.1; // 10% tolerance
+    const needsRecalculation =
+      state.resetZoom <= ZOOM_LEVELS.MIN ||
+      state.resetZoom === 2 ||
+      durationMismatch;
+
+    if (needsRecalculation) {
+      zoomToApply = expectedZoomForDuration;
+      actions.setResetZoom(zoomToApply); // Store the calculated value for future use
+      console.log('🔍 Calculated new resetZoom:', {
+        duration,
+        zoomToApply,
+        reason: durationMismatch ? 'duration-changed' : 'first-time',
+      });
+    } else {
+      console.log('🔍 Using stored resetZoom:', zoomToApply);
+    }
+
+    console.log('🔍 Zoom reset:', { duration, zoomToApply });
 
     // Update state and apply zoom
-    actions.setZoom(resetZoom);
-    actions.setResetZoom(resetZoom); // Update the resetZoom level for the slider
-    wavesurferRef.current.zoom(resetZoom);
+    actions.setZoom(zoomToApply);
+    wavesurferRef.current.zoom(zoomToApply);
+
+    console.log('🔍 Zoom reset applied successfully');
 
     // Force a complete redraw of regions after zoom to ensure splice markers are visible
     setTimeout(() => {
@@ -227,11 +282,20 @@ export const useWaveformHandlers = ({
               });
             });
             console.log('Re-added splice markers after zoom reset');
+
+            // Clear the progress flag after everything is complete
+            isZoomResetInProgress.current = false;
           }, 50);
+        } else {
+          // Clear the progress flag if no markers to process
+          isZoomResetInProgress.current = false;
         }
+      } else {
+        // Clear the progress flag if no regions ref
+        isZoomResetInProgress.current = false;
       }
     }, 150);
-  }, [actions, wavesurferRef, regionsRef]);
+  }, [actions, wavesurferRef, regionsRef, state.resetZoom]);
 
   const handleSkipForward = useCallback(() => {
     skipForward(wavesurferRef.current!, state.skipIncrement);
@@ -312,6 +376,7 @@ export const useWaveformHandlers = ({
         setPreviousSpliceMarkers,
         setPreviousLockedSpliceMarkers,
         setZoom: actions.setZoom,
+        setResetZoom: actions.setResetZoom,
       }
     );
     cropRegionRef.current = null;
@@ -367,6 +432,7 @@ export const useWaveformHandlers = ({
         setPreviousSpliceMarkers,
         setPreviousLockedSpliceMarkers,
         setZoom: actions.setZoom,
+        setResetZoom: actions.setResetZoom,
       }
     );
 
@@ -456,6 +522,73 @@ export const useWaveformHandlers = ({
     wavesurferRef,
     setSpliceMarkersStore,
     setLockedSpliceMarkersStore,
+  ]);
+
+  const handleTempoAndPitch = useCallback(() => {
+    // This will be called when the user clicks the Tempo & Pitch button
+    // The actual dialog will be handled by the parent component (App.tsx)
+    // We'll add a custom event or use a state management approach
+    const audioBuffer = useAudioStore.getState().audioBuffer;
+    const event = new CustomEvent('openTempoAndPitchDialog', {
+      detail: {
+        audioBuffer: audioBuffer,
+        duration: audioBuffer ? audioBuffer.duration : 0,
+        estimatedBpm: bpm || undefined, // Use the detected BPM from the store
+        onApply: async (options: TempoAndPitchOptions) => {
+          // Apply tempo and pitch processing directly
+          if (onProcessingStart) {
+            onProcessingStart('Processing audio with RubberBand...');
+          }
+
+          await applyTempoAndPitch(
+            wavesurferRef.current!,
+            options,
+            state.currentAudioUrl,
+            spliceMarkersStore,
+            lockedSpliceMarkersStore,
+            {
+              setPreviousAudioUrl,
+              setCanUndo,
+              setAudioBuffer,
+              setCurrentAudioUrl: actions.setCurrentAudioUrl,
+              setSpliceMarkersStore,
+              setLockedSpliceMarkersStore,
+              setPreviousSpliceMarkers,
+              setPreviousLockedSpliceMarkers,
+              setIsProcessingAudio,
+              setBpm,
+              resetZoom: handleZoomReset,
+              setResetZoom: actions.setResetZoom,
+            }
+          );
+
+          if (onProcessingComplete) {
+            onProcessingComplete();
+          }
+        },
+      },
+    });
+    window.dispatchEvent(event);
+  }, [
+    bpm,
+    state.currentAudioUrl,
+    spliceMarkersStore,
+    lockedSpliceMarkersStore,
+    setPreviousAudioUrl,
+    setPreviousSpliceMarkers,
+    setPreviousLockedSpliceMarkers,
+    setCanUndo,
+    setAudioBuffer,
+    setIsProcessingAudio,
+    setBpm,
+    actions.setCurrentAudioUrl,
+    actions.setResetZoom,
+    setSpliceMarkersStore,
+    setLockedSpliceMarkersStore,
+    wavesurferRef,
+    onProcessingStart,
+    onProcessingComplete,
+    handleZoomReset,
   ]);
 
   // Splice marker handlers
@@ -805,6 +938,7 @@ export const useWaveformHandlers = ({
     handleApplyCrop,
     handleApplyFades,
     handleNormalize,
+    handleTempoAndPitch,
     handleUndo,
 
     // Splice marker handlers

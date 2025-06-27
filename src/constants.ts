@@ -5,6 +5,9 @@ import { ExportFormat } from './utils/exportUtils';
 // Audio processing constants
 export const AUDIO_MAX_DURATION = 174; // seconds
 
+// Tempo and pitch preview
+export const TEMPO_PITCH_PREVIEW_DURATION = 5; // seconds for preview playback
+
 // UI timing constants
 export const POSITION_UPDATE_INTERVAL = 100; // ms
 
