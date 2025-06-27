@@ -78,6 +78,7 @@ export interface WaveformRef extends SpliceMarkerHandlers {
   handleApplyCrop: () => void;
   handleApplyFades: () => void;
   handleNormalize: () => void;
+  handleTempoAndPitch: () => void;
   handleUndo: () => void;
   handleExport: () => void;
   handleExportSlices: () => Promise<
@@ -135,6 +136,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     );
     const setLockedSpliceMarkersStore = useAudioStore(
       (s: AudioState) => s.setLockedSpliceMarkers
+    );
+    const setPendingTempoCallbacks = useAudioStore(
+      (s: AudioState) => s.setPendingTempoCallbacks
     );
 
     const canUndo = useAudioStore((s: AudioState) => s.canUndo);
@@ -277,7 +281,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           // For processed audio, we need to check if we're currently processing or if the URL has processing flags
           const isAudioProcessing = useAudioStore.getState().isProcessingAudio;
           const isUndoing = useAudioStore.getState().isUndoing;
-          const urlToCheck = state.currentAudioUrl || audioUrl;
+          // Use audioUrl prop first, fall back to state.currentAudioUrl
+          const urlToCheck = audioUrl || state.currentAudioUrl || '';
 
           console.log('=== URL DEBUG ===');
           console.log('audioUrl prop:', audioUrl);
@@ -289,6 +294,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           const isProcessedAudio =
             urlToCheck.includes('#morphedit-cropped') ||
             urlToCheck.includes('#morphedit-faded') ||
+            urlToCheck.includes('#morphedit-tempo-pitch') ||
             isAudioProcessing || // Also treat as processed if we're currently processing
             isUndoing; // Also treat as processed if we're undoing to preserve restored markers
           const isConcatenatedAudio = urlToCheck.includes(
@@ -402,19 +408,23 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           else {
             console.log('Loading cue points from audio file...');
             try {
-              const existingCuePoints = await parseWavCuePoints(urlToLoad);
-              if (existingCuePoints.length > 0) {
-                console.log(
-                  'Found cue points, loading as splice markers:',
-                  existingCuePoints
-                );
-                loadExistingCuePoints(
-                  regions,
-                  existingCuePoints,
-                  setSpliceMarkersStore
-                );
+              if (urlToLoad) {
+                const existingCuePoints = await parseWavCuePoints(urlToLoad);
+                if (existingCuePoints.length > 0) {
+                  console.log(
+                    'Found cue points, loading as splice markers:',
+                    existingCuePoints
+                  );
+                  loadExistingCuePoints(
+                    regions,
+                    existingCuePoints,
+                    setSpliceMarkersStore
+                  );
+                } else {
+                  console.log('No cue points found in audio file');
+                }
               } else {
-                console.log('No cue points found in audio file');
+                console.log('No URL available for cue point parsing');
               }
             } catch (error) {
               console.error('Error loading cue points:', error);
@@ -453,11 +463,11 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             return;
           }
 
-          // For processed audio (cropped/faded), trust the buffer that's already in the store
+          // For processed audio (cropped/faded/tempo-pitch), trust the buffer that's already in the store
           // since it was specifically set by the processing operations
           if (isProcessedAudio && currentStoredBuffer) {
             console.log(
-              'Ready event - processed audio detected, keeping existing buffer in store'
+              'Ready event - processed audio detected, checking processing type'
             );
             console.log(
               `Store buffer duration: ${currentStoredBuffer.length / currentStoredBuffer.sampleRate}s, WS duration: ${wsDuration}s`
@@ -466,15 +476,40 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             // Double-check that our store buffer makes sense for processed audio
             const urlContainsCropped = urlToLoad.includes('#morphedit-cropped');
             const urlContainsFaded = urlToLoad.includes('#morphedit-faded');
+            const urlContainsTempoPitch = urlToLoad.includes(
+              '#morphedit-tempo-pitch'
+            );
             console.log('Ready event - URL flags:', {
               urlContainsCropped,
               urlContainsFaded,
+              urlContainsTempoPitch,
             });
-            return;
+
+            // For tempo/pitch processing, we need to allow the buffer to be updated
+            // because the duration and content have changed significantly
+            if (!urlContainsTempoPitch) {
+              console.log(
+                'Ready event - keeping existing buffer for non-tempo-pitch processing'
+              );
+              return;
+            } else {
+              console.log(
+                'Ready event - tempo/pitch processing detected, will force buffer update from backend'
+              );
+              // Don't return here - we want to continue and update the buffer
+            }
           }
 
           // Check if we already have a buffer with the correct duration (within tolerance)
+          // BUT skip this check for tempo/pitch processing since we always want to update
+          const isTempoOrPitchProcessing = audioUrl.includes(
+            '#morphedit-tempo-pitch'
+          );
+          console.log('🎵 isTempoOrPitchProcessing:', isTempoOrPitchProcessing);
+          console.log('🎵 audioUrl for check:', audioUrl);
+          console.log('🎵 urlToLoad for check:', urlToLoad);
           const bufferAlreadyCorrect =
+            !isTempoOrPitchProcessing &&
             currentStoredBuffer &&
             Math.abs(
               currentStoredBuffer.length / currentStoredBuffer.sampleRate -
@@ -507,13 +542,49 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             setAudioBuffer(backend.buffer);
             // Detect BPM in the background
             detectAndSetBPM(backend.buffer);
+
+            // Check for and execute pending tempo/pitch callbacks
+            const currentPendingCallbacks =
+              useAudioStore.getState().pendingTempoCallbacks;
+            console.log(
+              '🎵 Checking for pending callbacks after backend buffer set:',
+              {
+                hasPendingCallbacks: !!currentPendingCallbacks,
+                callbackCount: currentPendingCallbacks?.length || 0,
+              }
+            );
+            if (currentPendingCallbacks && currentPendingCallbacks.length > 0) {
+              console.log(
+                '🎵 Executing pending tempo/pitch callbacks after backend buffer set',
+                currentPendingCallbacks
+              );
+              currentPendingCallbacks.forEach((callback, index) => {
+                try {
+                  console.log(
+                    `🎵 Executing callback ${index + 1}/${currentPendingCallbacks.length}`
+                  );
+                  callback();
+                } catch (error) {
+                  console.error('Error executing pending callback:', error);
+                }
+              });
+              // Clear the pending callbacks
+              setPendingTempoCallbacks(null);
+              console.log('🎵 Cleared pending callbacks after execution');
+            }
           } else {
             console.log(
               'No backend buffer available, attempting manual decode'
             );
             // Fallback: load and decode the current audio file manually
-            // Use cleaned URL to avoid fragment issues
-            const urlToLoad = (state.currentAudioUrl || audioUrl).split('#')[0];
+            // For tempo/pitch processing, use the new processed audio URL
+            // For regular audio, use cleaned URL to avoid fragment issues
+            const urlToLoad = isTempoOrPitchProcessing
+              ? audioUrl.split('#')[0] // Use new processed audio URL
+              : (state.currentAudioUrl || audioUrl).split('#')[0]; // Use current URL for regular audio
+
+            console.log('🎵 Manual decode - using URL:', urlToLoad);
+
             if (urlToLoad) {
               fetch(urlToLoad)
                 .then((response) => response.arrayBuffer())
@@ -536,6 +607,51 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
                   setAudioBuffer(decodedBuffer);
                   // Detect BPM in the background
                   detectAndSetBPM(decodedBuffer);
+
+                  // If this was a tempo/pitch processed audio, reset zoom
+                  if (isTempoOrPitchProcessing) {
+                    console.log(
+                      '🔍 [Waveform] Resetting zoom after tempo/pitch processing'
+                    );
+                    if (typeof handleZoomReset === 'function') {
+                      handleZoomReset();
+                    }
+                  }
+
+                  // Check for and execute pending tempo/pitch callbacks
+                  const currentPendingCallbacks =
+                    useAudioStore.getState().pendingTempoCallbacks;
+                  console.log(
+                    '🎵 Checking for pending callbacks after manual decode:',
+                    {
+                      hasPendingCallbacks: !!currentPendingCallbacks,
+                      callbackCount: currentPendingCallbacks?.length || 0,
+                    }
+                  );
+                  if (
+                    currentPendingCallbacks &&
+                    currentPendingCallbacks.length > 0
+                  ) {
+                    console.log(
+                      '🎵 Executing pending tempo/pitch callbacks after manual decode'
+                    );
+                    currentPendingCallbacks.forEach((callback, index) => {
+                      try {
+                        console.log(
+                          `🎵 Executing callback ${index + 1}/${currentPendingCallbacks.length}`
+                        );
+                        callback();
+                      } catch (error) {
+                        console.error(
+                          'Error executing pending callback:',
+                          error
+                        );
+                      }
+                    });
+                    // Clear the pending callbacks
+                    setPendingTempoCallbacks(null);
+                    console.log('🎵 Cleared pending callbacks after execution');
+                  }
                 })
                 .catch((error) => {
                   console.error('Error decoding audio:', error);
@@ -780,6 +896,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     const handleApplyCrop = handlers.handleApplyCrop;
     const handleApplyFades = handlers.handleApplyFades;
     const handleNormalize = handlers.handleNormalize;
+    const handleTempoAndPitch = handlers.handleTempoAndPitch;
     const handleUndo = handlers.handleUndo;
 
     // Splice marker handlers
@@ -838,6 +955,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleApplyCrop,
         handleApplyFades,
         handleNormalize,
+        handleTempoAndPitch,
         handleUndo,
         handleExport,
         handleExportSlices,
@@ -867,6 +985,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleApplyCrop,
         handleApplyFades,
         handleNormalize,
+        handleTempoAndPitch,
         handleUndo,
         handleExport,
         handleExportSlices,
@@ -957,6 +1076,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           onExportFormatChange={handleExportFormatChange}
           onSetExportAnchorEl={actions.setExportAnchorEl}
           onNormalize={handleNormalize}
+          onTempoAndPitch={handleTempoAndPitch}
           onCropRegion={handleCropRegion}
           onApplyCrop={handleApplyCrop}
           onFadeInRegion={handleFadeInRegion}
