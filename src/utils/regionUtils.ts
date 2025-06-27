@@ -215,6 +215,7 @@ export const applyCrop = async (
     setPreviousSpliceMarkers: (markers: number[]) => void;
     setPreviousLockedSpliceMarkers: (markers: number[]) => void;
     setZoom?: (zoom: number) => void;
+    setResetZoom?: (zoom: number) => void;
   }
 ): Promise<void> => {
   if (!ws || !regions || !cropRegion) {
@@ -592,6 +593,10 @@ export const applyCrop = async (
         });
         callbacks.setZoom(resetZoom);
         ws.zoom(resetZoom);
+        // Also update the stored resetZoom value for consistency
+        if (callbacks.setResetZoom) {
+          callbacks.setResetZoom(resetZoom);
+        }
       }
     }
 
@@ -630,6 +635,7 @@ export const applyFades = async (
     setPreviousSpliceMarkers: (markers: number[]) => void;
     setPreviousLockedSpliceMarkers: (markers: number[]) => void;
     setZoom?: (zoom: number) => void;
+    setResetZoom?: (zoom: number) => void;
   }
 ): Promise<void> => {
   if (!ws || !regions || (!fadeInMode && !fadeOutMode)) {
@@ -849,6 +855,10 @@ export const applyFades = async (
         });
         callbacks.setZoom(resetZoom);
         ws.zoom(resetZoom);
+        // Also update the stored resetZoom value for consistency
+        if (callbacks.setResetZoom) {
+          callbacks.setResetZoom(resetZoom);
+        }
       }
     }
   } catch (error) {

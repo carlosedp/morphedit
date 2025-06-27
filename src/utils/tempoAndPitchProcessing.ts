@@ -23,6 +23,7 @@ interface TempoAndPitchCallbacks {
   setIsProcessingAudio: (processing: boolean) => void;
   setBpm: (bpm: number | null) => void;
   resetZoom: () => void;
+  setResetZoom?: (zoom: number) => void; // Optional callback to reset the stored zoom value
 }
 
 /**
@@ -56,6 +57,15 @@ export async function applyTempoAndPitch(
   try {
     // Set processing flag to prevent buffer comparison issues
     callbacks.setIsProcessingAudio(true);
+
+    // Reset the stored resetZoom value to force recalculation for new duration
+    // This ensures zoom reset will work properly with the changed audio duration
+    if (callbacks.setResetZoom) {
+      callbacks.setResetZoom(2); // Reset to default value to force recalculation
+      logger.debug(
+        'Reset stored resetZoom value to force recalculation after tempo/pitch change'
+      );
+    }
 
     // Save current state for undo
     if (currentAudioUrl) {
@@ -115,6 +125,8 @@ export async function applyTempoAndPitch(
     const callbackFunctions = [
       () => {
         logger.debug('🔍 Executing stored zoom reset callback');
+        // For tempo/pitch processing, the zoom reset function will automatically detect
+        // the duration change and recalculate the appropriate zoom
         callbacks.resetZoom();
       },
       () => {

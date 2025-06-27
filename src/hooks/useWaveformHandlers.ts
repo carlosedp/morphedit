@@ -2,7 +2,7 @@
 import WaveSurfer from 'wavesurfer.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
 
 import { useAudioStore } from '../audioStore';
@@ -117,6 +117,9 @@ export const useWaveformHandlers = ({
   onProcessingStart,
   onProcessingComplete,
 }: WaveformHandlersProps) => {
+  // Ref to prevent rapid zoom reset clicks
+  const isZoomResetInProgress = useRef(false);
+
   // Audio store hooks
   const spliceMarkersStore = useAudioStore((s: AudioState) => s.spliceMarkers);
   const lockedSpliceMarkersStore = useAudioStore(
@@ -176,6 +179,13 @@ export const useWaveformHandlers = ({
 
   const handleZoomReset = useCallback(() => {
     console.log('🔍 handleZoomReset called');
+
+    // Prevent rapid clicking issues
+    if (isZoomResetInProgress.current) {
+      console.log('🔍 Zoom reset already in progress, ignoring click');
+      return;
+    }
+
     if (!wavesurferRef.current) {
       console.log('🔍 No WaveSurfer instance available');
       return;
@@ -187,15 +197,44 @@ export const useWaveformHandlers = ({
       return;
     }
 
-    // Calculate appropriate zoom to fill the container
-    const resetZoom = calculateInitialZoom(duration);
+    // Set flag to prevent rapid clicks
+    isZoomResetInProgress.current = true;
 
-    console.log('🔍 Zoom reset:', { duration, resetZoom });
+    // Use the stored resetZoom value consistently - don't recalculate on every call
+    // Only calculate if resetZoom is at default or invalid state OR if duration has changed significantly
+    let zoomToApply = state.resetZoom;
+
+    // Calculate expected zoom for current duration
+    const expectedZoomForDuration = calculateInitialZoom(duration);
+
+    // Check if we need to calculate the initial zoom:
+    // 1. First time or invalid state (resetZoom <= MIN or default value)
+    // 2. Duration has changed significantly (suggesting tempo/pitch processing or other major change)
+    const durationMismatch =
+      Math.abs(zoomToApply - expectedZoomForDuration) >
+      expectedZoomForDuration * 0.1; // 10% tolerance
+    const needsRecalculation =
+      state.resetZoom <= ZOOM_LEVELS.MIN ||
+      state.resetZoom === 2 ||
+      durationMismatch;
+
+    if (needsRecalculation) {
+      zoomToApply = expectedZoomForDuration;
+      actions.setResetZoom(zoomToApply); // Store the calculated value for future use
+      console.log('🔍 Calculated new resetZoom:', {
+        duration,
+        zoomToApply,
+        reason: durationMismatch ? 'duration-changed' : 'first-time',
+      });
+    } else {
+      console.log('🔍 Using stored resetZoom:', zoomToApply);
+    }
+
+    console.log('🔍 Zoom reset:', { duration, zoomToApply });
 
     // Update state and apply zoom
-    actions.setZoom(resetZoom);
-    actions.setResetZoom(resetZoom); // Update the resetZoom level for the slider
-    wavesurferRef.current.zoom(resetZoom);
+    actions.setZoom(zoomToApply);
+    wavesurferRef.current.zoom(zoomToApply);
 
     console.log('🔍 Zoom reset applied successfully');
 
@@ -243,11 +282,20 @@ export const useWaveformHandlers = ({
               });
             });
             console.log('Re-added splice markers after zoom reset');
+
+            // Clear the progress flag after everything is complete
+            isZoomResetInProgress.current = false;
           }, 50);
+        } else {
+          // Clear the progress flag if no markers to process
+          isZoomResetInProgress.current = false;
         }
+      } else {
+        // Clear the progress flag if no regions ref
+        isZoomResetInProgress.current = false;
       }
     }, 150);
-  }, [actions, wavesurferRef, regionsRef]);
+  }, [actions, wavesurferRef, regionsRef, state.resetZoom]);
 
   const handleSkipForward = useCallback(() => {
     skipForward(wavesurferRef.current!, state.skipIncrement);
@@ -328,6 +376,7 @@ export const useWaveformHandlers = ({
         setPreviousSpliceMarkers,
         setPreviousLockedSpliceMarkers,
         setZoom: actions.setZoom,
+        setResetZoom: actions.setResetZoom,
       }
     );
     cropRegionRef.current = null;
@@ -383,6 +432,7 @@ export const useWaveformHandlers = ({
         setPreviousSpliceMarkers,
         setPreviousLockedSpliceMarkers,
         setZoom: actions.setZoom,
+        setResetZoom: actions.setResetZoom,
       }
     );
 
@@ -508,6 +558,7 @@ export const useWaveformHandlers = ({
               setIsProcessingAudio,
               setBpm,
               resetZoom: handleZoomReset,
+              setResetZoom: actions.setResetZoom,
             }
           );
 
@@ -531,6 +582,7 @@ export const useWaveformHandlers = ({
     setIsProcessingAudio,
     setBpm,
     actions.setCurrentAudioUrl,
+    actions.setResetZoom,
     setSpliceMarkersStore,
     setLockedSpliceMarkersStore,
     wavesurferRef,
