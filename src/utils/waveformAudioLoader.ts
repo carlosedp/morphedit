@@ -30,7 +30,8 @@ export async function loadAudioIntoWaveform(
     currentUrl.startsWith('blob:') &&
     currentUrl !== urlToLoad && // Compare with clean URL
     !audioUrl.includes('#morphedit-appended') && // Don't reuse URLs for appended audio
-    !audioUrl.includes('#morphedit-concatenated'); // Don't reuse URLs for concatenated audio
+    !audioUrl.includes('#morphedit-concatenated') && // Don't reuse URLs for concatenated audio
+    !audioUrl.includes('#morphedit-tempo-pitch'); // Don't reuse URLs for tempo/pitch processed audio
 
   if (shouldTruncate && !isAlreadyTruncated) {
     console.log('🔄 Preprocessing audio for truncation before loading...');
@@ -116,7 +117,10 @@ export async function loadAudioIntoWaveform(
       console.error('❌ Error preprocessing audio for truncation:', error);
       // If preprocessing fails, use original URL
     }
-  } else if (isAlreadyTruncated) {
+  } else if (
+    isAlreadyTruncated &&
+    !audioUrl.includes('#morphedit-tempo-pitch')
+  ) {
     console.log('🔄 Using already truncated URL:', currentUrl);
     urlToLoad = currentUrl;
   }

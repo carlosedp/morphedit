@@ -30,6 +30,8 @@ import {
   applyFades,
 } from '../utils/regionUtils';
 import { applyNormalization } from '../utils/audioNormalization';
+import { applyTempoAndPitch } from '../utils/tempoAndPitchProcessing';
+import type { TempoAndPitchOptions } from '../utils/rubberbandProcessor';
 import {
   addSpliceMarker,
   removeSpliceMarker,
@@ -137,6 +139,9 @@ export const useWaveformHandlers = ({
   );
   const setCanUndo = useAudioStore((s: AudioState) => s.setCanUndo);
   const setAudioBuffer = useAudioStore((s: AudioState) => s.setAudioBuffer);
+  const setIsProcessingAudio = useAudioStore(
+    (s: AudioState) => s.setIsProcessingAudio
+  );
   const previousAudioUrl = useAudioStore((s: AudioState) => s.previousAudioUrl);
   const canUndo = useAudioStore((s: AudioState) => s.canUndo);
 
@@ -456,6 +461,66 @@ export const useWaveformHandlers = ({
     wavesurferRef,
     setSpliceMarkersStore,
     setLockedSpliceMarkersStore,
+  ]);
+
+  const handleTempoAndPitch = useCallback(() => {
+    // This will be called when the user clicks the Tempo & Pitch button
+    // The actual dialog will be handled by the parent component (App.tsx)
+    // We'll add a custom event or use a state management approach
+    const audioBuffer = useAudioStore.getState().audioBuffer;
+    const event = new CustomEvent('openTempoAndPitchDialog', {
+      detail: {
+        audioBuffer: audioBuffer,
+        duration: audioBuffer ? audioBuffer.duration : 0,
+        estimatedBpm: undefined, // We'll implement BPM detection later
+        onApply: async (options: TempoAndPitchOptions) => {
+          // Apply tempo and pitch processing directly
+          if (onProcessingStart) {
+            onProcessingStart('Processing audio with RubberBand...');
+          }
+
+          await applyTempoAndPitch(
+            wavesurferRef.current!,
+            options,
+            state.currentAudioUrl,
+            spliceMarkersStore,
+            lockedSpliceMarkersStore,
+            {
+              setPreviousAudioUrl,
+              setCanUndo,
+              setAudioBuffer,
+              setCurrentAudioUrl: actions.setCurrentAudioUrl,
+              setSpliceMarkersStore,
+              setLockedSpliceMarkersStore,
+              setPreviousSpliceMarkers,
+              setPreviousLockedSpliceMarkers,
+              setIsProcessingAudio,
+            }
+          );
+
+          if (onProcessingComplete) {
+            onProcessingComplete();
+          }
+        },
+      },
+    });
+    window.dispatchEvent(event);
+  }, [
+    state.currentAudioUrl,
+    spliceMarkersStore,
+    lockedSpliceMarkersStore,
+    setPreviousAudioUrl,
+    setPreviousSpliceMarkers,
+    setPreviousLockedSpliceMarkers,
+    setCanUndo,
+    setAudioBuffer,
+    setIsProcessingAudio,
+    actions.setCurrentAudioUrl,
+    setSpliceMarkersStore,
+    setLockedSpliceMarkersStore,
+    wavesurferRef,
+    onProcessingStart,
+    onProcessingComplete,
   ]);
 
   // Splice marker handlers
@@ -805,6 +870,7 @@ export const useWaveformHandlers = ({
     handleApplyCrop,
     handleApplyFades,
     handleNormalize,
+    handleTempoAndPitch,
     handleUndo,
 
     // Splice marker handlers

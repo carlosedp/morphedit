@@ -78,6 +78,7 @@ export interface WaveformRef extends SpliceMarkerHandlers {
   handleApplyCrop: () => void;
   handleApplyFades: () => void;
   handleNormalize: () => void;
+  handleTempoAndPitch: () => void;
   handleUndo: () => void;
   handleExport: () => void;
   handleExportSlices: () => Promise<
@@ -289,6 +290,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           const isProcessedAudio =
             urlToCheck.includes('#morphedit-cropped') ||
             urlToCheck.includes('#morphedit-faded') ||
+            urlToCheck.includes('#morphedit-tempo-pitch') ||
             isAudioProcessing || // Also treat as processed if we're currently processing
             isUndoing; // Also treat as processed if we're undoing to preserve restored markers
           const isConcatenatedAudio = urlToCheck.includes(
@@ -453,11 +455,11 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             return;
           }
 
-          // For processed audio (cropped/faded), trust the buffer that's already in the store
+          // For processed audio (cropped/faded/tempo-pitch), trust the buffer that's already in the store
           // since it was specifically set by the processing operations
           if (isProcessedAudio && currentStoredBuffer) {
             console.log(
-              'Ready event - processed audio detected, keeping existing buffer in store'
+              'Ready event - processed audio detected, checking processing type'
             );
             console.log(
               `Store buffer duration: ${currentStoredBuffer.length / currentStoredBuffer.sampleRate}s, WS duration: ${wsDuration}s`
@@ -466,15 +468,37 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             // Double-check that our store buffer makes sense for processed audio
             const urlContainsCropped = urlToLoad.includes('#morphedit-cropped');
             const urlContainsFaded = urlToLoad.includes('#morphedit-faded');
+            const urlContainsTempoPitch = urlToLoad.includes(
+              '#morphedit-tempo-pitch'
+            );
             console.log('Ready event - URL flags:', {
               urlContainsCropped,
               urlContainsFaded,
+              urlContainsTempoPitch,
             });
-            return;
+
+            // For tempo/pitch processing, we need to allow the buffer to be updated
+            // because the duration and content have changed significantly
+            if (!urlContainsTempoPitch) {
+              console.log(
+                'Ready event - keeping existing buffer for non-tempo-pitch processing'
+              );
+              return;
+            } else {
+              console.log(
+                'Ready event - tempo/pitch processing detected, will force buffer update from backend'
+              );
+              // Don't return here - we want to continue and update the buffer
+            }
           }
 
           // Check if we already have a buffer with the correct duration (within tolerance)
+          // BUT skip this check for tempo/pitch processing since we always want to update
+          const isTempoOrPitchProcessing = urlToLoad.includes(
+            '#morphedit-tempo-pitch'
+          );
           const bufferAlreadyCorrect =
+            !isTempoOrPitchProcessing &&
             currentStoredBuffer &&
             Math.abs(
               currentStoredBuffer.length / currentStoredBuffer.sampleRate -
@@ -780,6 +804,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     const handleApplyCrop = handlers.handleApplyCrop;
     const handleApplyFades = handlers.handleApplyFades;
     const handleNormalize = handlers.handleNormalize;
+    const handleTempoAndPitch = handlers.handleTempoAndPitch;
     const handleUndo = handlers.handleUndo;
 
     // Splice marker handlers
@@ -838,6 +863,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleApplyCrop,
         handleApplyFades,
         handleNormalize,
+        handleTempoAndPitch,
         handleUndo,
         handleExport,
         handleExportSlices,
@@ -867,6 +893,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleApplyCrop,
         handleApplyFades,
         handleNormalize,
+        handleTempoAndPitch,
         handleUndo,
         handleExport,
         handleExportSlices,
@@ -957,6 +984,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           onExportFormatChange={handleExportFormatChange}
           onSetExportAnchorEl={actions.setExportAnchorEl}
           onNormalize={handleNormalize}
+          onTempoAndPitch={handleTempoAndPitch}
           onCropRegion={handleCropRegion}
           onApplyCrop={handleApplyCrop}
           onFadeInRegion={handleFadeInRegion}

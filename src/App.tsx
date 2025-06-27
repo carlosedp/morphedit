@@ -18,6 +18,7 @@ import { FileLengthWarningDialog } from './components/FileLengthWarningDialog';
 import { LoadingDialog } from './components/LoadingDialog';
 import { MultipleFilesDialog } from './components/MultipleFilesDialog';
 import { FileReplaceDialog } from './components/FileReplaceDialog';
+import { TempoAndPitchDialog } from './components/TempoAndPitchDialog';
 import { AutoUpdater } from './components/AutoUpdater';
 import {
   getAudioFileDuration,
@@ -36,6 +37,10 @@ import {
 } from './utils/audioConcatenation';
 import { createActionDispatcher } from './utils/actionHandlers';
 import { audioLogger, concatenationLogger, createLogger } from './utils/logger';
+import {
+  processAudioWithRubberBand,
+  type TempoAndPitchOptions,
+} from './utils/rubberbandProcessor';
 import {
   AUDIO_MAX_DURATION as CONST_MORPHAGENE_MAX_DURATION,
   FILE_HANDLING,
@@ -70,6 +75,16 @@ function App() {
 
   // State for tracking append mode in length warning dialog
   const [isInAppendMode, setIsInAppendMode] = useState(false);
+
+  // Tempo and Pitch dialog state
+  const [tempoAndPitchDialogOpen, setTempoAndPitchDialogOpen] = useState(false);
+  const [tempoAndPitchAudioBuffer, setTempoAndPitchAudioBuffer] =
+    useState<AudioBuffer | null>(null);
+  const [tempoAndPitchDuration, setTempoAndPitchDuration] = useState(0);
+  const [tempoAndPitchEstimatedBpm, setTempoAndPitchEstimatedBpm] = useState<
+    number | undefined
+  >(undefined);
+
   const reset = useAudioStore((state) => state.reset);
   const waveformRef = useRef<WaveformRef | null>(null);
 
@@ -667,6 +682,87 @@ function App() {
     }
   }, []);
 
+  // Handle tempo and pitch dialog events
+  useEffect(() => {
+    const handleOpenTempoAndPitchDialog = (event: CustomEvent) => {
+      const { audioBuffer, duration, estimatedBpm } = event.detail;
+      setTempoAndPitchAudioBuffer(audioBuffer);
+      setTempoAndPitchDuration(duration);
+      setTempoAndPitchEstimatedBpm(estimatedBpm);
+      setTempoAndPitchDialogOpen(true);
+    };
+
+    window.addEventListener(
+      'openTempoAndPitchDialog',
+      handleOpenTempoAndPitchDialog as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        'openTempoAndPitchDialog',
+        handleOpenTempoAndPitchDialog as EventListener
+      );
+    };
+  }, []);
+
+  // Handle tempo and pitch processing
+  const handleTempoAndPitchApply = async (options: TempoAndPitchOptions) => {
+    if (!tempoAndPitchAudioBuffer) {
+      throw new Error('No audio buffer available for processing');
+    }
+
+    setIsLoading(true);
+    setLoadingMessage('Processing audio with RubberBand...');
+
+    try {
+      appLogger.info('Starting tempo and pitch processing', options);
+
+      // Process the audio with RubberBand
+      const processedBuffer = await processAudioWithRubberBand(
+        tempoAndPitchAudioBuffer,
+        options
+      );
+
+      // Save current state for undo
+      const { setPreviousAudioUrl, setCanUndo, setAudioBuffer } =
+        useAudioStore.getState();
+      if (audioUrl) {
+        setPreviousAudioUrl(audioUrl);
+        setCanUndo(true);
+      }
+
+      // Convert processed buffer to WAV blob
+      const spliceMarkers = useAudioStore.getState().spliceMarkers;
+      const { audioBufferToWavBlob } = await import(
+        './utils/audioConcatenation'
+      );
+      const wavBlob = await audioBufferToWavBlob(
+        processedBuffer,
+        spliceMarkers
+      );
+      const url = URL.createObjectURL(wavBlob) + '#morphedit-tempo-pitch';
+
+      // Update audio URL and buffer
+      setAudioUrl(url);
+      setAudioBuffer(processedBuffer);
+
+      appLogger.info('Tempo and pitch processing completed successfully');
+    } catch (error) {
+      appLogger.error('Failed to process tempo and pitch:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+      setLoadingMessage('');
+    }
+  };
+
+  const handleTempoAndPitchClose = () => {
+    setTempoAndPitchDialogOpen(false);
+    setTempoAndPitchAudioBuffer(null);
+    setTempoAndPitchDuration(0);
+    setTempoAndPitchEstimatedBpm(undefined);
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -999,6 +1095,14 @@ function App() {
         onReplace={handleReplaceAudio}
         onAppend={handleAppendAudio}
         onCancel={handleCancelReplace}
+      />
+
+      <TempoAndPitchDialog
+        open={tempoAndPitchDialogOpen}
+        onClose={handleTempoAndPitchClose}
+        onApply={handleTempoAndPitchApply}
+        originalDuration={tempoAndPitchDuration}
+        estimatedBpm={tempoAndPitchEstimatedBpm}
       />
 
       <LoadingDialog open={isLoading} message={loadingMessage} />

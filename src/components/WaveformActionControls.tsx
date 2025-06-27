@@ -21,6 +21,7 @@ import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import CutIcon from '@mui/icons-material/ContentCut';
 import UndoIcon from '@mui/icons-material/Undo';
 import NormalizeIcon from '@mui/icons-material/TuneOutlined';
+import SpeedIcon from '@mui/icons-material/Speed';
 
 import { TOOLTIP_DELAYS, EXPORT_FORMATS } from '../constants';
 import type { ExportFormat } from '../utils/exportUtils';
@@ -51,6 +52,7 @@ interface WaveformActionControlsProps {
   onUndo: () => void;
   onSetFadeInCurveType: (curve: string) => void;
   onSetFadeOutCurveType: (curve: string) => void;
+  onTempoAndPitch: () => void;
 }
 
 export const WaveformActionControls = ({
@@ -78,6 +80,7 @@ export const WaveformActionControls = ({
   onUndo,
   onSetFadeInCurveType,
   onSetFadeOutCurveType,
+  onTempoAndPitch,
 }: WaveformActionControlsProps) => {
   const [noSlicesSnackbarOpen, setNoSlicesSnackbarOpen] = useState(false);
 
@@ -177,6 +180,22 @@ export const WaveformActionControls = ({
             sx={{ minWidth: 140 }}
           >
             Normalize
+          </Button>
+        </Tooltip>
+
+        {/* Tempo and Pitch button */}
+        <Tooltip
+          title="Adjust tempo and pitch using RubberBand"
+          enterDelay={TOOLTIP_DELAYS.ENTER}
+          leaveDelay={TOOLTIP_DELAYS.LEAVE}
+        >
+          <Button
+            variant="outlined"
+            onClick={onTempoAndPitch}
+            startIcon={<SpeedIcon />}
+            sx={{ minWidth: 140 }}
+          >
+            Tempo & Pitch
           </Button>
         </Tooltip>
 
