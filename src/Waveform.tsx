@@ -555,7 +555,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             );
             if (currentPendingCallbacks && currentPendingCallbacks.length > 0) {
               console.log(
-                '🎵 Executing pending tempo/pitch callbacks after backend buffer set'
+                '🎵 Executing pending tempo/pitch callbacks after backend buffer set',
+                currentPendingCallbacks
               );
               currentPendingCallbacks.forEach((callback, index) => {
                 try {
@@ -606,6 +607,16 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
                   setAudioBuffer(decodedBuffer);
                   // Detect BPM in the background
                   detectAndSetBPM(decodedBuffer);
+
+                  // If this was a tempo/pitch processed audio, reset zoom
+                  if (isTempoOrPitchProcessing) {
+                    console.log(
+                      '🔍 [Waveform] Resetting zoom after tempo/pitch processing'
+                    );
+                    if (typeof handleZoomReset === 'function') {
+                      handleZoomReset();
+                    }
+                  }
 
                   // Check for and execute pending tempo/pitch callbacks
                   const currentPendingCallbacks =

@@ -147,14 +147,18 @@ export async function applyTempoAndPitch(
 
     // Store callbacks in the audio store
     const { useAudioStore } = await import('../audioStore');
-    console.log(
-      '🎵 Storing pending callbacks for tempo/pitch processing:',
-      callbackFunctions.length
+    logger.debug(
+      'Setting pending tempo callbacks in store:',
+      callbackFunctions.length,
+      callbackFunctions
     );
     useAudioStore.getState().setPendingTempoCallbacks(callbackFunctions);
-    console.log('🎵 Callbacks stored successfully in audio store');
+    logger.debug('Callbacks stored successfully in audio store');
 
     await ws.load(newUrl);
+
+    // Immediately reset zoom after loading new audio
+    callbacks.resetZoom();
 
     logger.info('Tempo and pitch processing initiated successfully');
 
