@@ -61,14 +61,22 @@ export async function detectBPMWithTimeout(
 ): Promise<number | null> {
   try {
     const bpmPromise = detectBPM(audioBuffer);
+    let timeoutId: NodeJS.Timeout;
+
     const timeoutPromise = new Promise<null>((resolve) => {
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         bpmLogger.warn('BPM detection timed out');
         resolve(null);
       }, timeoutMs);
     });
 
     const result = await Promise.race([bpmPromise, timeoutPromise]);
+
+    // Cancel the timeout if BPM detection completed first
+    if (timeoutId!) {
+      clearTimeout(timeoutId);
+    }
+
     return result;
   } catch (error) {
     bpmLogger.error('BPM detection with timeout failed:', error);

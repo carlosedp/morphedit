@@ -166,7 +166,14 @@ export const TempoAndPitchDialog: React.FC<TempoAndPitchDialogProps> = ({
           <Typography variant="body2" color="text.secondary">
             Original duration: {originalDuration.toFixed(2)}s | Estimated
             output: {estimatedOutputDuration.toFixed(2)}s
-            {estimatedBpm && ` | Detected BPM: ${estimatedBpm.toFixed(1)}`}
+            {estimatedBpm && (
+              <>
+                {' | '}
+                <span style={{ color: '#4caf50' }}>
+                  Detected BPM: {estimatedBpm.toFixed(1)}
+                </span>
+              </>
+            )}
           </Typography>
         </Box>
 
@@ -200,21 +207,30 @@ export const TempoAndPitchDialog: React.FC<TempoAndPitchDialogProps> = ({
               </Select>
             </FormControl>
 
+            {!estimatedBpm && (
+              <Alert severity="info" sx={{ mb: 2 }}>
+                BPM mode is not available because BPM detection failed. You can
+                use Percentage or Ratio mode instead.
+              </Alert>
+            )}
+
             {tempoMode === 'percentage' && (
               <Box>
                 <Typography gutterBottom>Speed: {tempoPercentage}%</Typography>
                 <Slider
                   value={tempoPercentage}
                   min={25}
-                  max={400}
+                  max={250}
                   step={1}
                   onChange={(_, value) =>
                     updateTempoRatio(value as number, 'percentage')
                   }
                   marks={[
+                    { value: 25, label: '25%' },
                     { value: 50, label: '50%' },
                     { value: 100, label: '100%' },
                     { value: 200, label: '200%' },
+                    { value: 250, label: '250%' },
                   ]}
                 />
               </Box>
@@ -222,28 +238,79 @@ export const TempoAndPitchDialog: React.FC<TempoAndPitchDialogProps> = ({
 
             {tempoMode === 'bpm' && estimatedBpm && (
               <Box>
-                <Typography gutterBottom>
-                  Target BPM: {targetBpm.toFixed(1)}
+                <Typography variant="subtitle2" gutterBottom>
+                  Original BPM: {estimatedBpm.toFixed(1)} → Target BPM:{' '}
+                  {targetBpm.toFixed(1)}
                 </Typography>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Tempo Ratio: {options.tempoRatio.toFixed(3)}x (
+                  {((1 / options.tempoRatio) * 100).toFixed(1)}% speed)
+                </Typography>
+
+                <TextField
+                  label="Target BPM"
+                  type="number"
+                  value={targetBpm}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value);
+                    if (!isNaN(value) && value > 0) {
+                      updateTempoRatio(value, 'bpm');
+                    }
+                  }}
+                  inputProps={{
+                    min: estimatedBpm * 0.25,
+                    max: estimatedBpm * 2.5,
+                    step: 0.1,
+                  }}
+                  helperText={`Range: ${(estimatedBpm * 0.25).toFixed(1)} - ${(estimatedBpm * 2.5).toFixed(1)} BPM`}
+                  sx={{ mb: 2 }}
+                />
                 <Slider
                   value={targetBpm}
                   min={estimatedBpm * 0.25}
-                  max={estimatedBpm * 4}
+                  max={estimatedBpm * 2.5}
                   step={0.1}
                   onChange={(_, value) =>
                     updateTempoRatio(value as number, 'bpm')
                   }
+                  marks={[
+                    {
+                      value: estimatedBpm * 0.5,
+                      label: `${(estimatedBpm * 0.5).toFixed(0)}`,
+                    },
+                    {
+                      value: estimatedBpm,
+                      label: `${estimatedBpm.toFixed(0)}`,
+                    },
+                    {
+                      value: estimatedBpm * 2,
+                      label: `${(estimatedBpm * 2).toFixed(0)}`,
+                    },
+                  ]}
                 />
-                <TextField
-                  fullWidth
-                  label="Target BPM"
-                  type="number"
-                  value={targetBpm}
-                  onChange={(e) =>
-                    updateTempoRatio(parseFloat(e.target.value) || 120, 'bpm')
-                  }
-                  sx={{ mt: 1 }}
-                />
+
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Quick BPM:
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
+                  {[60, 80, 100, 120, 140, 160].map((bpm) => (
+                    <Button
+                      key={bpm}
+                      size="small"
+                      variant={
+                        Math.abs(targetBpm - bpm) < 0.1
+                          ? 'contained'
+                          : 'outlined'
+                      }
+                      onClick={() => updateTempoRatio(bpm, 'bpm')}
+                      sx={{ minWidth: 45, fontSize: '0.75rem' }}
+                    >
+                      {bpm}
+                    </Button>
+                  ))}
+                </Box>
               </Box>
             )}
 

@@ -166,39 +166,48 @@ export const WaveformActionControls = ({
             </Button>
           </Tooltip>
         </ButtonGroup>
-
-        {/* Normalize button */}
-        <Tooltip
-          title="Normalize audio to peak -1dB"
-          enterDelay={TOOLTIP_DELAYS.ENTER}
-          leaveDelay={TOOLTIP_DELAYS.LEAVE}
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+          sx={{
+            flexWrap: 'wrap',
+            gap: { xs: 0.5, sm: 1 },
+            justifyContent: { xs: 'center', lg: 'flex-end' },
+          }}
         >
-          <Button
-            variant="outlined"
-            onClick={onNormalize}
-            startIcon={<NormalizeIcon />}
-            sx={{ minWidth: 140 }}
+          {/* Normalize button */}
+          <Tooltip
+            title="Normalize audio to peak -1dB"
+            enterDelay={TOOLTIP_DELAYS.ENTER}
+            leaveDelay={TOOLTIP_DELAYS.LEAVE}
           >
-            Normalize
-          </Button>
-        </Tooltip>
+            <Button
+              variant="outlined"
+              onClick={onNormalize}
+              startIcon={<NormalizeIcon />}
+              sx={{ minWidth: 140 }}
+            >
+              Normalize
+            </Button>
+          </Tooltip>
 
-        {/* Tempo and Pitch button */}
-        <Tooltip
-          title="Adjust tempo and pitch using RubberBand"
-          enterDelay={TOOLTIP_DELAYS.ENTER}
-          leaveDelay={TOOLTIP_DELAYS.LEAVE}
-        >
-          <Button
-            variant="outlined"
-            onClick={onTempoAndPitch}
-            startIcon={<SpeedIcon />}
-            sx={{ minWidth: 140 }}
+          {/* Tempo and Pitch button */}
+          <Tooltip
+            title="Adjust tempo and pitch using RubberBand"
+            enterDelay={TOOLTIP_DELAYS.ENTER}
+            leaveDelay={TOOLTIP_DELAYS.LEAVE}
           >
-            Tempo & Pitch
-          </Button>
-        </Tooltip>
-
+            <Button
+              variant="outlined"
+              onClick={onTempoAndPitch}
+              startIcon={<SpeedIcon />}
+              sx={{ minWidth: 140 }}
+            >
+              Tempo & Pitch
+            </Button>
+          </Tooltip>
+        </Stack>
         {/* Export format menu */}
         <Menu
           anchorEl={exportAnchorEl}

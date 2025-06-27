@@ -7,6 +7,7 @@ import {
   type TempoAndPitchOptions,
 } from './rubberbandProcessor';
 import { audioBufferToWavBlob } from './audioConcatenation';
+import { detectBPMWithTimeout } from './bpmDetection';
 
 const logger = createLogger('TempoAndPitchProcessing');
 
@@ -20,6 +21,8 @@ interface TempoAndPitchCallbacks {
   setPreviousSpliceMarkers: (markers: number[]) => void;
   setPreviousLockedSpliceMarkers: (markers: number[]) => void;
   setIsProcessingAudio: (processing: boolean) => void;
+  setBpm: (bpm: number | null) => void;
+  resetZoom: () => void;
 }
 
 /**
@@ -106,50 +109,54 @@ export async function applyTempoAndPitch(
 
     // Load the new audio into WaveSurfer
     logger.debug('Loading processed audio into WaveSurfer...');
+
+    // Store callbacks for later execution by the main ready handler
+    logger.debug('Storing callbacks for tempo/pitch processing completion');
+    const callbackFunctions = [
+      () => {
+        logger.debug('🔍 Executing stored zoom reset callback');
+        callbacks.resetZoom();
+      },
+      () => {
+        logger.debug('🎵 Executing stored BPM detection callback');
+        detectBPMWithTimeout(processedBuffer, 20000)
+          .then((detectedBpm) => {
+            if (detectedBpm) {
+              logger.info(
+                '🎵 BPM re-detected after tempo/pitch processing:',
+                detectedBpm
+              );
+              callbacks.setBpm(detectedBpm);
+            } else {
+              logger.warn(
+                '🎵 Failed to re-detect BPM after tempo/pitch processing'
+              );
+              callbacks.setBpm(null);
+            }
+          })
+          .catch((error) => {
+            logger.error('🎵 Error during BPM re-detection:', error);
+            callbacks.setBpm(null);
+          });
+      },
+      () => {
+        logger.debug('Clearing processing flag');
+        callbacks.setIsProcessingAudio(false);
+      },
+    ];
+
+    // Store callbacks in the audio store
+    const { useAudioStore } = await import('../audioStore');
+    console.log(
+      '🎵 Storing pending callbacks for tempo/pitch processing:',
+      callbackFunctions.length
+    );
+    useAudioStore.getState().setPendingTempoCallbacks(callbackFunctions);
+    console.log('🎵 Callbacks stored successfully in audio store');
+
     await ws.load(newUrl);
 
-    // Wait for WaveSurfer to be ready
-    await new Promise<void>((resolve) => {
-      const onReady = () => {
-        ws.un('ready', onReady);
-        logger.debug('WaveSurfer ready after tempo/pitch processing');
-
-        const finalDuration = ws.getDuration();
-        logger.info('Tempo and pitch processing completed successfully');
-        logger.info(
-          'WaveSurfer duration after processing:',
-          finalDuration,
-          'seconds'
-        );
-        logger.info(
-          'Processed buffer duration:',
-          processedBuffer.duration,
-          'seconds'
-        );
-
-        // Verify the durations match (within tolerance)
-        const durationDiff = Math.abs(finalDuration - processedBuffer.duration);
-        if (durationDiff > 0.1) {
-          logger.warn(
-            'Duration mismatch between WaveSurfer and processed buffer:',
-            {
-              waveformDuration: finalDuration,
-              bufferDuration: processedBuffer.duration,
-              difference: durationDiff,
-            }
-          );
-        }
-
-        // Clear processing flag
-        callbacks.setIsProcessingAudio(false);
-
-        resolve();
-      };
-
-      ws.on('ready', onReady);
-    });
-
-    logger.info('Tempo and pitch processing applied successfully');
+    logger.info('Tempo and pitch processing initiated successfully');
 
     // Clean up the previous URL to free memory
     if (currentAudioUrl && currentAudioUrl.startsWith('blob:')) {

@@ -139,6 +139,8 @@ export const useWaveformHandlers = ({
   );
   const setCanUndo = useAudioStore((s: AudioState) => s.setCanUndo);
   const setAudioBuffer = useAudioStore((s: AudioState) => s.setAudioBuffer);
+  const bpm = useAudioStore((s: AudioState) => s.bpm);
+  const setBpm = useAudioStore((s: AudioState) => s.setBpm);
   const setIsProcessingAudio = useAudioStore(
     (s: AudioState) => s.setIsProcessingAudio
   );
@@ -173,20 +175,29 @@ export const useWaveformHandlers = ({
   );
 
   const handleZoomReset = useCallback(() => {
-    if (!wavesurferRef.current) return;
+    console.log('🔍 handleZoomReset called');
+    if (!wavesurferRef.current) {
+      console.log('🔍 No WaveSurfer instance available');
+      return;
+    }
 
     const duration = wavesurferRef.current.getDuration();
-    if (duration <= 0) return;
+    if (duration <= 0) {
+      console.log('🔍 Duration is 0 or negative:', duration);
+      return;
+    }
 
     // Calculate appropriate zoom to fill the container
     const resetZoom = calculateInitialZoom(duration);
 
-    console.log('Zoom reset:', { duration, resetZoom });
+    console.log('🔍 Zoom reset:', { duration, resetZoom });
 
     // Update state and apply zoom
     actions.setZoom(resetZoom);
     actions.setResetZoom(resetZoom); // Update the resetZoom level for the slider
     wavesurferRef.current.zoom(resetZoom);
+
+    console.log('🔍 Zoom reset applied successfully');
 
     // Force a complete redraw of regions after zoom to ensure splice markers are visible
     setTimeout(() => {
@@ -472,7 +483,7 @@ export const useWaveformHandlers = ({
       detail: {
         audioBuffer: audioBuffer,
         duration: audioBuffer ? audioBuffer.duration : 0,
-        estimatedBpm: undefined, // We'll implement BPM detection later
+        estimatedBpm: bpm || undefined, // Use the detected BPM from the store
         onApply: async (options: TempoAndPitchOptions) => {
           // Apply tempo and pitch processing directly
           if (onProcessingStart) {
@@ -495,6 +506,8 @@ export const useWaveformHandlers = ({
               setPreviousSpliceMarkers,
               setPreviousLockedSpliceMarkers,
               setIsProcessingAudio,
+              setBpm,
+              resetZoom: handleZoomReset,
             }
           );
 
@@ -506,6 +519,7 @@ export const useWaveformHandlers = ({
     });
     window.dispatchEvent(event);
   }, [
+    bpm,
     state.currentAudioUrl,
     spliceMarkersStore,
     lockedSpliceMarkersStore,
@@ -515,12 +529,14 @@ export const useWaveformHandlers = ({
     setCanUndo,
     setAudioBuffer,
     setIsProcessingAudio,
+    setBpm,
     actions.setCurrentAudioUrl,
     setSpliceMarkersStore,
     setLockedSpliceMarkersStore,
     wavesurferRef,
     onProcessingStart,
     onProcessingComplete,
+    handleZoomReset,
   ]);
 
   // Splice marker handlers

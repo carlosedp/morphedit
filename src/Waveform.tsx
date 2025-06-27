@@ -137,6 +137,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     const setLockedSpliceMarkersStore = useAudioStore(
       (s: AudioState) => s.setLockedSpliceMarkers
     );
+    const setPendingTempoCallbacks = useAudioStore(
+      (s: AudioState) => s.setPendingTempoCallbacks
+    );
 
     const canUndo = useAudioStore((s: AudioState) => s.canUndo);
 
@@ -278,7 +281,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           // For processed audio, we need to check if we're currently processing or if the URL has processing flags
           const isAudioProcessing = useAudioStore.getState().isProcessingAudio;
           const isUndoing = useAudioStore.getState().isUndoing;
-          const urlToCheck = state.currentAudioUrl || audioUrl;
+          // Use audioUrl prop first, fall back to state.currentAudioUrl
+          const urlToCheck = audioUrl || state.currentAudioUrl || '';
 
           console.log('=== URL DEBUG ===');
           console.log('audioUrl prop:', audioUrl);
@@ -404,19 +408,23 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           else {
             console.log('Loading cue points from audio file...');
             try {
-              const existingCuePoints = await parseWavCuePoints(urlToLoad);
-              if (existingCuePoints.length > 0) {
-                console.log(
-                  'Found cue points, loading as splice markers:',
-                  existingCuePoints
-                );
-                loadExistingCuePoints(
-                  regions,
-                  existingCuePoints,
-                  setSpliceMarkersStore
-                );
+              if (urlToLoad) {
+                const existingCuePoints = await parseWavCuePoints(urlToLoad);
+                if (existingCuePoints.length > 0) {
+                  console.log(
+                    'Found cue points, loading as splice markers:',
+                    existingCuePoints
+                  );
+                  loadExistingCuePoints(
+                    regions,
+                    existingCuePoints,
+                    setSpliceMarkersStore
+                  );
+                } else {
+                  console.log('No cue points found in audio file');
+                }
               } else {
-                console.log('No cue points found in audio file');
+                console.log('No URL available for cue point parsing');
               }
             } catch (error) {
               console.error('Error loading cue points:', error);
@@ -494,9 +502,12 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
           // Check if we already have a buffer with the correct duration (within tolerance)
           // BUT skip this check for tempo/pitch processing since we always want to update
-          const isTempoOrPitchProcessing = urlToLoad.includes(
+          const isTempoOrPitchProcessing = audioUrl.includes(
             '#morphedit-tempo-pitch'
           );
+          console.log('🎵 isTempoOrPitchProcessing:', isTempoOrPitchProcessing);
+          console.log('🎵 audioUrl for check:', audioUrl);
+          console.log('🎵 urlToLoad for check:', urlToLoad);
           const bufferAlreadyCorrect =
             !isTempoOrPitchProcessing &&
             currentStoredBuffer &&
@@ -531,13 +542,48 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             setAudioBuffer(backend.buffer);
             // Detect BPM in the background
             detectAndSetBPM(backend.buffer);
+
+            // Check for and execute pending tempo/pitch callbacks
+            const currentPendingCallbacks =
+              useAudioStore.getState().pendingTempoCallbacks;
+            console.log(
+              '🎵 Checking for pending callbacks after backend buffer set:',
+              {
+                hasPendingCallbacks: !!currentPendingCallbacks,
+                callbackCount: currentPendingCallbacks?.length || 0,
+              }
+            );
+            if (currentPendingCallbacks && currentPendingCallbacks.length > 0) {
+              console.log(
+                '🎵 Executing pending tempo/pitch callbacks after backend buffer set'
+              );
+              currentPendingCallbacks.forEach((callback, index) => {
+                try {
+                  console.log(
+                    `🎵 Executing callback ${index + 1}/${currentPendingCallbacks.length}`
+                  );
+                  callback();
+                } catch (error) {
+                  console.error('Error executing pending callback:', error);
+                }
+              });
+              // Clear the pending callbacks
+              setPendingTempoCallbacks(null);
+              console.log('🎵 Cleared pending callbacks after execution');
+            }
           } else {
             console.log(
               'No backend buffer available, attempting manual decode'
             );
             // Fallback: load and decode the current audio file manually
-            // Use cleaned URL to avoid fragment issues
-            const urlToLoad = (state.currentAudioUrl || audioUrl).split('#')[0];
+            // For tempo/pitch processing, use the new processed audio URL
+            // For regular audio, use cleaned URL to avoid fragment issues
+            const urlToLoad = isTempoOrPitchProcessing
+              ? audioUrl.split('#')[0] // Use new processed audio URL
+              : (state.currentAudioUrl || audioUrl).split('#')[0]; // Use current URL for regular audio
+
+            console.log('🎵 Manual decode - using URL:', urlToLoad);
+
             if (urlToLoad) {
               fetch(urlToLoad)
                 .then((response) => response.arrayBuffer())
@@ -560,6 +606,41 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
                   setAudioBuffer(decodedBuffer);
                   // Detect BPM in the background
                   detectAndSetBPM(decodedBuffer);
+
+                  // Check for and execute pending tempo/pitch callbacks
+                  const currentPendingCallbacks =
+                    useAudioStore.getState().pendingTempoCallbacks;
+                  console.log(
+                    '🎵 Checking for pending callbacks after manual decode:',
+                    {
+                      hasPendingCallbacks: !!currentPendingCallbacks,
+                      callbackCount: currentPendingCallbacks?.length || 0,
+                    }
+                  );
+                  if (
+                    currentPendingCallbacks &&
+                    currentPendingCallbacks.length > 0
+                  ) {
+                    console.log(
+                      '🎵 Executing pending tempo/pitch callbacks after manual decode'
+                    );
+                    currentPendingCallbacks.forEach((callback, index) => {
+                      try {
+                        console.log(
+                          `🎵 Executing callback ${index + 1}/${currentPendingCallbacks.length}`
+                        );
+                        callback();
+                      } catch (error) {
+                        console.error(
+                          'Error executing pending callback:',
+                          error
+                        );
+                      }
+                    });
+                    // Clear the pending callbacks
+                    setPendingTempoCallbacks(null);
+                    console.log('🎵 Cleared pending callbacks after execution');
+                  }
                 })
                 .catch((error) => {
                   console.error('Error decoding audio:', error);

@@ -1,10 +1,4 @@
-// Use worker for rubberband processing
 import { create } from 'zustand';
-
-// Import demo worker URL as classic script for importScripts
-import workerUrl from 'rubberband-wasm/demo/worker.js?url';
-
-// Worker will handle all WASM operations
 
 export interface AudioState {
   audioBuffer: AudioBuffer | null;
@@ -37,13 +31,9 @@ export interface AudioState {
   // Undo state to prevent marker overrides during undo operations
   isUndoing: boolean;
   setIsUndoing: (undoing: boolean) => void;
-  // Tempo & pitch controls for rubberband
-  tempo: number;
-  setTempo: (tempo: number) => void;
-  pitch: number;
-  setPitch: (pitch: number) => void;
-  /** Process current buffer through RubberBand */
-  applyRubberband: () => Promise<void>;
+  // Pending callbacks for tempo/pitch processing
+  pendingTempoCallbacks: (() => void)[] | null;
+  setPendingTempoCallbacks: (callbacks: (() => void)[] | null) => void;
   reset: () => void;
 }
 
@@ -70,7 +60,10 @@ export const useAudioStore = create<AudioState>(
     setLockedSpliceMarkers: (markers) => set({ lockedSpliceMarkers: markers }),
     // BPM detection
     bpm: null,
-    setBpm: (bpm) => set({ bpm }),
+    setBpm: (bpm) => {
+      console.log('🎵 AudioStore - setBpm called with:', bpm);
+      set({ bpm });
+    },
     // Undo functionality
     previousAudioUrl: null,
     setPreviousAudioUrl: (url) => set({ previousAudioUrl: url }),
@@ -89,65 +82,13 @@ export const useAudioStore = create<AudioState>(
     // Undo state
     isUndoing: false,
     setIsUndoing: (undoing) => set({ isUndoing: undoing }),
-    // Rubberband controls
-    tempo: 1.0,
-    setTempo: (tempo) => set({ tempo }),
-    pitch: 0,
-    setPitch: (pitch) => set({ pitch }),
-    /** Process current buffer through RubberBand */
-    applyRubberband: async () => {
-      const state = useAudioStore.getState();
-      if (!state.audioBuffer || state.isProcessingAudio) return;
-      set({ isProcessingAudio: true });
-      const buf = state.audioBuffer!;
-      // extract channel buffers
-      const channelBuffers: Float32Array[] = [];
-      for (let ch = 0; ch < buf.numberOfChannels; ch++) {
-        channelBuffers.push(buf.getChannelData(ch));
-      }
-      const worker = new Worker(workerUrl, { type: 'classic' });
-      const pitchSemitones = state.pitch;
-      const tempoRatio = state.tempo;
-      // wait for worker to finish WASM initialization
-      await new Promise<void>((resolve) => {
-        const initHandler = (e: MessageEvent) => {
-          if (e.data && e.data.ready) {
-            worker.removeEventListener('message', initHandler);
-            resolve();
-          }
-        };
-        worker.addEventListener('message', initHandler);
-      });
-      // send processing request and await result (ignore 'ready')
-      const result: { channelBuffers: Float32Array[] } = await new Promise((resolve) => {
-        const processHandler = (e: MessageEvent) => {
-          const data = e.data;
-          if (data && Array.isArray(data.channelBuffers)) {
-            worker.removeEventListener('message', processHandler);
-            resolve(data);
-          }
-        };
-        worker.addEventListener('message', processHandler);
-        worker.postMessage({ channelBuffers, sampleRate: buf.sampleRate, pitch: Math.pow(2, pitchSemitones / 12), tempo: tempoRatio });
-      });
-      // terminate worker
-      worker.terminate();
-      // build new AudioBuffer from worker result
-      const outBuffers = result.channelBuffers;
-      const outLength = outBuffers[0].length;
-      const newBuf = new AudioBuffer({ length: outLength, numberOfChannels: outBuffers.length, sampleRate: buf.sampleRate });
-      outBuffers.forEach((data, ch) => {
-        // Ensure we have a standard ArrayBuffer for copyToChannel
-        const channelData = new Float32Array(data.buffer as ArrayBuffer, data.byteOffset, data.length);
-        newBuf.copyToChannel(channelData, ch);
-      });
-     set({ audioBuffer: newBuf, isProcessingAudio: false });
-     },
+    // Pending callbacks for tempo/pitch processing
+    pendingTempoCallbacks: null,
+    setPendingTempoCallbacks: (callbacks) =>
+      set({ pendingTempoCallbacks: callbacks }),
     reset: () =>
       set({
         audioBuffer: null,
-        tempo: 1.0,
-        pitch: 0,
         markers: [],
         regions: [],
         spliceMarkers: [],
@@ -159,6 +100,7 @@ export const useAudioStore = create<AudioState>(
         isProcessingAudio: false,
         isUndoing: false,
         bpm: null,
+        pendingTempoCallbacks: null,
       }),
   })
 );
