@@ -1,6 +1,6 @@
 // Tempo and Pitch Dialog for adjusting audio speed and pitch using RubberBand
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -20,12 +20,17 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import StopIcon from '@mui/icons-material/Stop';
 import {
   DEFAULT_TEMPO_PITCH_OPTIONS,
   type TempoAndPitchOptions,
   semitoneToRatio,
   percentToRatio,
+  processAudioWithRubberBand,
 } from '../utils/rubberbandProcessor';
+import { TEMPO_PITCH_PREVIEW_DURATION } from '../constants';
+import { useAudioStore } from '../audioStore';
 
 interface TempoAndPitchDialogProps {
   open: boolean;
@@ -48,6 +53,12 @@ export const TempoAndPitchDialog: React.FC<TempoAndPitchDialogProps> = ({
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Preview state
+  const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
+  const [isPreviewProcessing, setIsPreviewProcessing] = useState(false);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
+
   // UI state for different input modes
   const [tempoMode, setTempoMode] = useState<'percentage' | 'bpm' | 'ratio'>(
     'percentage'
@@ -61,6 +72,15 @@ export const TempoAndPitchDialog: React.FC<TempoAndPitchDialogProps> = ({
   const [targetBpm, setTargetBpm] = useState(estimatedBpm || 120);
   const [pitchSemitones, setPitchSemitones] = useState(0);
 
+  // Preview functionality
+  const stopPreview = () => {
+    if (audioSourceRef.current) {
+      audioSourceRef.current.stop();
+      audioSourceRef.current = null;
+    }
+    setIsPreviewPlaying(false);
+  };
+
   // Reset values when dialog opens
   useEffect(() => {
     if (open) {
@@ -70,6 +90,9 @@ export const TempoAndPitchDialog: React.FC<TempoAndPitchDialogProps> = ({
       setPitchSemitones(0);
       setError(null);
       setProcessing(false);
+      setIsPreviewPlaying(false);
+      setIsPreviewProcessing(false);
+      stopPreview();
     }
   }, [open, estimatedBpm]);
 
@@ -138,12 +161,103 @@ export const TempoAndPitchDialog: React.FC<TempoAndPitchDialogProps> = ({
     }
   };
 
+  const handlePreview = async () => {
+    if (isPreviewPlaying) {
+      stopPreview();
+      return;
+    }
+
+    if (isPreviewProcessing || processing) return;
+
+    const audioBuffer = useAudioStore.getState().audioBuffer;
+    if (!audioBuffer) {
+      setError('No audio buffer available for preview');
+      return;
+    }
+
+    setIsPreviewProcessing(true);
+    setError(null);
+
+    try {
+      // Create a subset of the audio buffer for preview (first N seconds)
+      const previewDuration = Math.min(
+        TEMPO_PITCH_PREVIEW_DURATION,
+        audioBuffer.duration
+      );
+      const sampleRate = audioBuffer.sampleRate;
+      const previewSamples = Math.floor(previewDuration * sampleRate);
+
+      // Create a new AudioBuffer with just the preview portion
+      const previewBuffer = new AudioContext().createBuffer(
+        audioBuffer.numberOfChannels,
+        previewSamples,
+        sampleRate
+      );
+
+      for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
+        const sourceData = audioBuffer.getChannelData(channel);
+        const previewData = previewBuffer.getChannelData(channel);
+        for (let i = 0; i < previewSamples; i++) {
+          previewData[i] = sourceData[i];
+        }
+      }
+
+      // Process the preview buffer with current settings
+      const processedPreviewBuffer = await processAudioWithRubberBand(
+        previewBuffer,
+        options
+      );
+
+      // Play the processed preview
+      if (!audioContextRef.current) {
+        audioContextRef.current = new AudioContext();
+      }
+
+      const audioContext = audioContextRef.current;
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+
+      const source = audioContext.createBufferSource();
+      source.buffer = processedPreviewBuffer;
+      source.connect(audioContext.destination);
+
+      source.onended = () => {
+        setIsPreviewPlaying(false);
+        audioSourceRef.current = null;
+      };
+
+      audioSourceRef.current = source;
+      setIsPreviewPlaying(true);
+      source.start();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Failed to generate preview'
+      );
+      setIsPreviewPlaying(false);
+    } finally {
+      setIsPreviewProcessing(false);
+    }
+  };
+
+  // Cleanup on dialog close
+  useEffect(() => {
+    if (!open) {
+      stopPreview();
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
+      }
+    }
+  }, [open]);
+
   const handleReset = () => {
     setOptions(DEFAULT_TEMPO_PITCH_OPTIONS);
     setTempoPercentage(100);
     setTargetBpm(estimatedBpm || 120);
     setPitchSemitones(0);
     setError(null);
+    stopPreview();
   };
 
   return (
@@ -496,16 +610,39 @@ export const TempoAndPitchDialog: React.FC<TempoAndPitchDialogProps> = ({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} disabled={processing}>
+        <Button onClick={onClose} disabled={processing || isPreviewProcessing}>
           Cancel
         </Button>
-        <Button onClick={handleReset} disabled={processing}>
+        <Button
+          onClick={handleReset}
+          disabled={processing || isPreviewProcessing}
+        >
           Reset
+        </Button>
+        <Button
+          onClick={handlePreview}
+          variant="outlined"
+          disabled={processing || isPreviewProcessing}
+          startIcon={
+            isPreviewProcessing ? (
+              <CircularProgress size={20} />
+            ) : isPreviewPlaying ? (
+              <StopIcon />
+            ) : (
+              <PlayArrowIcon />
+            )
+          }
+        >
+          {isPreviewProcessing
+            ? 'Processing...'
+            : isPreviewPlaying
+              ? 'Stop Preview'
+              : `Preview (${TEMPO_PITCH_PREVIEW_DURATION}s)`}
         </Button>
         <Button
           onClick={handleApply}
           variant="contained"
-          disabled={processing}
+          disabled={processing || isPreviewProcessing}
           startIcon={processing ? <CircularProgress size={20} /> : undefined}
         >
           {processing ? 'Processing...' : 'Apply'}
