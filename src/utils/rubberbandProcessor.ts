@@ -1,6 +1,7 @@
 // Rubberband WASM processor for tempo and pitch shifting
 
 import { RubberBandInterface, RubberBandOption } from 'rubberband-wasm';
+import wasmUrl from 'rubberband-wasm/dist/rubberband.wasm?url';
 import { createLogger } from './logger';
 
 const logger = createLogger('RubberbandProcessor');
@@ -33,9 +34,9 @@ class RubberbandProcessor {
     try {
       logger.debug('Initializing RubberBand WASM interface');
 
-      // Initialize the RubberBand WASM interface
-      // Note: We need to pass a compiled WASM module
-      const response = await fetch('/rubberband.wasm');
+      // Initialize the RubberBand WASM interface using direct WASM import
+      // Vite will handle the WASM file and provide the correct URL
+      const response = await fetch(wasmUrl);
       const wasmModule = await WebAssembly.compile(
         await response.arrayBuffer()
       );
