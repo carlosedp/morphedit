@@ -28,7 +28,7 @@
 
 Although primarily focused on Morphagene users, MorphEdit can also be used for general audio editing tasks such as cropping, fading, and concatenating audio files.
 
-![alt text](img/overview.png)
+![app overview](img/overview.png)
 
 ### Key Features
 
@@ -379,6 +379,8 @@ Audio normalization adjusts the gain of your audio so that the loudest peak reac
 
 MorphEdit includes advanced tempo and pitch processing capabilities using the RubberBand audio processing library. This allows you to change the speed and pitch of your audio independently or together, while maintaining high audio quality.
 
+![Tempo and Pitch adjustments](img/tempopitch.png)
+
 ### Accessing Tempo and Pitch Controls
 
 1. **Tempo/Pitch Button**: Click the "Tempo/Pitch" button in the waveform controls
@@ -490,7 +492,7 @@ The estimated new audio length is displayed in the dialog.
    - **22.05kHz 16-bit Mono**
 3. **Download**: File downloads with format-specific filename
 
-![alt text](img/exportformats.png)
+![export formats](img/exportformats.png)
 
 ### Export Features
 
@@ -634,7 +636,7 @@ When audio exceeds the Morphagene's 174-second limit, options are presented:
 - **Keep full length**: Maintains original length (for non-Morphagene use)
 - **Cancel**: Cancels the operation
 
-![alt text](img/length.png)
+![audio lenght](img/length.png)
 
 #### Loading States
 
