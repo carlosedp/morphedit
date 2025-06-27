@@ -13,11 +13,12 @@
 5. [Waveform Navigation](#waveform-navigation)
 6. [Splice Markers](#splice-markers)
 7. [Regions and Processing](#regions-and-processing)
-8. [Exporting Audio](#exporting-audio)
-9. [Keyboard Shortcuts](#keyboard-shortcuts)
-10. [Mobile and Responsive Design](#mobile-and-responsive-design)
-11. [Advanced Features](#advanced-features)
-12. [Troubleshooting](#troubleshooting)
+8. [Tempo and Pitch Processing](#tempo-and-pitch-processing)
+9. [Exporting Audio](#exporting-audio)
+10. [Keyboard Shortcuts](#keyboard-shortcuts)
+11. [Mobile and Responsive Design](#mobile-and-responsive-design)
+12. [Advanced Features](#advanced-features)
+13. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -34,6 +35,7 @@ Although primarily focused on Morphagene users, MorphEdit can also be used for g
 - **Splice Marker Management**: Add, remove, lock, and automatically detect splice points
 - **Direct Splice Playback**: Play individual splice markers with keyboard shortcuts (1-0, Q-P)
 - **Audio Processing**: Crop, fade in/out, and concatenate multiple files
+- **Tempo and Pitch Processing**: Professional-grade tempo and pitch shifting with RubberBand
 - **Audio Normalization**: Professional-grade normalization to -1dB peak for optimal levels
 - **BPM Detection**: Automatic tempo detection and display for musical content
 - **File Appending**: Add new audio files to existing compositions with preserved markers
@@ -366,10 +368,104 @@ Audio normalization adjusts the gain of your audio so that the loudest peak reac
 
 ### Undo Functionality
 
-- **Single Level**: Can undo the last processing operation (crop or fade)
+- **Single Level**: Can undo the last processing operation (crop, fade, or tempo/pitch)
 - **Keyboard**: Press Ctrl+Z (Windows/Linux) or Cmd+Z (Mac)
 - **Button**: Click the "Undo" button
 - **Limitations**: Only one level of undo is available
+
+---
+
+## Tempo and Pitch Processing
+
+MorphEdit includes advanced tempo and pitch processing capabilities using the RubberBand audio processing library. This allows you to change the speed and pitch of your audio independently or together, while maintaining high audio quality.
+
+### Accessing Tempo and Pitch Controls
+
+1. **Tempo/Pitch Button**: Click the "Tempo/Pitch" button in the waveform controls
+2. **Dialog Opens**: A comprehensive dialog with all tempo and pitch options
+3. **Advanced Options**: Multiple quality and processing settings available
+
+### Basic Controls
+
+#### Tempo Adjustment
+
+- **Tempo Mode**: Which parameter to use for tempo adjustment (Percentage, Ratio or BPM)
+- **Range**: 25% to 250% of original speed
+- **Default**: 100% (no change)
+- **Independent**: Can be adjusted without affecting pitch
+- **Examples**:
+  - 50% = Half the length
+  - 200% = Double the lenght
+  - Setting a higher BPM in BPM mode will speed up the audio, while a lower BPM will slow it down.
+  - 0.5x ratio will halve the audio length, while 2.0x will double it.
+
+In BPM mode, you can set the exact BPM you want to achieve and the tempo will be adjusted accordingly. The BPM is automatically detected when loading the audio file.
+
+The estimated new audio length is displayed in the dialog.
+
+#### Pitch Adjustment
+
+- **Range**: -24 to +24 semitones
+- **Default**: 0 semitones (no change)
+- **Independent**: Can be adjusted without affecting tempo
+- **Examples**:
+  - -12 semitones = One octave down
+  - +12 semitones = One octave up
+  - +7 semitones = Perfect fifth up
+
+### Advanced Settings
+
+#### Processing Quality
+
+- **High Quality Pitch**: Enhanced pitch processing (recommended on)
+- **High Quality Tempo**: Enhanced tempo processing (recommended on)
+- **Formant Preservation**: Maintains vocal character when pitch shifting
+
+#### Transient Detector
+
+- **Compound**: Balanced detection for most audio types (default)
+- **Percussive**: Optimized for drums and percussive content
+- **Soft**: Gentle detection for sustained sounds
+
+#### Additional Options
+
+- **Smoothing**: Reduces artifacts but may soften transients
+- **Real-time Mode**: Faster processing for quick previews
+
+### Workflow Tips
+
+#### For Musical Content
+
+1. **Preserve Formants**: Enable for vocal content to maintain natural sound
+2. **High Quality**: Use both HQ options for final processing
+3. **Detector Choice**: Use "Compound" for most music, "Percussive" for drums
+
+#### For Morphagene Use
+
+1. **Tempo Changes**: Adjust tempo to fit desired slice timing
+2. **Pitch Matching**: Match pitch to other samples in your collection
+3. **Length Considerations**: Remember 174-second limit after processing
+
+#### Processing Considerations
+
+- **Marker Adjustment**: Splice markers are automatically scaled with tempo changes
+- **BPM Recalculation**: BPM is automatically re-detected after processing
+- **Undo Support**: Processing can be undone like other operations
+- **Quality vs Speed**: Higher quality settings take longer to process
+
+### Technical Notes
+
+#### Audio Quality
+
+- **RubberBand Engine**: Professional-grade audio processing
+- **Artifact Minimization**: Advanced algorithms reduce processing artifacts
+- **Frequency Preservation**: Maintains audio frequency content quality
+
+#### Performance
+
+- **Processing Time**: Depends on audio length and quality settings
+- **Memory Usage**: Large files may require significant memory
+- **Background Processing**: UI remains responsive during processing
 
 ---
 
@@ -557,7 +653,7 @@ When audio exceeds the Morphagene's 174-second limit, options are presented:
 
 #### Undo System
 
-- **Single-Level Undo**: Can undo the last processing operation (crop, fade, or append)
+- **Single-Level Undo**: Can undo the last processing operation (crop, fade, tempo/pitch, or append)
 - **State Preservation**: Previous audio state is stored for restoration
 - **Automatic Cleanup**: Undo history is cleared after successful undo operation
 
@@ -639,6 +735,14 @@ MorphEdit automatically detects the BPM (Beats Per Minute) of loaded audio files
 1. **File Length**: Very long files may impact performance
 2. **Browser Memory**: Close other tabs to free up memory
 3. **Zoom Level**: High zoom levels may slow interaction
+
+#### Tempo/Pitch Processing Issues
+
+1. **Processing Fails**: Ensure audio is fully loaded before applying tempo/pitch processing
+2. **Long Processing Time**: Large files or high-quality settings take longer to process
+3. **Audio Quality**: Use high-quality settings for final processing, real-time for testing
+4. **Memory Issues**: Very long files may require significant memory for processing
+5. **Browser Compatibility**: Modern browsers required for WASM processing support
 
 ### Browser Console Debug
 
