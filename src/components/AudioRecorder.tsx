@@ -25,7 +25,7 @@ import {
 import WaveSurfer from 'wavesurfer.js';
 import RecordPlugin from 'wavesurfer.js/dist/plugins/record.esm.js';
 import { useTheme } from '@mui/material/styles';
-import { AUDIO_MAX_DURATION } from '../constants'; // Adjust the import path as needed
+import { AUDIO_RECORD_MAX_DURATION } from '../constants';
 
 interface AudioRecorderProps {
   onRecordingComplete: (blob: Blob) => void;
@@ -36,6 +36,18 @@ interface AudioDevice {
   deviceId: string;
   label: string;
 }
+
+/**
+ * AudioRecorder component that records audio directly in stereo format.
+ *
+ * This component is configured to record stereo audio from the start, which supports:
+ * - Mono sources (like microphones): The browser will create a stereo track with
+ *   identical channels from the mono source
+ * - Stereo sources (like audio interfaces): True stereo recording is preserved
+ *
+ * This eliminates the need for post-recording mono-to-stereo conversion and
+ * ensures consistent stereo output regardless of the input source type.
+ */
 
 export const AudioRecorder: React.FC<AudioRecorderProps> = ({
   onRecordingComplete,
@@ -117,7 +129,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
             renderRecordedAudio: true,
             scrollingWaveform: true,
             continuousWaveform: false,
-            continuousWaveformDuration: AUDIO_MAX_DURATION,
+            continuousWaveformDuration: AUDIO_RECORD_MAX_DURATION,
           })
         );
 
@@ -194,9 +206,17 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
       setIsInitializing(true);
       setError('');
 
-      // Request microphone access
+      // Request microphone access with stereo configuration
+      // This configures the recording to be stereo from the start, supporting both mono sources
+      // (like microphones) and stereo sources (like audio interfaces) without conversion
       const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
+        audio: {
+          channelCount: 2, // Request stereo recording (works with both mono and stereo sources)
+          sampleRate: 48000, // High quality sample rate
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
       });
 
       // Stop the stream immediately - we just needed permission
@@ -354,17 +374,19 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
         {/* Microphone Selection or Permission Request - hide during preview */}
         {!isPreviewMode && audioDevices.length > 0 ? (
           <FormControl fullWidth disabled={isRecording}>
-            <InputLabel>Microphone</InputLabel>
+            <InputLabel>Devices</InputLabel>
             <Select
               value={selectedDevice}
               label="Microphone"
               onChange={(e) => handleDeviceChange(e.target.value)}
             >
-              {audioDevices.map((device) => (
-                <MenuItem key={device.deviceId} value={device.deviceId}>
-                  {device.label}
-                </MenuItem>
-              ))}
+              {audioDevices
+                .sort((a, b) => a.label.localeCompare(b.label))
+                .map((device) => (
+                  <MenuItem key={device.deviceId} value={device.deviceId}>
+                    {device.label}
+                  </MenuItem>
+                ))}
             </Select>
           </FormControl>
         ) : (

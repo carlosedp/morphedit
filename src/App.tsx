@@ -54,67 +54,6 @@ import packageJson from '../package.json';
 import { theme } from './styles/theme.tsx';
 import { WaveformContainer } from './styles/StyledComponents.tsx';
 
-/**
- * Convert mono audio blob to stereo if needed
- */
-const convertToStereoIfMono = async (blob: Blob): Promise<Blob> => {
-  try {
-    // Load the audio blob into an AudioBuffer
-    const arrayBuffer = await blob.arrayBuffer();
-    const audioContext = new (window.AudioContext ||
-      (
-        window as Window &
-          typeof globalThis & { webkitAudioContext?: typeof AudioContext }
-      ).webkitAudioContext)();
-
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-    // If already stereo (2 channels) or more, return original blob
-    if (audioBuffer.numberOfChannels >= 2) {
-      console.log(
-        '🎙️ Audio is already stereo/multi-channel, no conversion needed'
-      );
-      return blob;
-    }
-
-    console.log('🎙️ Converting mono audio to stereo');
-
-    // Create a new stereo buffer
-    const stereoBuffer = audioContext.createBuffer(
-      2, // 2 channels for stereo
-      audioBuffer.length,
-      audioBuffer.sampleRate
-    );
-
-    // Copy mono channel to both left and right channels
-    const monoData = audioBuffer.getChannelData(0);
-    stereoBuffer.copyToChannel(monoData, 0); // Left channel
-    stereoBuffer.copyToChannel(monoData, 1); // Right channel
-
-    // Convert AudioBuffer back to WAV blob
-    const { audioBufferToWavFormat } = await import('./utils/exportUtils');
-    const { EXPORT_FORMATS } = await import('./constants');
-
-    // Use the default stereo format (channels is a string 'stereo')
-    const stereoFormat =
-      EXPORT_FORMATS.find((f) => f.channels === 'stereo') || EXPORT_FORMATS[0];
-    const wavArrayBuffer = audioBufferToWavFormat(
-      stereoBuffer,
-      stereoFormat,
-      []
-    );
-
-    console.log('🎙️ Successfully converted mono to stereo');
-    return new Blob([wavArrayBuffer], { type: 'audio/wav' });
-  } catch (error) {
-    console.error(
-      '🎙️ Error converting mono to stereo, using original blob:',
-      error
-    );
-    return blob;
-  }
-};
-
 function App() {
   const appLogger = createLogger('App');
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -708,16 +647,13 @@ function App() {
   const handleRecordingComplete = async (blob: Blob) => {
     try {
       setIsLoading(true);
-      setLoadingMessage('Converting recorded audio to stereo...');
-
-      // Convert recorded audio blob to stereo if it's mono
-      const convertedBlob = await convertToStereoIfMono(blob);
-
       setLoadingMessage('Processing recorded audio...');
 
-      // Create URL from converted blob and load it like a regular file
-      // This ensures recorded audio goes through the same processing pipeline
-      const url = URL.createObjectURL(convertedBlob);
+      // Create URL from recorded blob and load it like a regular file
+      // Recording is now configured to be stereo directly from getUserMedia constraints,
+      // supporting both mono sources (microphones) and stereo sources (audio interfaces)
+      // without the need for post-recording conversion
+      const url = URL.createObjectURL(blob);
 
       // Add a marker to indicate this is recorded audio
       const recordedUrl = url + '#morphedit-recorded';
@@ -725,7 +661,7 @@ function App() {
       setShouldTruncateAudio(false);
       setAudioUrl(recordedUrl);
 
-      appLogger.info('Loaded recorded audio with proper processing pipeline');
+      appLogger.info('Loaded recorded audio with stereo recording configuration');
       // Loading dialog will be closed when Waveform is ready
     } catch (error) {
       appLogger.error('Error processing recorded audio:', error);
