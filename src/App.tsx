@@ -661,7 +661,9 @@ function App() {
       setShouldTruncateAudio(false);
       setAudioUrl(recordedUrl);
 
-      appLogger.info('Loaded recorded audio with stereo recording configuration');
+      appLogger.info(
+        'Loaded recorded audio with stereo recording configuration'
+      );
       // Loading dialog will be closed when Waveform is ready
     } catch (error) {
       appLogger.error('Error processing recorded audio:', error);

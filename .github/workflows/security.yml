@@ -1,59 +1,59 @@
 name: Security Scan
 
 on:
-    push:
-        branches: [main, production]
-    pull_request:
-        branches: [main, production]
-    schedule:
-        # Run weekly security scans on Sundays at 3 AM UTC
-        - cron: "0 3 * * 0"
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main, production]
+  schedule:
+    # Run weekly security scans on Sundays at 3 AM UTC
+    - cron: "0 3 * * 0"
 
 jobs:
-    security-scan:
-        runs-on: ubuntu-latest
+  security-scan:
+    runs-on: ubuntu-latest
 
-        permissions:
-            security-events: write
-            actions: read
-            contents: read
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
 
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: "24"
-                  cache: "npm"
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
 
-            - name: Install dependencies
-              run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-            - name: Run npm audit
-              run: npm audit --audit-level=moderate
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
 
-            - name: Initialize CodeQL
-              uses: github/codeql-action/init@v3
-              with:
-                  languages: javascript, typescript
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript, typescript
 
-            - name: Autobuild
-              uses: github/codeql-action/autobuild@v3
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
 
-            - name: Perform CodeQL Analysis
-              uses: github/codeql-action/analyze@v3
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
 
-    dependency-review:
-        runs-on: ubuntu-latest
-        if: github.event_name == 'pull_request'
+  dependency-review:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
 
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Dependency Review
-              uses: actions/dependency-review-action@v4
-              with:
-                  fail-on-severity: moderate
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
