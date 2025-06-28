@@ -34,6 +34,7 @@
 - [x] Time stretching and pitch shifting
 - [x] Audio effects (normalization, add/remove gain)
 - [ ] Crossfade between splice points with defined length and curve type
+- [x] Record audio directly into the app via Wavesurfer record plugin
 
 ## Bugs
 

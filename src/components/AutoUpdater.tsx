@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 import UpdateIcon from '@mui/icons-material/Update';
+import packageJson from '../../package.json';
 
 interface UpdateInfo {
   version: string;
@@ -59,10 +60,51 @@ export const AutoUpdater = () => {
         setDownloadProgress(null);
       });
     }
+
+    // Development mode: Add keyboard shortcut to test auto-updater
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.shiftKey && event.key === 'U') {
+        console.log('Testing auto-updater dialog...');
+        // Mock update info for testing
+        const mockUpdateInfo: UpdateInfo = {
+          version: '5.1.0',
+          releaseName: 'Test Release',
+          releaseDate: new Date().toISOString(),
+          releaseNotes: 'This is a test update for development purposes.',
+        };
+        setUpdateInfo(mockUpdateInfo);
+        setShowDialog(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
   }, []);
 
   const handleDownloadUpdate = () => {
     setDownloading(true);
+
+    // In development mode, simulate download progress
+    if (!window.electronAPI) {
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.random() * 10;
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(interval);
+          setUpdateDownloaded(true);
+          setDownloading(false);
+          setDownloadProgress(null);
+        } else {
+          setDownloadProgress({
+            percent: progress,
+            bytesPerSecond: 1024 * 1024 * (Math.random() * 5 + 1), // 1-6 MB/s
+            transferred: (progress / 100) * 50 * 1024 * 1024, // 50MB total
+            total: 50 * 1024 * 1024,
+          });
+        }
+      }, 200);
+    }
     // The download starts automatically when update is available
     // We just need to show the progress
   };
@@ -110,8 +152,11 @@ export const AutoUpdater = () => {
       <DialogContent>
         {updateInfo && (
           <Box mb={2}>
+            <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+              A new version of MorphEdit is available!
+            </Typography>
             <Typography variant="h6" gutterBottom>
-              MorphEdit {updateInfo.version}
+              Release: v{updateInfo.version}
             </Typography>
             {updateInfo.releaseName && (
               <Typography
@@ -122,9 +167,11 @@ export const AutoUpdater = () => {
                 {updateInfo.releaseName}
               </Typography>
             )}
-            <Typography variant="body2" color="text.secondary">
-              Released: {new Date(updateInfo.releaseDate).toLocaleDateString()}
-            </Typography>
+            <Box display="flex" gap={2} alignItems="center">
+              <Typography variant="body2" color="text.secondary">
+                Current version: v{packageJson.version}
+              </Typography>
+            </Box>
           </Box>
         )}
 
