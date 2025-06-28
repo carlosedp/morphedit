@@ -775,8 +775,18 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       });
 
       const updateRegionsAndMarkers = () => {
+        console.log('=== updateRegionsAndMarkers called ===');
+
         // @ts-expect-error: regions is not typed in wavesurfer.js yet
         const regionList: Region[] = Object.values(ws.regions?.list ?? {});
+        console.log('Raw region list from WS:', regionList);
+        // @ts-expect-error: regions is not typed in wavesurfer.js yet
+        console.log('WS regions object:', ws.regions);
+
+        // Also try getting regions from the regions plugin directly
+        const pluginRegions = regions?.getRegions() || [];
+        console.log('Regions from plugin:', pluginRegions);
+
         setRegions(
           regionList
             .filter((r) => r.end > r.start)
@@ -791,9 +801,37 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           r.id.startsWith('splice-marker-')
         );
 
-        if (spliceMarkerRegions.length > 0) {
+        // Also check plugin regions
+        const pluginSpliceMarkers = pluginRegions.filter((r: Region) =>
+          r.id.startsWith('splice-marker-')
+        );
+
+        console.log(
+          'Found splice marker regions (WS):',
+          spliceMarkerRegions.length
+        );
+        console.log(
+          'Found splice marker regions (plugin):',
+          pluginSpliceMarkers.length
+        );
+        console.log(
+          'Splice marker region IDs (WS):',
+          spliceMarkerRegions.map((r) => r.id)
+        );
+        console.log(
+          'Splice marker region IDs (plugin):',
+          pluginSpliceMarkers.map((r) => r.id)
+        );
+
+        // Use plugin regions if WS regions are empty
+        const actualSpliceMarkers =
+          spliceMarkerRegions.length > 0
+            ? spliceMarkerRegions
+            : pluginSpliceMarkers;
+
+        if (actualSpliceMarkers.length > 0) {
           // Get current marker positions from visual regions
-          const currentVisualMarkerPositions = spliceMarkerRegions
+          const currentVisualMarkerPositions = actualSpliceMarkers
             .map((r: Region) => r.start)
             .sort((a, b) => a - b);
 
@@ -825,7 +863,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               useAudioStore.getState().lockedSpliceMarkers;
             const newLockedMarkers: number[] = [];
 
-            spliceMarkerRegions.forEach((region: Region) => {
+            actualSpliceMarkers.forEach((region: Region) => {
               // Check if this marker was previously locked by finding the closest match in old locked markers
               const markerPosition = region.start;
               const wasLocked = currentLockedMarkers.some((lockedPos) =>
@@ -864,6 +902,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
         // Trigger region info update for WaveformControls
         setRegionUpdateTrigger((prev) => prev + 1);
+
+        console.log('=== updateRegionsAndMarkers completed ===');
       };
 
       // @ts-expect-error: event types are not complete in wavesurfer.js

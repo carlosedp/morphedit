@@ -15,10 +15,21 @@ let currentSpliceStopListener: ((time: number) => void) | null = null;
  */
 export const playSpliceMarker = (
   ws: WaveSurfer,
-  spliceMarkers: number[],
+  _spliceMarkers: number[], // Unused - we always get fresh markers from store
   index: number
 ) => {
-  if (!ws || !spliceMarkers || spliceMarkers.length === 0) {
+  // Always get the current splice markers from store to ensure we have the latest positions
+  // This is critical because markers can be moved by dragging, and the store is updated
+  // but the handlers might still have stale marker positions
+  const currentSpliceMarkers = useAudioStore.getState().spliceMarkers;
+
+  console.log('=== SPLICE PLAYBACK DEBUG ===');
+  console.log('Requested marker index:', index);
+  console.log('Current markers in store:', currentSpliceMarkers);
+  console.log('Store length:', currentSpliceMarkers.length);
+  console.log('=== END SPLICE PLAYBACK DEBUG ===');
+
+  if (!ws || !currentSpliceMarkers || currentSpliceMarkers.length === 0) {
     console.log(
       'Cannot play splice marker: no wavesurfer or splice markers available'
     );
@@ -28,9 +39,9 @@ export const playSpliceMarker = (
   // Convert 1-based index to 0-based
   const markerIndex = index - 1;
 
-  if (markerIndex < 0 || markerIndex >= spliceMarkers.length) {
+  if (markerIndex < 0 || markerIndex >= currentSpliceMarkers.length) {
     console.log(
-      `Splice marker ${index} does not exist (only ${spliceMarkers.length} markers available)`
+      `Splice marker ${index} does not exist (only ${currentSpliceMarkers.length} markers available)`
     );
     return;
   }
@@ -42,7 +53,7 @@ export const playSpliceMarker = (
   }
 
   // Sort markers to ensure we get them in chronological order
-  const sortedMarkers = [...spliceMarkers].sort((a, b) => a - b);
+  const sortedMarkers = [...currentSpliceMarkers].sort((a, b) => a - b);
   const markerTime = sortedMarkers[markerIndex];
 
   // Find the next splice marker (if any)
@@ -63,20 +74,36 @@ export const playSpliceMarker = (
 
     // Set up listener to stop at next splice marker
     if (nextMarkerTime) {
+      // Use a smaller tolerance to stop closer to the target
+      const stopTolerance = 0.005; // 5ms tolerance
+      const stopTime = Math.max(
+        nextMarkerTime - stopTolerance,
+        markerTime + 0.001
+      );
+
       currentSpliceStopListener = (time: number) => {
-        if (time >= nextMarkerTime) {
+        if (time >= stopTime) {
           console.log(
             `Reached next splice marker at ${nextMarkerTime.toFixed(
               3
-            )}s, stopping playback`
+            )}s (stopped at ${time.toFixed(3)}s), stopping playback`
           );
-          ws.pause();
 
-          // Clean up the listener
+          // Clean up the listener FIRST to prevent recursion
           if (currentSpliceStopListener) {
             ws.un('timeupdate', currentSpliceStopListener);
             currentSpliceStopListener = null;
           }
+
+          // Stop playback
+          ws.pause();
+
+          // Use a small delay to allow pause to complete, then seek to exact position
+          setTimeout(() => {
+            if (ws && !ws.isPlaying()) {
+              ws.seekTo(nextMarkerTime / duration);
+            }
+          }, 10);
         }
       };
 
