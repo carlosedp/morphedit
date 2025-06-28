@@ -7,6 +7,7 @@ import { useAudioStore } from '../audioStore';
 
 // Store the current splice stop listener to clean it up when needed
 let currentSpliceStopListener: ((time: number) => void) | null = null;
+let currentAnimationFrame: number | null = null;
 
 /**
  * Play a specific splice marker by its index (1-20)
@@ -46,10 +47,14 @@ export const playSpliceMarker = (
     return;
   }
 
-  // Clean up any existing splice stop listener
+  // Clean up any existing splice stop listener and animation frame
   if (currentSpliceStopListener) {
     ws.un('timeupdate', currentSpliceStopListener);
     currentSpliceStopListener = null;
+  }
+  if (currentAnimationFrame) {
+    cancelAnimationFrame(currentAnimationFrame);
+    currentAnimationFrame = null;
   }
 
   // Sort markers to ensure we get them in chronological order
@@ -74,46 +79,83 @@ export const playSpliceMarker = (
 
     // Set up listener to stop at next splice marker
     if (nextMarkerTime) {
-      // Use a smaller tolerance to stop closer to the target
-      const stopTolerance = 0.005; // 5ms tolerance
+      // Use a much more aggressive tolerance to account for audio pipeline delay
+      const stopTolerance = 0.035; // 35ms tolerance - stop well before to prevent any overshoot
       const stopTime = Math.max(
         nextMarkerTime - stopTolerance,
         markerTime + 0.001
       );
 
-      currentSpliceStopListener = (time: number) => {
-        if (time >= stopTime) {
+      // Use requestAnimationFrame for more precise timing instead of timeupdate
+      const checkStopTime = () => {
+        if (!ws.isPlaying()) {
+          // Playback stopped for other reasons, clean up
+          if (currentAnimationFrame) {
+            cancelAnimationFrame(currentAnimationFrame);
+            currentAnimationFrame = null;
+          }
+          return;
+        }
+
+        const currentTime = ws.getCurrentTime();
+        if (currentTime >= stopTime) {
           console.log(
             `Reached next splice marker at ${nextMarkerTime.toFixed(
               3
-            )}s (stopped at ${time.toFixed(3)}s), stopping playback`
+            )}s (stopped at ${currentTime.toFixed(3)}s), stopping playback`
           );
 
-          // Clean up the listener FIRST to prevent recursion
+          // Clean up animation frame first
+          if (currentAnimationFrame) {
+            cancelAnimationFrame(currentAnimationFrame);
+            currentAnimationFrame = null;
+          }
+
+          // Stop playback immediately
+          ws.pause();
+
+          // Immediately seek to the exact marker position
+          ws.seekTo(nextMarkerTime / duration);
+        } else {
+          // Continue checking
+          currentAnimationFrame = requestAnimationFrame(checkStopTime);
+        }
+      };
+
+      // Start the precise timing check
+      currentAnimationFrame = requestAnimationFrame(checkStopTime);
+
+      // Fallback: also keep timeupdate listener as backup
+      currentSpliceStopListener = (time: number) => {
+        if (time >= stopTime) {
+          console.log(`Fallback timeupdate triggered at ${time.toFixed(3)}s`);
+
+          // Clean up both listeners
+          if (currentAnimationFrame) {
+            cancelAnimationFrame(currentAnimationFrame);
+            currentAnimationFrame = null;
+          }
           if (currentSpliceStopListener) {
             ws.un('timeupdate', currentSpliceStopListener);
             currentSpliceStopListener = null;
           }
 
-          // Stop playback
           ws.pause();
-
-          // Use a small delay to allow pause to complete, then seek to exact position
-          setTimeout(() => {
-            if (ws && !ws.isPlaying()) {
-              ws.seekTo(nextMarkerTime / duration);
-            }
-          }, 10);
+          ws.seekTo(nextMarkerTime / duration);
         }
       };
 
       ws.on('timeupdate', currentSpliceStopListener);
 
-      // Also clean up listener when playback stops for other reasons
+      // Also clean up listeners when playback stops for other reasons
       const cleanupOnPause = () => {
         if (currentSpliceStopListener) {
           ws.un('timeupdate', currentSpliceStopListener);
           currentSpliceStopListener = null;
+        }
+        if (currentAnimationFrame) {
+          cancelAnimationFrame(currentAnimationFrame);
+          currentAnimationFrame = null;
         }
         ws.un('pause', cleanupOnPause);
       };
