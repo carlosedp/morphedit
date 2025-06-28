@@ -251,6 +251,10 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       wavesurferRef.current = ws;
       regionsRef.current = regions;
 
+      // Check for recorded audio flag early for use in multiple handlers
+      const urlToCheck = audioUrl || state.currentAudioUrl || '';
+      const isRecordedAudio = urlToCheck.includes('#morphedit-recorded');
+
       // Set up event listeners
       ws.on('ready', async () => {
         try {
@@ -281,8 +285,6 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           // For processed audio, we need to check if we're currently processing or if the URL has processing flags
           const isAudioProcessing = useAudioStore.getState().isProcessingAudio;
           const isUndoing = useAudioStore.getState().isUndoing;
-          // Use audioUrl prop first, fall back to state.currentAudioUrl
-          const urlToCheck = audioUrl || state.currentAudioUrl || '';
 
           console.log('=== URL DEBUG ===');
           console.log('audioUrl prop:', audioUrl);
@@ -305,6 +307,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           console.log('isProcessedAudio:', isProcessedAudio);
           console.log('isConcatenatedAudio:', isConcatenatedAudio);
           console.log('isAppendedAudio:', isAppendedAudio);
+          console.log('isRecordedAudio:', isRecordedAudio);
           console.log('Undo operation in progress:', isUndoing);
           console.log('=== END URL DEBUG ===');
 
@@ -501,15 +504,38 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           }
 
           // Check if we already have a buffer with the correct duration (within tolerance)
-          // BUT skip this check for tempo/pitch processing since we always want to update
+          // BUT skip this check for tempo/pitch processing and recorded audio since we always want to update
           const isTempoOrPitchProcessing = audioUrl.includes(
             '#morphedit-tempo-pitch'
           );
           console.log('🎵 isTempoOrPitchProcessing:', isTempoOrPitchProcessing);
+          console.log('🎵 isRecordedAudio:', isRecordedAudio);
           console.log('🎵 audioUrl for check:', audioUrl);
           console.log('🎵 urlToLoad for check:', urlToLoad);
+
+          // Special handling for recorded audio to ensure proper interaction setup
+          if (isRecordedAudio) {
+            console.log(
+              '🎙️ Recorded audio detected - ensuring proper WaveSurfer setup'
+            );
+            // Force interaction to be enabled for recorded audio
+            if (wavesurferRef.current) {
+              console.log(
+                '🎙️ Setting interaction properties for recorded audio'
+              );
+              // Ensure the wavesurfer instance has proper interaction enabled
+              const wsInstance = wavesurferRef.current as unknown as {
+                options?: { interact?: boolean };
+              };
+              if (wsInstance.options) {
+                wsInstance.options.interact = true;
+              }
+            }
+          }
+
           const bufferAlreadyCorrect =
             !isTempoOrPitchProcessing &&
+            !isRecordedAudio && // Always update buffer for recorded audio
             currentStoredBuffer &&
             Math.abs(
               currentStoredBuffer.length / currentStoredBuffer.sampleRate -
@@ -522,6 +548,16 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             );
             return;
           }
+
+          console.log(
+            'Ready event - proceeding with buffer update for audio type:',
+            {
+              isRecordedAudio,
+              isTempoOrPitchProcessing,
+              hasCurrentBuffer: !!currentStoredBuffer,
+              wsDuration,
+            }
+          );
 
           const backend = (
             ws as unknown as { backend?: { buffer?: AudioBuffer } }
@@ -578,12 +614,18 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             );
             // Fallback: load and decode the current audio file manually
             // For tempo/pitch processing, use the new processed audio URL
-            // For regular audio, use cleaned URL to avoid fragment issues
+            // For recorded audio and regular audio, use cleaned URL to avoid fragment issues
             const urlToLoad = isTempoOrPitchProcessing
               ? audioUrl.split('#')[0] // Use new processed audio URL
-              : (state.currentAudioUrl || audioUrl).split('#')[0]; // Use current URL for regular audio
+              : isRecordedAudio
+                ? audioUrl.split('#')[0] // Use recorded audio URL without fragment
+                : (state.currentAudioUrl || audioUrl).split('#')[0]; // Use current URL for regular audio
 
             console.log('🎵 Manual decode - using URL:', urlToLoad);
+            console.log('🎵 Manual decode - audio type:', {
+              isRecordedAudio,
+              isTempoOrPitchProcessing,
+            });
 
             if (urlToLoad) {
               fetch(urlToLoad)
@@ -692,7 +734,22 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
       // Update current time when clicking on the waveform
       ws.on('click', () => {
-        actions.setCurrentTime(ws.getCurrentTime());
+        const newTime = ws.getCurrentTime();
+        console.log('🎙️ WaveSurfer click event - seeking to:', newTime);
+        actions.setCurrentTime(newTime);
+
+        // For recorded audio, ensure the seek actually works
+        if (isRecordedAudio) {
+          console.log('🎙️ Recorded audio click - forcing seek update');
+          // Small delay to ensure the seek takes effect
+          setTimeout(() => {
+            if (wavesurferRef.current) {
+              const actualTime = wavesurferRef.current.getCurrentTime();
+              console.log('🎙️ Actual time after seek:', actualTime);
+              actions.setCurrentTime(actualTime);
+            }
+          }, 10);
+        }
       });
 
       // Load audio using extracted helper function
@@ -718,8 +775,18 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       });
 
       const updateRegionsAndMarkers = () => {
+        console.log('=== updateRegionsAndMarkers called ===');
+
         // @ts-expect-error: regions is not typed in wavesurfer.js yet
         const regionList: Region[] = Object.values(ws.regions?.list ?? {});
+        console.log('Raw region list from WS:', regionList);
+        // @ts-expect-error: regions is not typed in wavesurfer.js yet
+        console.log('WS regions object:', ws.regions);
+
+        // Also try getting regions from the regions plugin directly
+        const pluginRegions = regions?.getRegions() || [];
+        console.log('Regions from plugin:', pluginRegions);
+
         setRegions(
           regionList
             .filter((r) => r.end > r.start)
@@ -734,9 +801,37 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           r.id.startsWith('splice-marker-')
         );
 
-        if (spliceMarkerRegions.length > 0) {
+        // Also check plugin regions
+        const pluginSpliceMarkers = pluginRegions.filter((r: Region) =>
+          r.id.startsWith('splice-marker-')
+        );
+
+        console.log(
+          'Found splice marker regions (WS):',
+          spliceMarkerRegions.length
+        );
+        console.log(
+          'Found splice marker regions (plugin):',
+          pluginSpliceMarkers.length
+        );
+        console.log(
+          'Splice marker region IDs (WS):',
+          spliceMarkerRegions.map((r) => r.id)
+        );
+        console.log(
+          'Splice marker region IDs (plugin):',
+          pluginSpliceMarkers.map((r) => r.id)
+        );
+
+        // Use plugin regions if WS regions are empty
+        const actualSpliceMarkers =
+          spliceMarkerRegions.length > 0
+            ? spliceMarkerRegions
+            : pluginSpliceMarkers;
+
+        if (actualSpliceMarkers.length > 0) {
           // Get current marker positions from visual regions
-          const currentVisualMarkerPositions = spliceMarkerRegions
+          const currentVisualMarkerPositions = actualSpliceMarkers
             .map((r: Region) => r.start)
             .sort((a, b) => a - b);
 
@@ -768,7 +863,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               useAudioStore.getState().lockedSpliceMarkers;
             const newLockedMarkers: number[] = [];
 
-            spliceMarkerRegions.forEach((region: Region) => {
+            actualSpliceMarkers.forEach((region: Region) => {
               // Check if this marker was previously locked by finding the closest match in old locked markers
               const markerPosition = region.start;
               const wasLocked = currentLockedMarkers.some((lockedPos) =>
@@ -807,6 +902,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
         // Trigger region info update for WaveformControls
         setRegionUpdateTrigger((prev) => prev + 1);
+
+        console.log('=== updateRegionsAndMarkers completed ===');
       };
 
       // @ts-expect-error: event types are not complete in wavesurfer.js
@@ -829,6 +926,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           'starts with splice-marker:',
           region.id.startsWith('splice-marker-')
         );
+
+        // Only handle splice marker regions, ignore other regions and waveform clicks
         if (region.id.startsWith('splice-marker-')) {
           console.log('Splice marker selected:', region.id);
           actions.setSelectedSpliceMarker(region);
@@ -838,6 +937,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           const currentPosition = ws.getCurrentTime();
 
           // Use a timeout to restore the position after the region click processing
+          // ONLY for splice marker clicks, not for general waveform clicks
           setTimeout(() => {
             if (wavesurferRef.current) {
               const duration = wavesurferRef.current.getDuration();
@@ -846,10 +946,24 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               }
             }
           }, 0);
-        } else {
-          console.log('Non-splice marker clicked, clearing selection');
+        } else if (
+          region.id.startsWith('crop-') ||
+          region.id.startsWith('fade-')
+        ) {
+          // Handle other specific region types without position restoration
+          console.log(
+            'Crop/fade region clicked, clearing splice marker selection'
+          );
           actions.setSelectedSpliceMarker(null);
           memoizedUpdateSpliceMarkerColors(null);
+        } else {
+          // For any other regions or undefined regions, clear selection but don't interfere with seeking
+          console.log(
+            'Other region or waveform area clicked, clearing splice marker selection'
+          );
+          actions.setSelectedSpliceMarker(null);
+          memoizedUpdateSpliceMarkerColors(null);
+          // Let the normal click-to-seek behavior work
         }
       });
 

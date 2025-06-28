@@ -7,6 +7,7 @@ import { useAudioStore } from '../audioStore';
 
 // Store the current splice stop listener to clean it up when needed
 let currentSpliceStopListener: ((time: number) => void) | null = null;
+let currentAnimationFrame: number | null = null;
 
 /**
  * Play a specific splice marker by its index (1-20)
@@ -15,10 +16,21 @@ let currentSpliceStopListener: ((time: number) => void) | null = null;
  */
 export const playSpliceMarker = (
   ws: WaveSurfer,
-  spliceMarkers: number[],
+  _spliceMarkers: number[], // Unused - we always get fresh markers from store
   index: number
 ) => {
-  if (!ws || !spliceMarkers || spliceMarkers.length === 0) {
+  // Always get the current splice markers from store to ensure we have the latest positions
+  // This is critical because markers can be moved by dragging, and the store is updated
+  // but the handlers might still have stale marker positions
+  const currentSpliceMarkers = useAudioStore.getState().spliceMarkers;
+
+  console.log('=== SPLICE PLAYBACK DEBUG ===');
+  console.log('Requested marker index:', index);
+  console.log('Current markers in store:', currentSpliceMarkers);
+  console.log('Store length:', currentSpliceMarkers.length);
+  console.log('=== END SPLICE PLAYBACK DEBUG ===');
+
+  if (!ws || !currentSpliceMarkers || currentSpliceMarkers.length === 0) {
     console.log(
       'Cannot play splice marker: no wavesurfer or splice markers available'
     );
@@ -28,21 +40,25 @@ export const playSpliceMarker = (
   // Convert 1-based index to 0-based
   const markerIndex = index - 1;
 
-  if (markerIndex < 0 || markerIndex >= spliceMarkers.length) {
+  if (markerIndex < 0 || markerIndex >= currentSpliceMarkers.length) {
     console.log(
-      `Splice marker ${index} does not exist (only ${spliceMarkers.length} markers available)`
+      `Splice marker ${index} does not exist (only ${currentSpliceMarkers.length} markers available)`
     );
     return;
   }
 
-  // Clean up any existing splice stop listener
+  // Clean up any existing splice stop listener and animation frame
   if (currentSpliceStopListener) {
     ws.un('timeupdate', currentSpliceStopListener);
     currentSpliceStopListener = null;
   }
+  if (currentAnimationFrame) {
+    cancelAnimationFrame(currentAnimationFrame);
+    currentAnimationFrame = null;
+  }
 
   // Sort markers to ensure we get them in chronological order
-  const sortedMarkers = [...spliceMarkers].sort((a, b) => a - b);
+  const sortedMarkers = [...currentSpliceMarkers].sort((a, b) => a - b);
   const markerTime = sortedMarkers[markerIndex];
 
   // Find the next splice marker (if any)
@@ -63,30 +79,83 @@ export const playSpliceMarker = (
 
     // Set up listener to stop at next splice marker
     if (nextMarkerTime) {
-      currentSpliceStopListener = (time: number) => {
-        if (time >= nextMarkerTime) {
+      // Use a much more aggressive tolerance to account for audio pipeline delay
+      const stopTolerance = 0.035; // 35ms tolerance - stop well before to prevent any overshoot
+      const stopTime = Math.max(
+        nextMarkerTime - stopTolerance,
+        markerTime + 0.001
+      );
+
+      // Use requestAnimationFrame for more precise timing instead of timeupdate
+      const checkStopTime = () => {
+        if (!ws.isPlaying()) {
+          // Playback stopped for other reasons, clean up
+          if (currentAnimationFrame) {
+            cancelAnimationFrame(currentAnimationFrame);
+            currentAnimationFrame = null;
+          }
+          return;
+        }
+
+        const currentTime = ws.getCurrentTime();
+        if (currentTime >= stopTime) {
           console.log(
             `Reached next splice marker at ${nextMarkerTime.toFixed(
               3
-            )}s, stopping playback`
+            )}s (stopped at ${currentTime.toFixed(3)}s), stopping playback`
           );
+
+          // Clean up animation frame first
+          if (currentAnimationFrame) {
+            cancelAnimationFrame(currentAnimationFrame);
+            currentAnimationFrame = null;
+          }
+
+          // Stop playback immediately
           ws.pause();
 
-          // Clean up the listener
+          // Immediately seek to the exact marker position
+          ws.seekTo(nextMarkerTime / duration);
+        } else {
+          // Continue checking
+          currentAnimationFrame = requestAnimationFrame(checkStopTime);
+        }
+      };
+
+      // Start the precise timing check
+      currentAnimationFrame = requestAnimationFrame(checkStopTime);
+
+      // Fallback: also keep timeupdate listener as backup
+      currentSpliceStopListener = (time: number) => {
+        if (time >= stopTime) {
+          console.log(`Fallback timeupdate triggered at ${time.toFixed(3)}s`);
+
+          // Clean up both listeners
+          if (currentAnimationFrame) {
+            cancelAnimationFrame(currentAnimationFrame);
+            currentAnimationFrame = null;
+          }
           if (currentSpliceStopListener) {
             ws.un('timeupdate', currentSpliceStopListener);
             currentSpliceStopListener = null;
           }
+
+          ws.pause();
+          ws.seekTo(nextMarkerTime / duration);
         }
       };
 
       ws.on('timeupdate', currentSpliceStopListener);
 
-      // Also clean up listener when playback stops for other reasons
+      // Also clean up listeners when playback stops for other reasons
       const cleanupOnPause = () => {
         if (currentSpliceStopListener) {
           ws.un('timeupdate', currentSpliceStopListener);
           currentSpliceStopListener = null;
+        }
+        if (currentAnimationFrame) {
+          cancelAnimationFrame(currentAnimationFrame);
+          currentAnimationFrame = null;
         }
         ws.un('pause', cleanupOnPause);
       };

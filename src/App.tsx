@@ -10,6 +10,7 @@ import {
   Stack,
   Tooltip,
 } from '@mui/material';
+import { Mic } from '@mui/icons-material';
 import Waveform, { type WaveformRef } from './Waveform';
 import { useAudioStore } from './audioStore';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
@@ -20,6 +21,7 @@ import { MultipleFilesDialog } from './components/MultipleFilesDialog';
 import { FileReplaceDialog } from './components/FileReplaceDialog';
 import { TempoAndPitchDialog } from './components/TempoAndPitchDialog';
 import { AutoUpdater } from './components/AutoUpdater';
+import { RecordingDialog } from './components/RecordingDialog';
 import {
   getAudioFileDuration,
   isFileTooLong,
@@ -84,6 +86,9 @@ function App() {
   const [tempoAndPitchEstimatedBpm, setTempoAndPitchEstimatedBpm] = useState<
     number | undefined
   >(undefined);
+
+  // Recording dialog state
+  const [recordingDialogOpen, setRecordingDialogOpen] = useState(false);
 
   const reset = useAudioStore((state) => state.reset);
   const waveformRef = useRef<WaveformRef | null>(null);
@@ -639,6 +644,40 @@ function App() {
     }
   };
 
+  const handleRecordingComplete = async (blob: Blob) => {
+    try {
+      setIsLoading(true);
+      setLoadingMessage('Processing recorded audio...');
+
+      // Create URL from recorded blob and load it like a regular file
+      // Recording is now configured to be stereo directly from getUserMedia constraints,
+      // supporting both mono sources (microphones) and stereo sources (audio interfaces)
+      // without the need for post-recording conversion
+      const url = URL.createObjectURL(blob);
+
+      // Add a marker to indicate this is recorded audio
+      const recordedUrl = url + '#morphedit-recorded';
+
+      setShouldTruncateAudio(false);
+      setAudioUrl(recordedUrl);
+
+      appLogger.info('Loaded recorded audio with stereo recording configuration');
+      // Loading dialog will be closed when Waveform is ready
+    } catch (error) {
+      appLogger.error('Error processing recorded audio:', error);
+      setIsLoading(false);
+      setLoadingMessage('');
+    }
+  };
+
+  const handleOpenRecordingDialog = () => {
+    setRecordingDialogOpen(true);
+  };
+
+  const handleCloseRecordingDialog = () => {
+    setRecordingDialogOpen(false);
+  };
+
   const handleReset = () => {
     // Clear the audio URL
     if (audioUrl) {
@@ -887,30 +926,32 @@ function App() {
               alignItems: { xs: 'stretch', sm: 'center' },
             }}
           >
-            <Button
-              variant="contained"
-              component="label"
-              sx={{
-                flex: { xs: 1, sm: 'none' },
-                minWidth: { sm: '160px' },
-                fontSize: { xs: '0.9rem', sm: '0.875rem' },
-                padding: { xs: '0.7em 1.2em', sm: '6px 16px' },
-                minHeight: { xs: '48px', sm: '36px' },
-                height: { xs: '48px', sm: 'auto' }, // Force consistent height on mobile
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              Open Audio File(s)
-              <input
-                type="file"
-                accept="audio/*"
-                multiple
-                hidden
-                onChange={handleFileChange}
-              />
-            </Button>
+            <Tooltip title="Supported formats: WAV, MP3, FLAC, AAC, OGG">
+              <Button
+                variant="contained"
+                component="label"
+                sx={{
+                  flex: { xs: 1, sm: 'none' },
+                  minWidth: { sm: '160px' },
+                  fontSize: { xs: '0.9rem', sm: '0.875rem' },
+                  padding: { xs: '0.7em 1.2em', sm: '6px 16px' },
+                  minHeight: { xs: '48px', sm: '36px' },
+                  height: { xs: '48px', sm: 'auto' }, // Force consistent height on mobile
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                Open Audio File(s)
+                <input
+                  type="file"
+                  accept="audio/*"
+                  multiple
+                  hidden
+                  onChange={handleFileChange}
+                />
+              </Button>
+            </Tooltip>
             <Tooltip title="Append audio to existing file(s)">
               <Box component="span" sx={{ flex: { xs: 1, sm: 'none' } }}>
                 <Button
@@ -947,6 +988,28 @@ function App() {
                 </Button>
               </Box>
             </Tooltip>
+            <Tooltip title="Record audio using your device">
+              <Button
+                variant="outlined"
+                onClick={handleOpenRecordingDialog}
+                disabled={!!audioUrl} // Disabled when audio is loaded
+                startIcon={<Mic />}
+                sx={{
+                  flex: { xs: 1, sm: 'none' },
+                  minWidth: { sm: '120px' },
+                  fontSize: { xs: '0.85rem', sm: '0.875rem' },
+                  padding: { xs: '0.6em 1em', sm: '6px 16px' },
+                  minHeight: { xs: '46px', sm: '36px' },
+                  height: { xs: '46px', sm: 'auto' },
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: audioUrl ? 0.5 : 1, // Visual feedback when disabled
+                }}
+              >
+                Record
+              </Button>
+            </Tooltip>
             <Tooltip title="Unload current audio and clear all data">
               <Box component="span" sx={{ flex: { xs: 1, sm: 'none' } }}>
                 <Button
@@ -977,7 +1040,6 @@ function App() {
             </Tooltip>
           </Stack>
         </Box>
-        {/* Waveform container - always visible */}
         <WaveformContainer
           id="waveform-container"
           onClick={handleWaveformClick}
@@ -1009,8 +1071,12 @@ function App() {
               : {},
           }}
         >
-          {!audioUrl &&
-            'Click here, use the button above, or drag and drop audio file(s) to load/concatenate them'}
+          {!audioUrl && (
+            <>
+              Click here, use the buttons above, or drag and drop audio file(s)
+              to load/concatenate them
+            </>
+          )}
         </WaveformContainer>
         {audioUrl && (
           <Box sx={{ mx: { xs: 1, sm: 2 } }}>
@@ -1106,6 +1172,12 @@ function App() {
       />
 
       <LoadingDialog open={isLoading} message={loadingMessage} />
+
+      <RecordingDialog
+        open={recordingDialogOpen}
+        onClose={handleCloseRecordingDialog}
+        onRecordingComplete={handleRecordingComplete}
+      />
 
       {/* Auto-updater component (only active in Electron) */}
       <AutoUpdater />
