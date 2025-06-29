@@ -49,7 +49,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: false, // Allow file drops and local file access
+      webSecurity: true,
       preload: path.join(__dirname, 'preload.js'), // Add preload for IPC
       enableRemoteModule: false,
       allowRunningInsecureContent: false,
