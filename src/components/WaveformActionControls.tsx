@@ -31,6 +31,8 @@ interface WaveformActionControlsProps {
   // State props
   selectedExportFormat: ExportFormat;
   exportAnchorEl: HTMLElement | null;
+  fadeInAnchorEl: HTMLElement | null;
+  fadeOutAnchorEl: HTMLElement | null;
   cropMode: boolean;
   fadeInMode: boolean;
   fadeOutMode: boolean;
@@ -43,6 +45,8 @@ interface WaveformActionControlsProps {
   onExportSlices: () => Promise<'no-slices' | 'no-audio' | 'success' | 'error'>;
   onExportFormatChange: (format: ExportFormat) => void;
   onSetExportAnchorEl: (element: HTMLElement | null) => void;
+  onSetFadeInAnchorEl: (element: HTMLElement | null) => void;
+  onSetFadeOutAnchorEl: (element: HTMLElement | null) => void;
   onNormalize: () => void;
   onCropRegion: () => void;
   onApplyCrop: () => void;
@@ -59,6 +63,8 @@ export const WaveformActionControls = ({
   // State props
   selectedExportFormat,
   exportAnchorEl,
+  fadeInAnchorEl,
+  fadeOutAnchorEl,
   cropMode,
   fadeInMode,
   fadeOutMode,
@@ -71,6 +77,8 @@ export const WaveformActionControls = ({
   onExportSlices,
   onExportFormatChange,
   onSetExportAnchorEl,
+  onSetFadeInAnchorEl,
+  onSetFadeOutAnchorEl,
   onNormalize,
   onCropRegion,
   onApplyCrop,
@@ -321,8 +329,8 @@ export const WaveformActionControls = ({
                 selectedCurve={fadeInCurveType}
                 onCurveChange={onSetFadeInCurveType}
                 fadeType="in"
-                anchorEl={null}
-                onSetAnchorEl={() => {}}
+                anchorEl={fadeInAnchorEl}
+                onSetAnchorEl={onSetFadeInAnchorEl}
               />
             </ButtonGroup>
           ) : (
@@ -363,8 +371,8 @@ export const WaveformActionControls = ({
                 selectedCurve={fadeOutCurveType}
                 onCurveChange={onSetFadeOutCurveType}
                 fadeType="out"
-                anchorEl={null}
-                onSetAnchorEl={() => {}}
+                anchorEl={fadeOutAnchorEl}
+                onSetAnchorEl={onSetFadeOutAnchorEl}
               />
             </ButtonGroup>
           ) : (

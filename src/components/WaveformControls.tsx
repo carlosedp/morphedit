@@ -241,7 +241,11 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
             sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}
           >
             Crop Region: {formatTime(regionInfo.cropRegion.start)} -{' '}
-            {formatTime(regionInfo.cropRegion.end)}
+            {formatTime(regionInfo.cropRegion.end)} (
+            {formatTime(
+              regionInfo.cropRegion.end - regionInfo.cropRegion.start
+            )}
+            )
           </Typography>
         )}
 
@@ -252,7 +256,11 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
             sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}
           >
             Fade-In: {formatTime(regionInfo.fadeInRegion.start)} -{' '}
-            {formatTime(regionInfo.fadeInRegion.end)}
+            {formatTime(regionInfo.fadeInRegion.end)} (
+            {formatTime(
+              regionInfo.fadeInRegion.end - regionInfo.fadeInRegion.start
+            )}
+            )
           </Typography>
         )}
 
@@ -263,7 +271,11 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
             sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}
           >
             Fade-Out: {formatTime(regionInfo.fadeOutRegion.start)} -{' '}
-            {formatTime(regionInfo.fadeOutRegion.end)}
+            {formatTime(regionInfo.fadeOutRegion.end)} (
+            {formatTime(
+              regionInfo.fadeOutRegion.end - regionInfo.fadeOutRegion.start
+            )}
+            )
           </Typography>
         )}
 

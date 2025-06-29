@@ -49,6 +49,8 @@ export const FadeCurveSelector: React.FC<FadeCurveSelectorProps> = ({
             minWidth: 'auto',
             borderTopLeftRadius: 0,
             borderBottomLeftRadius: 0,
+            // Ensure adequate touch target on mobile
+            minHeight: { xs: 36, sm: 'auto' },
             // display: 'flex',
             // flexDirection: 'column',
             // alignItems: 'center'
@@ -74,6 +76,24 @@ export const FadeCurveSelector: React.FC<FadeCurveSelectorProps> = ({
         onClose={() => onSetAnchorEl(null)}
         MenuListProps={{
           'aria-labelledby': `fade-${fadeType}-curve-button`,
+        }}
+        slotProps={{
+          paper: {
+            sx: {
+              maxHeight: '60vh', // Limit height on mobile
+              minWidth: 200,
+              // Ensure proper z-index for mobile
+              zIndex: 1300,
+            },
+          },
+        }}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
         }}
       >
         {curveOptions.map((option) => (

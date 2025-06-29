@@ -8,4 +8,20 @@ export default defineConfig({
   base: './', // Ensure relative paths for Electron
   plugins: [react(), wasm(), topLevelAwait()],
   assetsInclude: ['**/*.wasm'],
+  build: {
+    rollupOptions: {
+      // Optimize chunk size and reduce file handles
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          mui: ['@mui/material', '@mui/system', '@mui/icons-material'],
+        },
+      },
+      // Increase max parallel file reads to handle large dependency trees
+      maxParallelFileOps: 5,
+    },
+  },
+  optimizeDeps: {
+    include: ['@mui/material', '@mui/system', '@mui/icons-material'],
+  },
 });
