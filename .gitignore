@@ -25,3 +25,4 @@ dist-ssr
 
 # Generated files
 public/manual.html
+electron-dist
