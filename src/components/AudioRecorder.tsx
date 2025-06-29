@@ -27,24 +27,6 @@ import RecordPlugin from 'wavesurfer.js/dist/plugins/record.esm.js';
 import { useTheme } from '@mui/material/styles';
 import { AUDIO_RECORD_MAX_DURATION } from '../constants';
 
-// Browser detection utilities
-const getBrowserInfo = () => {
-  const userAgent = navigator.userAgent;
-  const isFirefoxMobile = /Firefox.*Mobile/.test(userAgent);
-  const isSafariMobile = /Safari/.test(userAgent) && /Mobile/.test(userAgent) && !/Chrome/.test(userAgent);
-  const isIOSWebKit = /iPhone|iPad|iPod/.test(userAgent) || 
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const isChromeMobile = /Chrome.*Mobile/.test(userAgent);
-  
-  return {
-    isFirefoxMobile,
-    isSafariMobile,
-    isIOSWebKit,
-    isChromeMobile,
-    isMobile: isFirefoxMobile || isSafariMobile || isIOSWebKit || isChromeMobile,
-  };
-};
-
 interface AudioRecorderProps {
   onRecordingComplete: (blob: Blob) => void;
   onError?: (error: string) => void;
@@ -109,8 +91,6 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
         wavesurferRef.current.destroy();
       }
 
-      const browser = getBrowserInfo();
-
       if (forPreview) {
         // Create WaveSurfer instance for preview (without record plugin)
         const ws = WaveSurfer.create({
@@ -143,30 +123,15 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
           interact: false,
         });
 
-        // Initialize Record plugin with iOS-specific options
-        const recordOptions: {
-          renderRecordedAudio: boolean;
-          scrollingWaveform: boolean;
-          continuousWaveform: boolean;
-          continuousWaveformDuration: number;
-          mimeType?: string;
-          audioBitsPerSecond?: number;
-        } = {
-          renderRecordedAudio: true,
-          scrollingWaveform: true,
-          continuousWaveform: false,
-          continuousWaveformDuration: AUDIO_RECORD_MAX_DURATION,
-        };
-
-        // iOS Safari specific optimizations
-        if (browser.isIOSWebKit) {
-          console.log('Applying iOS-specific RecordPlugin configuration');
-          // iOS works better with these settings
-          recordOptions.mimeType = 'audio/wav'; // iOS Safari prefers WAV
-          recordOptions.audioBitsPerSecond = 128000; // Lower bitrate for iOS compatibility
-        }
-
-        const record = ws.registerPlugin(RecordPlugin.create(recordOptions));
+        // Initialize Record plugin
+        const record = ws.registerPlugin(
+          RecordPlugin.create({
+            renderRecordedAudio: true,
+            scrollingWaveform: true,
+            continuousWaveform: false,
+            continuousWaveformDuration: AUDIO_RECORD_MAX_DURATION,
+          })
+        );
 
         // Set up event listeners
         record.on('record-end', async (blob: Blob) => {
@@ -206,60 +171,22 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
 
   const initializeDevices = React.useCallback(async () => {
     try {
-      // Browser detection
-      const browser = getBrowserInfo();
-      
       // Get available audio devices (this will work after permission is granted)
       const devices = await RecordPlugin.getAvailableAudioDevices();
       const audioInputDevices = devices.filter(
         (device) => device.kind === 'audioinput'
       );
 
-      // Handle browser-specific device enumeration issues
-      if (browser.isFirefoxMobile && audioInputDevices.length > 0) {
-        console.log('Firefox mobile detected, using fallback device handling');
-        
-        // For Firefox mobile, we'll create a more generic device list
-        // since device enumeration is limited
-        const deviceList = audioInputDevices.map((device, index) => ({
-          deviceId: device.deviceId || 'default',
-          label: device.label || 
-                 (device.deviceId === 'default' ? 'Default Microphone' : 
-                  `Microphone ${index + 1}`),
-        }));
+      setAudioDevices(
+        audioInputDevices.map((device) => ({
+          deviceId: device.deviceId,
+          label: device.label || `Microphone ${device.deviceId.slice(0, 8)}...`,
+        }))
+      );
 
-        setAudioDevices(deviceList);
-        
-        // Always use the first device (usually the default) for Firefox mobile
-        setSelectedDevice(deviceList[0].deviceId);
-      } else if ((browser.isSafariMobile || browser.isIOSWebKit) && audioInputDevices.length > 0) {
-        console.log('Safari iOS detected, using simplified device handling');
-        
-        // Safari iOS often has limited device enumeration
-        // Create a simplified device list
-        const deviceList = audioInputDevices.map((device, index) => ({
-          deviceId: device.deviceId || 'default',
-          label: device.label || 
-                 (index === 0 ? 'Built-in Microphone' : `Microphone ${index + 1}`),
-        }));
-
-        setAudioDevices(deviceList);
-        
-        // Use the first available device for iOS
-        setSelectedDevice(deviceList[0].deviceId);
-      } else {
-        // Standard handling for other browsers
-        setAudioDevices(
-          audioInputDevices.map((device) => ({
-            deviceId: device.deviceId,
-            label: device.label || `Microphone ${device.deviceId.slice(0, 8)}...`,
-          }))
-        );
-
-        // Select default device
-        if (audioInputDevices.length > 0) {
-          setSelectedDevice(audioInputDevices[0].deviceId);
-        }
+      // Select default device
+      if (audioInputDevices.length > 0) {
+        setSelectedDevice(audioInputDevices[0].deviceId);
       }
 
       // Initialize WaveSurfer
@@ -279,62 +206,21 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
       setIsInitializing(true);
       setError('');
 
-      const browser = getBrowserInfo();
-      
-      let audioConstraints: MediaStreamConstraints['audio'];
-      
-      if (browser.isFirefoxMobile) {
-        // Firefox mobile has issues with advanced constraints, use simpler ones
-        console.log('Using Firefox mobile-optimized audio constraints');
-        audioConstraints = {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          // Don't specify channelCount and sampleRate for Firefox mobile
-          // as it can cause issues with device enumeration and recording
-        };
-      } else if (browser.isSafariMobile || browser.isIOSWebKit) {
-        // Safari iOS/iPadOS has specific requirements and limitations
-        console.log('Using Safari iOS-optimized audio constraints');
-        audioConstraints = {
-          // Safari iOS works better with basic constraints
-          echoCancellation: false, // Sometimes causes issues on iOS
-          noiseSuppression: false, // Can interfere with recording quality
-          autoGainControl: true,
-          // iOS Safari prefers mono recording, stereo can cause issues
-          channelCount: 1,
-          sampleRate: 44100, // iOS preferred sample rate
-        };
-      } else {
-        // Standard constraints for other browsers
-        audioConstraints = {
+      // Request microphone access with stereo configuration
+      // This configures the recording to be stereo from the start, supporting both mono sources
+      // (like microphones) and stereo sources (like audio interfaces) without conversion
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
           channelCount: 2, // Request stereo recording (works with both mono and stereo sources)
           sampleRate: 48000, // High quality sample rate
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-        };
-      }
-
-      // Request microphone access with appropriate configuration
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: audioConstraints,
+        },
       });
-
-      console.log('Microphone permission granted, stream tracks:', stream.getTracks().length);
 
       // Stop the stream immediately - we just needed permission
       stream.getTracks().forEach((track) => track.stop());
-
-      // Browser-specific delays for device enumeration
-      if (browser.isFirefoxMobile) {
-        console.log('Adding delay for Firefox mobile device enumeration');
-        await new Promise(resolve => setTimeout(resolve, 500));
-      } else if (browser.isSafariMobile || browser.isIOSWebKit) {
-        console.log('Adding delay for Safari iOS device enumeration');
-        // iOS Safari sometimes needs a longer delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
 
       // Now initialize devices
       const success = await initializeDevices();
@@ -344,15 +230,8 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
     } catch (permissionError) {
       console.error('Microphone permission denied:', permissionError);
       setPermissionState('denied');
-      
-      const browser = getBrowserInfo();
-      
-      let errorMessage = 'Microphone access was denied. Please allow microphone permissions and try again.';
-      
-      if (browser.isIOSWebKit) {
-        errorMessage = 'Microphone access was denied. On iOS/iPadOS, please go to Settings > Safari > Camera & Microphone, then refresh this page and try again.';
-      }
-      
+      const errorMessage =
+        'Microphone access was denied. Please allow microphone permissions and try again.';
       setError(errorMessage);
       onError?.(errorMessage);
     } finally {
@@ -367,69 +246,11 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
         setIsInitializing(true);
         setPermissionState('prompt');
 
-        // Browser detection and special handling
-        const browser = getBrowserInfo();
-        
-        if (browser.isFirefoxMobile) {
-          console.log('Firefox mobile detected - using optimized initialization');
-          
-          // Check if MediaDevices API is available
-          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            throw new Error('Media devices not supported in this browser');
-          }
-          
-          // Check for additional permissions API support
-          if ('permissions' in navigator) {
-            try {
-              const permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
-              console.log('Microphone permission status:', permissionStatus.state);
-              setPermissionState(permissionStatus.state as typeof permissionState);
-              
-              if (permissionStatus.state === 'denied') {
-                setError('Microphone access is blocked. Please enable it in your browser settings.');
-                return;
-              }
-            } catch (permError) {
-              console.log('Permission query not supported:', permError);
-            }
-          }
-        } else if (browser.isSafariMobile || browser.isIOSWebKit) {
-          console.log('Safari iOS detected - using iOS-optimized initialization');
-          
-          // iOS Safari specific checks
-          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            throw new Error('Media recording not supported. Please update to a newer version of Safari.');
-          }
-          
-          // iOS Safari requires secure context for media access
-          if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-            throw new Error('Audio recording requires a secure connection (HTTPS) on iOS devices.');
-          }
-          
-          // Check if we're in a web app or standalone mode
-          const isStandalone = ('standalone' in window.navigator) && 
-            (window.navigator as { standalone?: boolean }).standalone;
-          if (isStandalone) {
-            console.log('Running in iOS standalone mode');
-          }
-        }
-
         // Try to request microphone permission
         await requestMicrophonePermission();
       } catch (err) {
         console.error('Error during initial setup:', err);
         setPermissionState('unknown');
-        
-        // Provide more specific error messages for different mobile browsers
-        const browser = getBrowserInfo();
-        
-        if (browser.isFirefoxMobile) {
-          setError('Unable to access microphone. Please check that microphone permissions are enabled for this site in Firefox settings.');
-        } else if (browser.isIOSWebKit) {
-          setError('Unable to access microphone. Please check Safari settings: Settings > Safari > Camera & Microphone, then refresh this page.');
-        } else {
-          setError('Failed to initialize audio recording. Please try refreshing the page.');
-        }
       }
     };
 
@@ -448,47 +269,17 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
 
     try {
       setError('');
-      
-      const browser = getBrowserInfo();
-      
-      // Browser-specific device selection handling
-      const deviceOptions: { deviceId?: string } = {};
-      
-      if (selectedDevice && selectedDevice !== 'default') {
-        deviceOptions.deviceId = selectedDevice;
-      } else if (browser.isFirefoxMobile) {
-        // For Firefox mobile, don't specify deviceId if it's default
-        // as this can cause issues
-        console.log('Firefox mobile: using default device without explicit deviceId');
-      } else if (browser.isSafariMobile || browser.isIOSWebKit) {
-        // For iOS Safari, use default device handling
-        console.log('Safari iOS: using default device handling');
-        // Don't specify deviceId for iOS unless specifically selected
-        if (selectedDevice && selectedDevice !== 'default') {
-          deviceOptions.deviceId = selectedDevice;
-        }
-      } else if (selectedDevice) {
-        deviceOptions.deviceId = selectedDevice;
-      }
-
-      console.log('Starting recording with options:', deviceOptions);
-      
-      await recordPluginRef.current.startRecording(deviceOptions);
+      await recordPluginRef.current.startRecording({
+        deviceId: selectedDevice || undefined,
+      });
       setIsRecording(true);
       setIsPaused(false);
     } catch (err) {
-      console.error('Error starting recording:', err);
-      
-      const browser = getBrowserInfo();
-      
-      let errorMessage = 'Failed to start recording. Please check microphone permissions.';
-      
-      if (browser.isIOSWebKit) {
-        errorMessage = 'Failed to start recording. On iOS, make sure you tap the record button directly and that microphone access is enabled in Safari settings.';
-      }
-      
+      const errorMessage =
+        'Failed to start recording. Please check microphone permissions.';
       setError(errorMessage);
       onError?.(errorMessage);
+      console.error('Error starting recording:', err);
     }
   };
 
@@ -565,10 +356,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
             severity="error"
             onClose={() => setError('')}
             action={
-              (permissionState === 'denied' || 
-               /Firefox.*Mobile/.test(navigator.userAgent) ||
-               /iPhone|iPad|iPod/.test(navigator.userAgent) ||
-               (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) && (
+              permissionState === 'denied' && (
                 <Button
                   color="inherit"
                   size="small"
@@ -580,16 +368,6 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
             }
           >
             {error}
-            {/Firefox.*Mobile/.test(navigator.userAgent) && (
-              <Typography variant="body2" sx={{ mt: 1, fontSize: '0.8rem' }}>
-                Firefox on Android: If you see "default device" only, try refreshing the page after granting permissions.
-              </Typography>
-            )}
-            {(/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) && (
-              <Typography variant="body2" sx={{ mt: 1, fontSize: '0.8rem' }}>
-                iOS/iPadOS: Recording requires a user gesture. Make sure to tap the record button directly. For permissions: Settings &gt; Safari &gt; Camera &amp; Microphone.
-              </Typography>
-            )}
           </Alert>
         )}
 

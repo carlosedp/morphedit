@@ -35,6 +35,7 @@ export function createWaveSurferInstance(theme: Theme) {
     // Use the primary main color but lightened for better contrast
     progressColor: theme.palette.primary.light,
     cursorColor: theme.palette.primary.main,
+    normalize: true,
     cursorWidth: WAVEFORM_RENDERING.CURSOR_WIDTH,
     minPxPerSec: 20, // Ensure waveform fills container initially
     plugins: [
