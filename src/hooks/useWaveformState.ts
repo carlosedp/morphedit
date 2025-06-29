@@ -41,6 +41,8 @@ interface WaveformState {
 
   // Export state
   exportAnchorEl: HTMLElement | null;
+  fadeInAnchorEl: HTMLElement | null;
+  fadeOutAnchorEl: HTMLElement | null;
   selectedExportFormat: ExportFormat;
 }
 
@@ -65,6 +67,8 @@ interface WaveformActions {
   setSkipIncrement: (increment: number) => void;
   setCurrentAudioUrl: (url: string | null) => void;
   setExportAnchorEl: (element: HTMLElement | null) => void;
+  setFadeInAnchorEl: (element: HTMLElement | null) => void;
+  setFadeOutAnchorEl: (element: HTMLElement | null) => void;
   setSelectedExportFormat: (format: ExportFormat) => void;
 }
 
@@ -113,6 +117,12 @@ export const useWaveformState = (
   const [exportAnchorEl, setExportAnchorEl] = useState<HTMLElement | null>(
     null
   );
+  const [fadeInAnchorEl, setFadeInAnchorEl] = useState<HTMLElement | null>(
+    null
+  );
+  const [fadeOutAnchorEl, setFadeOutAnchorEl] = useState<HTMLElement | null>(
+    null
+  );
   const [selectedExportFormat, setSelectedExportFormat] =
     useState<ExportFormat>(
       EXPORT_FORMATS[0] // Default to first format (48kHz 32-bit Float Stereo)
@@ -139,6 +149,8 @@ export const useWaveformState = (
     skipIncrement,
     currentAudioUrl,
     exportAnchorEl,
+    fadeInAnchorEl,
+    fadeOutAnchorEl,
     selectedExportFormat,
   };
 
@@ -164,6 +176,8 @@ export const useWaveformState = (
       setSkipIncrement,
       setCurrentAudioUrl,
       setExportAnchorEl,
+      setFadeInAnchorEl,
+      setFadeOutAnchorEl,
       setSelectedExportFormat,
     }),
     [
@@ -187,6 +201,8 @@ export const useWaveformState = (
       setSkipIncrement,
       setCurrentAudioUrl,
       setExportAnchorEl,
+      setFadeInAnchorEl,
+      setFadeOutAnchorEl,
       setSelectedExportFormat,
     ]
   );

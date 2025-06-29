@@ -1179,6 +1179,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         <WaveformActionControls
           selectedExportFormat={state.selectedExportFormat}
           exportAnchorEl={state.exportAnchorEl}
+          fadeInAnchorEl={state.fadeInAnchorEl}
+          fadeOutAnchorEl={state.fadeOutAnchorEl}
           cropMode={state.cropMode}
           fadeInMode={state.fadeInMode}
           fadeOutMode={state.fadeOutMode}
@@ -1189,6 +1191,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           onExportSlices={handleExportSlices}
           onExportFormatChange={handleExportFormatChange}
           onSetExportAnchorEl={actions.setExportAnchorEl}
+          onSetFadeInAnchorEl={actions.setFadeInAnchorEl}
+          onSetFadeOutAnchorEl={actions.setFadeOutAnchorEl}
           onNormalize={handleNormalize}
           onTempoAndPitch={handleTempoAndPitch}
           onCropRegion={handleCropRegion}
