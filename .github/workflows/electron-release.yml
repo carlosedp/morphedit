@@ -28,6 +28,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Raise file descriptor limit (Ubuntu/Mac)
+        if: runner.os != 'Windows'
+        run: ulimit -n 4096
+
       - name: Build web app
         run: npm run build
 
