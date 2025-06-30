@@ -20,7 +20,7 @@ import RepeatIcon from '@mui/icons-material/Repeat';
 import FirstPageIcon from '@mui/icons-material/FirstPage';
 import { formatTime, formatSeconds } from '../utils/audioProcessing';
 import { formatBPM } from '../utils/bpmDetection';
-import { TOOLTIP_DELAYS, ZOOM_LEVELS, REGION_COLORS } from '../constants';
+import { TOOLTIP_DELAYS, ZOOM_LEVELS } from '../constants';
 import type { RegionInfo } from '../utils/regionUtils';
 
 interface WaveformControlsProps {
