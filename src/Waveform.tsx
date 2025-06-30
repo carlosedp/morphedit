@@ -78,6 +78,7 @@ export interface WaveformRef extends SpliceMarkerHandlers {
   handleApplyFades: () => void;
   handleApplyCrossfade: () => void;
   handleNormalize: () => void;
+  handleReverse: () => void;
   handleTempoAndPitch: () => void;
   handleUndo: () => void;
   handleExport: () => void;
@@ -1040,6 +1041,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     const handleApplyFades = handlers.handleApplyFades;
     const handleApplyCrossfade = handlers.handleApplyCrossfade;
     const handleNormalize = handlers.handleNormalize;
+    const handleReverse = handlers.handleReverse;
     const handleTempoAndPitch = handlers.handleTempoAndPitch;
     const handleUndo = handlers.handleUndo;
 
@@ -1101,6 +1103,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleApplyFades,
         handleApplyCrossfade,
         handleNormalize,
+        handleReverse,
         handleTempoAndPitch,
         handleUndo,
         handleExport,
@@ -1133,6 +1136,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleApplyFades,
         handleApplyCrossfade,
         handleNormalize,
+        handleReverse,
         handleTempoAndPitch,
         handleUndo,
         handleExport,
@@ -1233,6 +1237,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           onSetFadeOutAnchorEl={actions.setFadeOutAnchorEl}
           onSetCrossfadeAnchorEl={actions.setCrossfadeAnchorEl}
           onNormalize={handleNormalize}
+          onReverse={handleReverse}
           onTempoAndPitch={handleTempoAndPitch}
           onCropRegion={handleCropRegion}
           onApplyCrop={handleApplyCrop}

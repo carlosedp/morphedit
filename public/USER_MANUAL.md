@@ -37,6 +37,7 @@ MorphEdit is a powerful, browser-based audio editor designed for preparing audio
 - **Crossfade Processing**: Create smooth transitions between audio sections at splice markers
 - **Tempo and Pitch Processing**: Professional-grade tempo and pitch shifting with RubberBand
 - **Audio Normalization**: Professional-grade normalization to -1dB peak for optimal levels
+- **Audio Reversal**: Reverse entire audio or crop regions for creative backwards effects
 - **BPM Detection**: Automatic tempo detection and display for musical content
 - **File Appending**: Add new audio files to existing compositions with preserved markers
 - **Transient Detection**: Automatically detect audio transients for splice placement
@@ -411,9 +412,43 @@ Audio normalization adjusts the gain of your audio so that the loudest peak reac
 2. **Access Feature**: Look for the "Normalize" button in the processing controls
 3. **Apply**: Click "Normalize" to process the audio to -1dB peak level
 
+### Audio Reversal
+
+MorphEdit includes an audio reversal feature that allows you to reverse the audio playback direction, creating backwards audio effects commonly used in music production and sound design.
+
+#### What is Audio Reversal?
+
+Audio reversal flips the audio timeline so that it plays backwards - the end becomes the beginning and vice versa. This creates a distinctive backwards effect that can be used for:
+
+- **Creative Effects**: Create unique backwards audio textures
+- **Musical Transitions**: Reverse lead-ins or outros for dramatic effect
+- **Sound Design**: Generate ethereal or otherworldly audio atmospheres
+- **Granular Processing**: Create interesting textures for the Morphagene and other granular synthesizers
+
+#### How to Apply Reversal
+
+1. **Load Audio**: First load your audio file with splice markers if desired
+2. **Optional - Set Crop Region**: If you want to reverse only a portion of the audio, set a crop region first
+3. **Access Feature**: Look for the "Reverse" button (swap arrows icon) next to the "Normalize" button in the processing controls
+4. **Apply**: Click "Reverse" to process the audio
+
+#### Reversal Behavior
+
+- **Full Audio**: If no crop region is set, reverses the entire audio file
+- **Crop Region**: If a crop/loop region is active, reverses only the selected portion
+- **Splice Markers**: All splice marker positions are automatically adjusted to maintain their relative positions in the reversed audio
+- **Quality**: Reversal is a lossless operation that maintains the original audio quality
+
+#### Creative Uses
+
+- **Backwards Vocals**: Create ethereal vocal effects
+- **Reverse Reverb**: Record a reverb tail and reverse it for a "sucking" effect
+- **Build-ups**: Reverse drum fills or crescendos for dramatic build-ups
+- **Atmospheric Textures**: Generate unique ambient soundscapes
+
 ### Undo Functionality
 
-- **Single Level**: Can undo the last processing operation (crop, fade, or tempo/pitch)
+- **Single Level**: Can undo the last processing operation (crop, fade, reverse, normalization, or tempo/pitch)
 - **Keyboard**: Press Ctrl+Z (Windows/Linux) or Cmd+Z (Mac)
 - **Button**: Click the "Undo" button
 - **Limitations**: Only one level of undo is available

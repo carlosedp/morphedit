@@ -37,7 +37,7 @@
 - [x] Audio effects (normalization, add/remove gain)
 - [x] Crossfade between splice points with defined length and curve type
 - [x] Record audio directly into the app via Wavesurfer record plugin
-- [ ] Reverse audio (applies to whole audio or crop/loop region)
+- [x] Reverse audio (applies to whole audio or crop/loop region)
 - [ ] Move regions around (crop region) Evaluate better UX, if drag/drop or cut region and paste at the playhead location
 - [ ] Audio manipulation via scripting
   - [ ] This would be an "expert" mode where users can write scripts to manipulate audio
@@ -50,6 +50,7 @@
   - [ ] Multiple tools available with simple API
     - [ ] Distortion
     - [ ] Add noise
+    - [ ] Filtering (low-pass, high-pass, band-pass)
     - [ ] Reverse
     - [ ] Delay
     - [ ] Reverb
