@@ -547,6 +547,10 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
                 ? 'Select a microphone and click "Start Recording" to begin'
                 : 'Click "Stop Recording" when finished to preview your audio'}
         </Typography>
+        <Typography variant="caption" color="text.primary" textAlign="center">
+          If encontering issues on mobile, try on Chrome browser for better
+          compatibility.
+        </Typography>
       </Stack>
     </Paper>
   );

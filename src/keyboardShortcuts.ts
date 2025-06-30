@@ -19,8 +19,8 @@ export const keyboardShortcuts: Record<string, KeyboardShortcut> = {
   },
   '\\': {
     key: '\\',
-    description: 'Reset audio and clear all data',
-    action: 'reset',
+    description: 'Toggle crossfade region on selected marker',
+    action: 'toggleCrossfadeRegion',
   },
   l: {
     key: 'L',

@@ -8,7 +8,7 @@ import { TOOLTIP_DELAYS } from '../constants';
 interface FadeCurveSelectorProps {
   selectedCurve: string;
   onCurveChange: (curveType: string) => void;
-  fadeType: 'in' | 'out';
+  fadeType: 'in' | 'out' | 'crossfade';
   disabled?: boolean;
   anchorEl: HTMLElement | null;
   onSetAnchorEl: (element: HTMLElement | null) => void;

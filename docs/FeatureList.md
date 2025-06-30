@@ -22,9 +22,9 @@
 - [x] Have different fade curves for fade in and fade out (linear, exponential, etc.)
 - [ ] Settings menu for:
   - [ ]  Fade in/out curve type (linear, exponential, etc.)
+  - [ ]  Crossfade lengh and curve type
   - [ ]  Truncate lenght (174 seconds by default)
   - [ ]  Default export format
-- [ ] Improve splice detection with maybe a different algorithm or more advanced settings
 - [ ] Add detection preset slots to save sensitivity, frame size, and overlap settings
 - [x] Use mouse scroll to zoom in/out on the waveform
 - [x] Add tooltip to append audio button
@@ -33,7 +33,7 @@
 - [ ] Multi-level undo/redo functionality
 - [x] Time stretching and pitch shifting
 - [x] Audio effects (normalization, add/remove gain)
-- [ ] Crossfade between splice points with defined length and curve type
+- [x] Crossfade between splice points with defined length and curve type
 - [x] Record audio directly into the app via Wavesurfer record plugin
 
 ## Bugs

@@ -22,6 +22,7 @@ import CutIcon from '@mui/icons-material/ContentCut';
 import UndoIcon from '@mui/icons-material/Undo';
 import NormalizeIcon from '@mui/icons-material/TuneOutlined';
 import SpeedIcon from '@mui/icons-material/Speed';
+import BlurOnIcon from '@mui/icons-material/BlurOn';
 
 import { TOOLTIP_DELAYS, EXPORT_FORMATS } from '../constants';
 import type { ExportFormat } from '../utils/exportUtils';
@@ -33,11 +34,15 @@ interface WaveformActionControlsProps {
   exportAnchorEl: HTMLElement | null;
   fadeInAnchorEl: HTMLElement | null;
   fadeOutAnchorEl: HTMLElement | null;
+  crossfadeAnchorEl: HTMLElement | null;
   cropMode: boolean;
   fadeInMode: boolean;
   fadeOutMode: boolean;
   fadeInCurveType: string;
   fadeOutCurveType: string;
+  crossfadeMode: boolean;
+  crossfadeCurveType: string;
+  selectedSpliceMarker: boolean;
   canUndo: boolean;
 
   // Action props
@@ -47,12 +52,16 @@ interface WaveformActionControlsProps {
   onSetExportAnchorEl: (element: HTMLElement | null) => void;
   onSetFadeInAnchorEl: (element: HTMLElement | null) => void;
   onSetFadeOutAnchorEl: (element: HTMLElement | null) => void;
+  onSetCrossfadeAnchorEl: (element: HTMLElement | null) => void;
   onNormalize: () => void;
   onCropRegion: () => void;
   onApplyCrop: () => void;
   onFadeInRegion: () => void;
   onFadeOutRegion: () => void;
   onApplyFades: () => void;
+  onCrossfadeRegion: () => void;
+  onApplyCrossfade: () => void;
+  onSetCrossfadeCurveType: (curve: string) => void;
   onUndo: () => void;
   onSetFadeInCurveType: (curve: string) => void;
   onSetFadeOutCurveType: (curve: string) => void;
@@ -65,11 +74,15 @@ export const WaveformActionControls = ({
   exportAnchorEl,
   fadeInAnchorEl,
   fadeOutAnchorEl,
+  crossfadeAnchorEl,
   cropMode,
   fadeInMode,
   fadeOutMode,
   fadeInCurveType,
   fadeOutCurveType,
+  crossfadeMode,
+  crossfadeCurveType,
+  selectedSpliceMarker,
   canUndo,
 
   // Action props
@@ -79,12 +92,16 @@ export const WaveformActionControls = ({
   onSetExportAnchorEl,
   onSetFadeInAnchorEl,
   onSetFadeOutAnchorEl,
+  onSetCrossfadeAnchorEl,
   onNormalize,
   onCropRegion,
   onApplyCrop,
   onFadeInRegion,
   onFadeOutRegion,
   onApplyFades,
+  onCrossfadeRegion,
+  onApplyCrossfade,
+  onSetCrossfadeCurveType,
   onUndo,
   onSetFadeInCurveType,
   onSetFadeOutCurveType,
@@ -279,6 +296,32 @@ export const WaveformActionControls = ({
               Crop/Loop Region
             </Button>
           </Tooltip>
+          {/* Crossfade button group - only show if splice marker is selected */}
+          {/* {selectedSpliceMarker && ( */}
+          <ButtonGroup variant="outlined" disabled={!selectedSpliceMarker}>
+            <Tooltip
+              title="Create a crossfade region centered on selected splice marker"
+              enterDelay={TOOLTIP_DELAYS.ENTER}
+              leaveDelay={TOOLTIP_DELAYS.LEAVE}
+            >
+              <Button
+                variant={crossfadeMode ? 'contained' : 'outlined'}
+                color="primary"
+                onClick={onCrossfadeRegion}
+                startIcon={<BlurOnIcon />}
+              >
+                Crossfade
+              </Button>
+            </Tooltip>
+            <FadeCurveSelector
+              selectedCurve={crossfadeCurveType}
+              onCurveChange={onSetCrossfadeCurveType}
+              fadeType="crossfade"
+              anchorEl={crossfadeAnchorEl}
+              onSetAnchorEl={onSetCrossfadeAnchorEl}
+            />
+          </ButtonGroup>
+          {/* )} */}
         </Stack>
 
         {/* Fade controls row */}
@@ -346,9 +389,10 @@ export const WaveformActionControls = ({
           spacing={1}
           alignItems="center"
           sx={{
-            flexWrap: 'wrap',
+            flexWrap: 'nowrap',
             gap: { xs: 0.5, sm: 1 },
             justifyContent: { xs: 'center', lg: 'flex-end' },
+            overflowX: 'auto',
           }}
         >
           <Tooltip
@@ -362,6 +406,7 @@ export const WaveformActionControls = ({
                 color="success"
                 onClick={onApplyCrop}
                 disabled={!cropMode}
+                size="small"
               >
                 Apply Crop
               </Button>
@@ -378,8 +423,26 @@ export const WaveformActionControls = ({
                 color="success"
                 onClick={onApplyFades}
                 disabled={!fadeInMode && !fadeOutMode}
+                size="small"
               >
                 Apply Fades
+              </Button>
+            </Box>
+          </Tooltip>
+          <Tooltip
+            title="Apply crossfade region to current audio"
+            enterDelay={TOOLTIP_DELAYS.ENTER}
+            leaveDelay={TOOLTIP_DELAYS.LEAVE}
+          >
+            <Box component="span">
+              <Button
+                variant="contained"
+                color="success"
+                onClick={onApplyCrossfade}
+                disabled={!crossfadeMode}
+                size="small"
+              >
+                Apply Crossfade
               </Button>
             </Box>
           </Tooltip>
@@ -388,17 +451,16 @@ export const WaveformActionControls = ({
             enterDelay={TOOLTIP_DELAYS.ENTER}
             leaveDelay={TOOLTIP_DELAYS.LEAVE}
           >
-            <Box component="span">
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={onUndo}
-                disabled={!canUndo}
-                startIcon={<UndoIcon />}
-              >
-                Undo
-              </Button>
-            </Box>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={onUndo}
+              disabled={!canUndo}
+              startIcon={<UndoIcon />}
+              size="small"
+            >
+              Undo
+            </Button>
           </Tooltip>
         </Stack>
       </Stack>

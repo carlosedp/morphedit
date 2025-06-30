@@ -22,6 +22,11 @@ interface WaveformState {
   fadeInCurveType: string;
   fadeOutCurveType: string;
 
+  // Crossfade state
+  crossfadeMode: boolean;
+  crossfadeRegion: Region | null;
+  crossfadeCurveType: string;
+
   // Splice marker state
   selectedSpliceMarker: Region | null;
   numberOfSlices: number;
@@ -43,6 +48,7 @@ interface WaveformState {
   exportAnchorEl: HTMLElement | null;
   fadeInAnchorEl: HTMLElement | null;
   fadeOutAnchorEl: HTMLElement | null;
+  crossfadeAnchorEl: HTMLElement | null;
   selectedExportFormat: ExportFormat;
 }
 
@@ -57,6 +63,9 @@ interface WaveformActions {
   setFadeOutMode: (mode: boolean) => void;
   setFadeInCurveType: (curveType: string) => void;
   setFadeOutCurveType: (curveType: string) => void;
+  setCrossfadeMode: (mode: boolean) => void;
+  setCrossfadeRegion: (region: Region | null) => void;
+  setCrossfadeCurveType: (curveType: string) => void;
   setSelectedSpliceMarker: (marker: Region | null) => void;
   setNumberOfSlices: (slices: number) => void;
   setTransientSensitivity: (sensitivity: number) => void;
@@ -69,6 +78,7 @@ interface WaveformActions {
   setExportAnchorEl: (element: HTMLElement | null) => void;
   setFadeInAnchorEl: (element: HTMLElement | null) => void;
   setFadeOutAnchorEl: (element: HTMLElement | null) => void;
+  setCrossfadeAnchorEl: (element: HTMLElement | null) => void;
   setSelectedExportFormat: (format: ExportFormat) => void;
 }
 
@@ -90,6 +100,13 @@ export const useWaveformState = (
     FADE_CURVE_TYPES.LINEAR
   );
   const [fadeOutCurveType, setFadeOutCurveType] = useState<string>(
+    FADE_CURVE_TYPES.LINEAR
+  );
+
+  // Crossfade state
+  const [crossfadeMode, setCrossfadeMode] = useState(false);
+  const [crossfadeRegion, setCrossfadeRegion] = useState<Region | null>(null);
+  const [crossfadeCurveType, setCrossfadeCurveType] = useState<string>(
     FADE_CURVE_TYPES.LINEAR
   );
 
@@ -123,6 +140,8 @@ export const useWaveformState = (
   const [fadeOutAnchorEl, setFadeOutAnchorEl] = useState<HTMLElement | null>(
     null
   );
+  const [crossfadeAnchorEl, setCrossfadeAnchorEl] =
+    useState<HTMLElement | null>(null);
   const [selectedExportFormat, setSelectedExportFormat] =
     useState<ExportFormat>(
       EXPORT_FORMATS[0] // Default to first format (48kHz 32-bit Float Stereo)
@@ -139,6 +158,9 @@ export const useWaveformState = (
     fadeOutMode,
     fadeInCurveType,
     fadeOutCurveType,
+    crossfadeMode,
+    crossfadeRegion,
+    crossfadeCurveType,
     selectedSpliceMarker,
     numberOfSlices,
     transientSensitivity,
@@ -151,6 +173,7 @@ export const useWaveformState = (
     exportAnchorEl,
     fadeInAnchorEl,
     fadeOutAnchorEl,
+    crossfadeAnchorEl,
     selectedExportFormat,
   };
 
@@ -166,6 +189,9 @@ export const useWaveformState = (
       setFadeOutMode,
       setFadeInCurveType,
       setFadeOutCurveType,
+      setCrossfadeMode,
+      setCrossfadeRegion,
+      setCrossfadeCurveType,
       setSelectedSpliceMarker,
       setNumberOfSlices,
       setTransientSensitivity,
@@ -178,6 +204,7 @@ export const useWaveformState = (
       setExportAnchorEl,
       setFadeInAnchorEl,
       setFadeOutAnchorEl,
+      setCrossfadeAnchorEl,
       setSelectedExportFormat,
     }),
     [
@@ -191,6 +218,9 @@ export const useWaveformState = (
       setFadeOutMode,
       setFadeInCurveType,
       setFadeOutCurveType,
+      setCrossfadeMode,
+      setCrossfadeRegion,
+      setCrossfadeCurveType,
       setSelectedSpliceMarker,
       setNumberOfSlices,
       setTransientSensitivity,
@@ -203,6 +233,7 @@ export const useWaveformState = (
       setExportAnchorEl,
       setFadeInAnchorEl,
       setFadeOutAnchorEl,
+      setCrossfadeAnchorEl,
       setSelectedExportFormat,
     ]
   );

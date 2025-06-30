@@ -34,7 +34,8 @@ Although primarily focused on Morphagene users, MorphEdit can also be used for g
 
 - **Splice Marker Management**: Add, remove, lock, and automatically detect splice points
 - **Direct Splice Playback**: Play individual splice markers with keyboard shortcuts (1-0, Q-P)
-- **Audio Processing**: Crop, fade in/out, and concatenate multiple files
+- **Audio Processing**: Crop, fade in/out, crossfade, and concatenate multiple files
+- **Crossfade Processing**: Create smooth transitions between audio sections at splice markers
 - **Tempo and Pitch Processing**: Professional-grade tempo and pitch shifting with RubberBand
 - **Audio Normalization**: Professional-grade normalization to -1dB peak for optimal levels
 - **BPM Detection**: Automatic tempo detection and display for musical content
@@ -93,7 +94,7 @@ The MorphEdit interface consists of several main sections:
 - **BPM Display**: Shows detected BPM (tempo) of the loaded audio file
 - **Region Information**: Displays active crop and fade region details
 
-![alt text](img/playback.png)
+![info bar](img/infobar.png)
 
 ### 3. Export and Region Controls (Middle Section)
 
@@ -101,6 +102,7 @@ The MorphEdit interface consists of several main sections:
 - **Export Menu**: Access to multiple export formats
 - **Crop Region**: Create and apply crop regions
 - **Fade Regions**: Create fade-in and fade-out regions
+- **Crossfade Regions**: Create smooth transitions at splice markers
 - **Apply/Undo Buttons**: Process audio and revert changes
 
 ![alt text](img/region.png)
@@ -347,6 +349,50 @@ With fades applied:
 
 ![alt text](img/fades-applied.png)
 
+### Crossfade Regions
+
+Crossfade regions create smooth transitions between audio sections at splice markers, allowing you to blend two audio segments together seamlessly. This is especially useful for creating natural-sounding loops or transitions in Morphagene compositions.
+
+![crossfade](img/crossfade.png)
+
+#### Creating Crossfade Regions
+
+1. **Select Splice Marker**: First, click on a splice marker to select it
+2. **Create Region**: Press '\' (backslash) or click the "Crossfade" button
+3. **Default Size**: Creates a 1-second crossfade region centered on the selected marker which can be resized
+4. **Visual Feedback**: Blue highlighted area shows the crossfade region
+5. **Curve Selection**: Choose from linear, exponential, or logarithmic curves
+
+#### Crossfade Requirements
+
+- **Splice Marker**: A splice marker must be selected to enable crossfade creation
+- **Audio Context**: Works best with audio that has content both before and after the marker
+- **Region Positioning**: The crossfade is automatically centered on the selected marker
+
+#### Adjusting Crossfade Regions
+
+1. **Resize**: Drag the handles to adjust crossfade duration
+2. **Move**: Drag the region to reposition (while keeping it centered on the marker)
+3. **Curve Type**: Use the dropdown to select different fade curves:
+   - **Linear**: Constant crossfade rate
+   - **Exponential**: Smooth, gradual transition
+   - **Logarithmic**: More dramatic transition effect
+
+#### Applying Crossfades
+
+1. **Review Region**: Ensure crossfade boundaries are appropriate
+2. **Curve Selection**: Choose the desired crossfade curve type
+3. **Apply**: Click "Apply Crossfade" button
+4. **Processing**: The first half of the region fades out, the second half fades in
+5. **Smooth Transition**: Creates a seamless blend between the two audio sections
+
+#### Best Practices
+
+- **Loop Points**: Use crossfades at loop start/end points for seamless loops
+- **Section Transitions**: Apply crossfades between different musical sections
+- **Morphagene Optimization**: Create smooth granular transitions for the Morphagene
+- **Audio Content**: Works best with audio that has compatible harmonic or rhythmic content
+
 ### Audio Normalization
 
 MorphEdit includes audio normalization to optimize your audio levels for consistent playback and processing.
@@ -571,18 +617,18 @@ The estimated new audio length is displayed in the dialog.
 
 ### Regions
 
-| Key   | Action      | Description                 |
-| ----- | ----------- | --------------------------- |
-| **C** | Crop Region | Toggle crop region creation |
-| **[** | Fade-In     | Toggle fade-in region       |
-| **]** | Fade-Out    | Toggle fade-out region      |
+| Key    | Action      | Description                                               |
+| ------ | ----------- | --------------------------------------------------------- |
+| **C**  | Crop Region | Toggle crop region creation                               |
+| **[**  | Fade-In     | Toggle fade-in region                                     |
+| **]**  | Fade-Out    | Toggle fade-out region                                    |
+| **\\** | Crossfade   | Toggle crossfade region (requires selected splice marker) |
 
 ### System
 
-| Key                | Action | Description                          |
-| ------------------ | ------ | ------------------------------------ |
-| **Ctrl+Z / Cmd+Z** | Undo   | Undo last processing operation       |
-| **\\**             | Reset  | Clear all data and reset application |
+| Key                | Action | Description                    |
+| ------------------ | ------ | ------------------------------ |
+| **Ctrl+Z / Cmd+Z** | Undo   | Undo last processing operation |
 
 ---
 

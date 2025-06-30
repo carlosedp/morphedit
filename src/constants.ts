@@ -23,9 +23,10 @@ export const MINIMAP_ENABLED = true;
 // Region colors (hex with alpha)
 export const REGION_COLORS = {
   SPLICE_MARKER: 'rgba(0, 255, 255, 0.8)',
-  CROP_REGION: 'rgba(255, 208, 0, 0.2)',
+  CROP_REGION: 'rgba(255, 167, 38, 0.2)',
   FADE_IN: 'rgba(0, 255, 0, 0.2)',
   FADE_OUT: 'rgba(255, 0, 0, 0.2)',
+  CROSSFADE: 'rgba(255, 0, 255, 0.2)', // Magenta for crossfade
   LOCKED_MARKER: 'rgba(255, 165, 0, 0.8)',
 } as const;
 
@@ -154,19 +155,24 @@ export const REGION_POSITIONING = {
   MARKER_PROXIMITY_THRESHOLD: 0.1, // Seconds threshold for marker proximity
 } as const;
 
-// Playback skip increments
-export const SKIP_INCREMENTS = {
-  SMALL_THRESHOLD: 0.1, // Threshold for small skip values
-  LARGE_THRESHOLD: 1.0, // Threshold for large skip values
-  SMALL_INCREMENT: 0.01, // Increment for very small values
-  MEDIUM_INCREMENT: 0.1, // Increment for small values
-  LARGE_INCREMENT: 1.0, // Increment for large values
-  MINIMUM_VALUE: 0.01, // Minimum skip value
+// Crossfade constants
+export const CROSSFADE = {
+  DEFAULT_DURATION: 1.0, // Default crossfade length in seconds
 } as const;
 
 // Waveform rendering constants
 export const WAVEFORM_RENDERING = {
-  CURSOR_WIDTH: 2, // Width of the playback cursor
-  GRID_LINE_WIDTH: 1, // Width of grid lines
-  BUFFER_DURATION_TOLERANCE: 0.01, // Tolerance for buffer duration comparison (seconds)
+  CURSOR_WIDTH: 1, // Cursor width in pixels
+  GRID_LINE_WIDTH: 1, // Grid line width in pixels
+  BUFFER_DURATION_TOLERANCE: 0.1, // Tolerance for buffer duration comparison in seconds
+} as const;
+
+// Skip increment constants for playback navigation
+export const SKIP_INCREMENTS = {
+  MINIMUM_VALUE: 0.1, // Minimum skip increment in seconds
+  SMALL_INCREMENT: 0.1, // Small increment size in seconds
+  MEDIUM_INCREMENT: 0.5, // Medium increment size in seconds
+  LARGE_INCREMENT: 1.0, // Large increment size in seconds
+  SMALL_THRESHOLD: 1.0, // Threshold for small increments in seconds
+  LARGE_THRESHOLD: 5.0, // Threshold for large increments in seconds
 } as const;
