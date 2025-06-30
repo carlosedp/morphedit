@@ -47,6 +47,7 @@ MorphEdit is a powerful, browser-based audio editor designed for preparing audio
 - Optimized Morphagene format (48kHz, 32-bit WAV)
 - Export individual splice segments
 - Batch processing support
+- **Configurable Defaults**: Customizable export formats and processing settings
 
 ### 🖥️ **Modern Interface**
 
@@ -55,6 +56,7 @@ MorphEdit is a powerful, browser-based audio editor designed for preparing audio
 - Mouse wheel zoom with smooth navigation
 - Material-UI components for professional appearance
 - Comprehensive keyboard shortcuts
+- **Customizable Settings**: Configurable fade curves, crossfade duration, detection sensitivity, and export formats
 
 ### 🔧 **Advanced Workflow**
 
@@ -63,6 +65,7 @@ MorphEdit is a powerful, browser-based audio editor designed for preparing audio
 - Undo/redo functionality
 - Background processing indicators
 - File length warnings and truncation options
+- **Persistent Configuration**: Settings automatically saved and preserved across sessions
 
 ## 🚀 Quick Start
 

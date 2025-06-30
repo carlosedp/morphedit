@@ -15,10 +15,11 @@
 7. [Regions and Processing](#regions-and-processing)
 8. [Tempo and Pitch Processing](#tempo-and-pitch-processing)
 9. [Exporting Audio](#exporting-audio)
-10. [Keyboard Shortcuts](#keyboard-shortcuts)
-11. [Mobile and Responsive Design](#mobile-and-responsive-design)
-12. [Advanced Features](#advanced-features)
-13. [Troubleshooting](#troubleshooting)
+10. [Settings and Configuration](#settings-and-configuration)
+11. [Keyboard Shortcuts](#keyboard-shortcuts)
+12. [Mobile and Responsive Design](#mobile-and-responsive-design)
+13. [Advanced Features](#advanced-features)
+14. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -545,6 +546,61 @@ The estimated new audio length is displayed in the dialog.
 - **Bit Depth Conversion**: Automatic conversion between 16-bit and 32-bit
 - **Channel Conversion**: Automatic mono/stereo conversion
 - **Filename Convention**: Includes format details in filename
+
+---
+
+## Settings and Configuration
+
+MorphEdit provides a Settings dialog to customize your workflow and audio processing preferences. Access the settings by clicking the **Settings** button in the top-right corner of the interface, next to the User Manual button.
+
+### Fade Settings
+
+Configure default fade behavior for your audio processing:
+
+- **Fade In Curve Type**: Choose between Linear, Exponential, or Logarithmic fade curves
+- **Fade Out Curve Type**: Choose between Linear, Exponential, or Logarithmic fade curves
+
+These settings control the default curve types used when applying fade in/out effects to audio regions.
+
+### Crossfade Settings
+
+Control how splice points are blended together:
+
+- **Crossfade Duration**: Set the default length (in seconds) for crossfades between splice points (0.1 to 10.0 seconds)
+- **Crossfade Curve Type**: Choose the curve type for crossfade transitions (Linear, Exponential, or Logarithmic)
+
+### Audio Processing Settings
+
+Customize audio handling parameters:
+
+- **Default Truncate Length**: Set the default length (in seconds) for truncating long audio files (60-600 seconds, default: 174s for Morphagene compatibility)
+- **Max Recording Duration**: Set the maximum length for audio recordings (60-1800 seconds, default: 300s)
+- **Default Auto Slice Amount**: Configure the default number of slices when using the auto-slice feature (2-100 slices, default: 10)
+
+### Transient Detection Settings
+
+Fine-tune automatic splice point detection:
+
+- **Detection Threshold**: Adjust sensitivity for detecting transients (0.01 = very sensitive, 0.5 = less sensitive)
+- **Frame Size (ms)**: Set the analysis window size in milliseconds (10-100ms, default: 20ms)
+- **Overlap (%)**: Configure overlap between analysis windows (0-95%, default: 75%)
+
+### Export Settings
+
+Set your preferred default export format:
+
+- **Default Export Format**: Choose from various sample rates, bit depths, and channel configurations
+- Options include 48kHz/32-bit (Morphagene optimized), 44.1kHz formats, and mono/stereo variants
+
+### Settings Storage
+
+Your settings are automatically saved and persistent across sessions:
+
+- **Browser Version**: Settings are stored in your browser's local storage
+- **Desktop App**: Settings are stored in your system's application data directory
+- **Privacy**: All settings remain on your device and are never uploaded to any server
+- **Updates**: Settings are preserved when updating the application
+- **Reset**: Use the "Reset to Defaults" button to restore factory settings
 
 ---
 
