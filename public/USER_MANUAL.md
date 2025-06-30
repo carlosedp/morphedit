@@ -98,8 +98,11 @@ The MorphEdit interface consists of several main sections:
 
 ### 3. Export and Region Controls (Middle Section)
 
-- **Export Button**: Quick export in default Morphagene format
+- **Export Button**: Quick export while audio or one file per slice
 - **Export Menu**: Access to multiple export formats
+- **Normalize Button**: Normalize audio to -1dB peak level
+- **Reversal Button**: Reverse audio playback direction
+- **Tempo/Pitch Button**: Open tempo and pitch processing dialog
 - **Crop Region**: Create and apply crop regions
 - **Fade Regions**: Create fade-in and fade-out regions
 - **Crossfade Regions**: Create smooth transitions at splice markers
@@ -574,6 +577,11 @@ The estimated new audio length is displayed in the dialog.
 
 ![export formats](img/exportformats.png)
 
+### Export one file per splice
+
+1. **Add splice markers to file**: Use mouse and buttons or keyboard shortcuts to add splice markers
+2. **Select "Save Slices"**: Click the button in the export options
+
 ### Export Features
 
 - **Cue Point Embedding**: Splice markers are saved as WAV cue points
@@ -587,6 +595,8 @@ The estimated new audio length is displayed in the dialog.
 ## Settings and Configuration
 
 MorphEdit provides a Settings dialog to customize your workflow and audio processing preferences. Access the settings by clicking the **Settings** button in the top-right corner of the interface, next to the User Manual button.
+
+![alt text](img/settings.png)
 
 ### Fade Settings
 
