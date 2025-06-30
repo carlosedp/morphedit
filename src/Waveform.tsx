@@ -50,6 +50,7 @@ import { WaveformControls } from './components/WaveformInfoBar';
 import { WaveformActionControls } from './components/WaveformActionControls';
 import { SpliceMarkerControls } from './components/SpliceMarkerControls';
 import { setupWaveformDebugUtils } from './utils/waveformDebugUtils';
+import { findNearestZeroCrossing } from './utils/transientDetection';
 
 interface WaveformProps {
   audioUrl: string;
@@ -866,7 +867,22 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             );
             console.log('Old positions:', currentStorePositions);
             console.log('New positions:', currentVisualMarkerPositions);
-            setSpliceMarkersStore(currentVisualMarkerPositions);
+            
+            // Apply zero-crossing detection to moved markers
+            const audioBuffer = useAudioStore.getState().audioBuffer;
+            let finalMarkerPositions = currentVisualMarkerPositions;
+            
+            if (audioBuffer) {
+              finalMarkerPositions = currentVisualMarkerPositions.map(
+                (markerTime) => findNearestZeroCrossing(audioBuffer, markerTime)
+              );
+              console.log('Applied zero-crossing to moved markers:', {
+                original: currentVisualMarkerPositions,
+                snapped: finalMarkerPositions
+              });
+            }
+            
+            setSpliceMarkersStore(finalMarkerPositions);
 
             // Also synchronize locked markers - check which visual markers are locked
             // and update the locked markers store accordingly
@@ -886,7 +902,11 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               );
 
               if (wasLocked) {
-                newLockedMarkers.push(markerPosition);
+                // Use the snapped position for locked markers too
+                const snappedPosition = audioBuffer ? 
+                  findNearestZeroCrossing(audioBuffer, markerPosition) : 
+                  markerPosition;
+                newLockedMarkers.push(snappedPosition);
               }
             });
 
