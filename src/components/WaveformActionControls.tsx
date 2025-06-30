@@ -113,12 +113,10 @@ export const WaveformActionControls = ({
       direction="row"
       alignItems="flex-start"
       sx={{
-        mt: 2,
+        mt: 1,
         width: '100%',
         flexDirection: { xs: 'column', lg: 'row' },
         gap: { xs: 2, lg: 2 },
-        borderTop: (theme) => `1px solid ${theme.palette.divider}`,
-        paddingTop: 2,
       }}
     >
       {/* Left column - Export & Normalize (30% width) */}

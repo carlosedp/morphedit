@@ -1,6 +1,3 @@
-// filepath: /home/carlosedp/repos/morphedit/src/Waveform.tsx
-// Refactored Waveform component with separated utilities
-
 import {
   useEffect,
   forwardRef,
@@ -49,7 +46,7 @@ import {
 } from './utils/spliceMarkerHandlers';
 import { useWaveformState, useWaveformRefs } from './hooks/useWaveformState';
 import { useWaveformHandlers } from './hooks/useWaveformHandlers';
-import { WaveformControls } from './components/WaveformControls';
+import { WaveformControls } from './components/WaveformInfoBar';
 import { WaveformActionControls } from './components/WaveformActionControls';
 import { SpliceMarkerControls } from './components/SpliceMarkerControls';
 import { setupWaveformDebugUtils } from './utils/waveformDebugUtils';
