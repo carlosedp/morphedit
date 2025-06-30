@@ -867,21 +867,21 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             );
             console.log('Old positions:', currentStorePositions);
             console.log('New positions:', currentVisualMarkerPositions);
-            
+
             // Apply zero-crossing detection to moved markers
             const audioBuffer = useAudioStore.getState().audioBuffer;
             let finalMarkerPositions = currentVisualMarkerPositions;
-            
+
             if (audioBuffer) {
               finalMarkerPositions = currentVisualMarkerPositions.map(
                 (markerTime) => findNearestZeroCrossing(audioBuffer, markerTime)
               );
               console.log('Applied zero-crossing to moved markers:', {
                 original: currentVisualMarkerPositions,
-                snapped: finalMarkerPositions
+                snapped: finalMarkerPositions,
               });
             }
-            
+
             setSpliceMarkersStore(finalMarkerPositions);
 
             // Also synchronize locked markers - check which visual markers are locked
@@ -903,9 +903,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
               if (wasLocked) {
                 // Use the snapped position for locked markers too
-                const snappedPosition = audioBuffer ? 
-                  findNearestZeroCrossing(audioBuffer, markerPosition) : 
-                  markerPosition;
+                const snappedPosition = audioBuffer
+                  ? findNearestZeroCrossing(audioBuffer, markerPosition)
+                  : markerPosition;
                 newLockedMarkers.push(snappedPosition);
               }
             });
