@@ -41,6 +41,7 @@ const createActionHandlers = (
     toggleCropRegion: () => waveformRef.current?.handleCropRegion(),
     toggleFadeInRegion: () => waveformRef.current?.handleFadeInRegion(),
     toggleFadeOutRegion: () => waveformRef.current?.handleFadeOutRegion(),
+    toggleCrossfadeRegion: () => waveformRef.current?.handleCrossfadeRegion(),
 
     // Processing
     undo: () => waveformRef.current?.handleUndo(),

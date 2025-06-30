@@ -7,6 +7,8 @@ import {
   Typography,
   Tooltip,
   Table,
+  TableBody,
+  TableRow,
   TableCell,
 } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -18,7 +20,7 @@ import RepeatIcon from '@mui/icons-material/Repeat';
 import FirstPageIcon from '@mui/icons-material/FirstPage';
 import { formatTime, formatSeconds } from '../utils/audioProcessing';
 import { formatBPM } from '../utils/bpmDetection';
-import { TOOLTIP_DELAYS, ZOOM_LEVELS } from '../constants';
+import { TOOLTIP_DELAYS, ZOOM_LEVELS, REGION_COLORS } from '../constants';
 import type { RegionInfo } from '../utils/regionUtils';
 
 interface WaveformControlsProps {
@@ -252,70 +254,92 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
           ></Stack>
         </Stack>
       </Stack>
-      <Table sx={{ minHeight: '48px' }}>
-        <TableCell sx={{ padding: '0px' }}>
-          {/* Selected splice marker time - Second line */}
-          {selectedSpliceMarkerTime !== null && (
-            <Typography
-              variant="caption"
-              color="primary"
-              sx={{
-                fontSize: { xs: '0.75rem', sm: '0.8rem' },
-              }}
-            >
-              Selected Marker: {formatTime(selectedSpliceMarkerTime)}
-            </Typography>
-          )}
-        </TableCell>
-        <TableCell sx={{ padding: '0px' }}>
-          {/* Region information - One per line */}
-          {regionInfo.cropRegion && (
-            <Typography
-              variant="caption"
-              color="warning.main"
-              sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}
-            >
-              Crop Region: {formatTime(regionInfo.cropRegion.start)} -{' '}
-              {formatTime(regionInfo.cropRegion.end)} (
-              {formatTime(
-                regionInfo.cropRegion.end - regionInfo.cropRegion.start
+      <Table sx={{ minHeight: '48px', tableLayout: 'fixed' }}>
+        <TableBody>
+          <TableRow>
+            <TableCell sx={{ padding: '0px', width: '20%' }}>
+              {/* Selected splice marker time - Second line */}
+              {selectedSpliceMarkerTime !== null && (
+                <Typography
+                  variant="caption"
+                  color="primary"
+                  sx={{
+                    fontSize: { xs: '0.75rem', sm: '0.8rem' },
+                  }}
+                >
+                  Selected Marker: {formatTime(selectedSpliceMarkerTime)}
+                </Typography>
               )}
-              )
-            </Typography>
-          )}
-        </TableCell>
-        <TableCell sx={{ padding: '0px' }}>
-          {regionInfo.fadeInRegion && (
-            <Typography
-              variant="caption"
-              color="success.main"
-              sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}
-            >
-              Fade-In: {formatTime(regionInfo.fadeInRegion.start)} -{' '}
-              {formatTime(regionInfo.fadeInRegion.end)} (
-              {formatTime(
-                regionInfo.fadeInRegion.end - regionInfo.fadeInRegion.start
+            </TableCell>
+            <TableCell sx={{ padding: '0px', width: '20%' }}>
+              {/* Region information - One per line */}
+              {regionInfo.cropRegion && (
+                <Typography
+                  variant="caption"
+                  color="warning.main"
+                  sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}
+                >
+                  Crop: {formatTime(regionInfo.cropRegion.start)} -{' '}
+                  {formatTime(regionInfo.cropRegion.end)} (
+                  {formatTime(
+                    regionInfo.cropRegion.end - regionInfo.cropRegion.start
+                  )}
+                  )
+                </Typography>
               )}
-              )
-            </Typography>
-          )}
-        </TableCell>
-        <TableCell sx={{ padding: '0px' }}>
-          {regionInfo.fadeOutRegion && (
-            <Typography
-              variant="caption"
-              color="error.main"
-              sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}
-            >
-              Fade-Out: {formatTime(regionInfo.fadeOutRegion.start)} -{' '}
-              {formatTime(regionInfo.fadeOutRegion.end)} (
-              {formatTime(
-                regionInfo.fadeOutRegion.end - regionInfo.fadeOutRegion.start
+            </TableCell>
+            <TableCell sx={{ padding: '0px', width: '20%' }}>
+              {regionInfo.fadeInRegion && (
+                <Typography
+                  variant="caption"
+                  color="success.main"
+                  sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}
+                >
+                  Fade-In: {formatTime(regionInfo.fadeInRegion.start)} -{' '}
+                  {formatTime(regionInfo.fadeInRegion.end)} (
+                  {formatTime(
+                    regionInfo.fadeInRegion.end - regionInfo.fadeInRegion.start
+                  )}
+                  )
+                </Typography>
               )}
-              )
-            </Typography>
-          )}
-        </TableCell>
+            </TableCell>
+            <TableCell sx={{ padding: '0px', width: '20%' }}>
+              {regionInfo.fadeOutRegion && (
+                <Typography
+                  variant="caption"
+                  color="error.main"
+                  sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}
+                >
+                  Fade-Out: {formatTime(regionInfo.fadeOutRegion.start)} -{' '}
+                  {formatTime(regionInfo.fadeOutRegion.end)} (
+                  {formatTime(
+                    regionInfo.fadeOutRegion.end -
+                      regionInfo.fadeOutRegion.start
+                  )}
+                  )
+                </Typography>
+              )}
+            </TableCell>
+            <TableCell sx={{ padding: '0px', width: '20%' }}>
+              {regionInfo.crossfadeRegion && (
+                <Typography
+                  variant="caption"
+                  color="info.main"
+                  sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}
+                >
+                  Crossfade: {formatTime(regionInfo.crossfadeRegion.start)} -{' '}
+                  {formatTime(regionInfo.crossfadeRegion.end)} (
+                  {formatTime(
+                    regionInfo.crossfadeRegion.end -
+                      regionInfo.crossfadeRegion.start
+                  )}
+                  )
+                </Typography>
+              )}
+            </TableCell>
+          </TableRow>
+        </TableBody>
       </Table>
     </Stack>
   );

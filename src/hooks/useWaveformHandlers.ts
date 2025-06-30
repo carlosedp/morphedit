@@ -26,8 +26,10 @@ import {
   createCropRegion,
   createFadeInRegion,
   createFadeOutRegion,
+  createCrossfadeRegion,
   applyCrop,
   applyFades,
+  applyCrossfade,
 } from '../utils/regionUtils';
 import { applyNormalization } from '../utils/audioNormalization';
 import { applyTempoAndPitch } from '../utils/tempoAndPitchProcessing';
@@ -78,6 +80,8 @@ interface WaveformState {
   fadeOutMode: boolean;
   fadeInCurveType: string;
   fadeOutCurveType: string;
+  crossfadeMode: boolean;
+  crossfadeCurveType: string;
   currentAudioUrl: string | null;
   selectedExportFormat: ExportFormat;
 }
@@ -91,6 +95,8 @@ interface WaveformActions {
   setIsLooping: (looping: boolean | ((prev: boolean) => boolean)) => void;
   setFadeInMode: (mode: boolean) => void;
   setFadeOutMode: (mode: boolean) => void;
+  setCrossfadeMode: (mode: boolean) => void;
+  setCrossfadeRegion: (region: Region | null) => void;
   setSelectedSpliceMarker: (marker: Region | null) => void;
   setCurrentAudioUrl: (url: string | null) => void;
   setSelectedExportFormat: (format: ExportFormat) => void;
@@ -350,6 +356,16 @@ export const useWaveformHandlers = ({
     );
   }, [actions, wavesurferRef, regionsRef]);
 
+  const handleCrossfadeRegion = useCallback(() => {
+    createCrossfadeRegion(
+      wavesurferRef.current!,
+      regionsRef.current!,
+      state.selectedSpliceMarker,
+      actions.setCrossfadeMode,
+      actions.setCrossfadeRegion
+    );
+  }, [actions, wavesurferRef, regionsRef, state.selectedSpliceMarker]);
+
   const handleApplyCrop = useCallback(async () => {
     if (onProcessingStart) {
       onProcessingStart('Applying crop to audio...');
@@ -371,6 +387,8 @@ export const useWaveformHandlers = ({
         setCurrentAudioUrl: actions.setCurrentAudioUrl,
         setFadeInMode: actions.setFadeInMode,
         setFadeOutMode: actions.setFadeOutMode,
+        setCrossfadeMode: actions.setCrossfadeMode,
+        setCrossfadeRegion: actions.setCrossfadeRegion,
         setSpliceMarkersStore,
         setLockedSpliceMarkersStore,
         setPreviousSpliceMarkers,
@@ -428,6 +446,8 @@ export const useWaveformHandlers = ({
         setCurrentAudioUrl: actions.setCurrentAudioUrl,
         setCropMode: actions.setCropMode,
         setCropRegion: actions.setCropRegion,
+        setCrossfadeMode: actions.setCrossfadeMode,
+        setCrossfadeRegion: actions.setCrossfadeRegion,
         setSpliceMarkersStore,
         setPreviousSpliceMarkers,
         setPreviousLockedSpliceMarkers,
@@ -444,6 +464,60 @@ export const useWaveformHandlers = ({
     state.fadeOutMode,
     state.fadeInCurveType,
     state.fadeOutCurveType,
+    state.currentAudioUrl,
+    spliceMarkersStore,
+    lockedSpliceMarkersStore,
+    setPreviousAudioUrl,
+    setPreviousSpliceMarkers,
+    setPreviousLockedSpliceMarkers,
+    setCanUndo,
+    setAudioBuffer,
+    actions,
+    wavesurferRef,
+    regionsRef,
+    onProcessingStart,
+    onProcessingComplete,
+    setSpliceMarkersStore,
+  ]);
+
+  const handleApplyCrossfade = useCallback(async () => {
+    if (onProcessingStart) {
+      onProcessingStart('Applying crossfade to audio...');
+    }
+
+    await applyCrossfade(
+      wavesurferRef.current!,
+      regionsRef.current!,
+      state.crossfadeMode,
+      state.crossfadeCurveType,
+      state.currentAudioUrl,
+      spliceMarkersStore,
+      lockedSpliceMarkersStore,
+      {
+        setPreviousAudioUrl,
+        setCanUndo,
+        setAudioBuffer,
+        setCrossfadeMode: actions.setCrossfadeMode,
+        setCrossfadeRegion: actions.setCrossfadeRegion,
+        setCurrentAudioUrl: actions.setCurrentAudioUrl,
+        setCropMode: actions.setCropMode,
+        setCropRegion: actions.setCropRegion,
+        setFadeInMode: actions.setFadeInMode,
+        setFadeOutMode: actions.setFadeOutMode,
+        setSpliceMarkersStore,
+        setPreviousSpliceMarkers,
+        setPreviousLockedSpliceMarkers,
+        setZoom: actions.setZoom,
+        setResetZoom: actions.setResetZoom,
+      }
+    );
+
+    if (onProcessingComplete) {
+      onProcessingComplete();
+    }
+  }, [
+    state.crossfadeMode,
+    state.crossfadeCurveType,
     state.currentAudioUrl,
     spliceMarkersStore,
     lockedSpliceMarkersStore,
@@ -935,8 +1009,10 @@ export const useWaveformHandlers = ({
     handleLoop,
     handleFadeInRegion,
     handleFadeOutRegion,
+    handleCrossfadeRegion,
     handleApplyCrop,
     handleApplyFades,
+    handleApplyCrossfade,
     handleNormalize,
     handleTempoAndPitch,
     handleUndo,

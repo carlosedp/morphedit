@@ -72,8 +72,10 @@ export interface WaveformRef extends SpliceMarkerHandlers {
   handleDecreaseSkipIncrement: () => void;
   handleFadeInRegion: () => void;
   handleFadeOutRegion: () => void;
+  handleCrossfadeRegion: () => void;
   handleApplyCrop: () => void;
   handleApplyFades: () => void;
+  handleApplyCrossfade: () => void;
   handleNormalize: () => void;
   handleTempoAndPitch: () => void;
   handleUndo: () => void;
@@ -1013,8 +1015,10 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     const handleLoop = handlers.handleLoop;
     const handleFadeInRegion = handlers.handleFadeInRegion;
     const handleFadeOutRegion = handlers.handleFadeOutRegion;
+    const handleCrossfadeRegion = handlers.handleCrossfadeRegion;
     const handleApplyCrop = handlers.handleApplyCrop;
     const handleApplyFades = handlers.handleApplyFades;
+    const handleApplyCrossfade = handlers.handleApplyCrossfade;
     const handleNormalize = handlers.handleNormalize;
     const handleTempoAndPitch = handlers.handleTempoAndPitch;
     const handleUndo = handlers.handleUndo;
@@ -1072,8 +1076,10 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleDecreaseSkipIncrement,
         handleFadeInRegion,
         handleFadeOutRegion,
+        handleCrossfadeRegion,
         handleApplyCrop,
         handleApplyFades,
+        handleApplyCrossfade,
         handleNormalize,
         handleTempoAndPitch,
         handleUndo,
@@ -1102,8 +1108,10 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleDecreaseSkipIncrement,
         handleFadeInRegion,
         handleFadeOutRegion,
+        handleCrossfadeRegion,
         handleApplyCrop,
         handleApplyFades,
+        handleApplyCrossfade,
         handleNormalize,
         handleTempoAndPitch,
         handleUndo,
@@ -1187,11 +1195,15 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           exportAnchorEl={state.exportAnchorEl}
           fadeInAnchorEl={state.fadeInAnchorEl}
           fadeOutAnchorEl={state.fadeOutAnchorEl}
+          crossfadeAnchorEl={state.crossfadeAnchorEl}
           cropMode={state.cropMode}
           fadeInMode={state.fadeInMode}
           fadeOutMode={state.fadeOutMode}
           fadeInCurveType={state.fadeInCurveType}
           fadeOutCurveType={state.fadeOutCurveType}
+          crossfadeMode={state.crossfadeMode}
+          crossfadeCurveType={state.crossfadeCurveType}
+          selectedSpliceMarker={!!state.selectedSpliceMarker}
           canUndo={canUndo}
           onExport={handleExport}
           onExportSlices={handleExportSlices}
@@ -1199,6 +1211,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           onSetExportAnchorEl={actions.setExportAnchorEl}
           onSetFadeInAnchorEl={actions.setFadeInAnchorEl}
           onSetFadeOutAnchorEl={actions.setFadeOutAnchorEl}
+          onSetCrossfadeAnchorEl={actions.setCrossfadeAnchorEl}
           onNormalize={handleNormalize}
           onTempoAndPitch={handleTempoAndPitch}
           onCropRegion={handleCropRegion}
@@ -1206,6 +1219,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           onFadeInRegion={handleFadeInRegion}
           onFadeOutRegion={handleFadeOutRegion}
           onApplyFades={handleApplyFades}
+          onCrossfadeRegion={handleCrossfadeRegion}
+          onApplyCrossfade={handleApplyCrossfade}
+          onSetCrossfadeCurveType={actions.setCrossfadeCurveType}
           onUndo={handleUndo}
           onSetFadeInCurveType={actions.setFadeInCurveType}
           onSetFadeOutCurveType={actions.setFadeOutCurveType}
