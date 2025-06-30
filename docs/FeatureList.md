@@ -37,6 +37,43 @@
 - [x] Audio effects (normalization, add/remove gain)
 - [x] Crossfade between splice points with defined length and curve type
 - [x] Record audio directly into the app via Wavesurfer record plugin
+- [ ] Reverse audio (applies to whole audio or crop/loop region)
+- [ ] Move regions around (crop region) Evaluate better UX, if drag/drop or cut region and paste at the playhead location
+- [ ] Audio manipulation via scripting
+  - [ ] This would be an "expert" mode where users can write scripts to manipulate audio
+  - [ ] Open a dialog to write scripts and allow importing/exporting scripts (pop from botton)
+  - [ ] Manipulation applies to whole audio or crop/loop region(rename it?)
+  - [ ] Maybe add different regions for manipulation
+  - [ ] Provide modulators like LFO, ADSR to control parameters (in sync or not)
+  - [ ] Move audio from the regions around
+  - [ ] API allows fetching and changing audio data (sample based), existing splice points, crop region, and fade in/out regions
+  - [ ] Multiple tools available with simple API
+    - [ ] Distortion
+    - [ ] Add noise
+    - [ ] Reverse
+    - [ ] Delay
+    - [ ] Reverb
+    - [ ] Chorus
+    - [ ] Flanger
+    - [ ] Phaser
+    - [ ] Tremolo
+    - [ ] Bitcrusher
+    - [ ] Compressor
+    - [ ] Equalizer
+    - [ ] Normalize
+    - [ ] Time stretch
+    - [ ] Pitch shift
+    - [ ] Add fade in/out
+    - [ ] Add crossfade
+    - [ ] Add silence
+    - [ ] Add splice points
+    - [ ] Remove splice points
+    - [ ] Lock splice points
+    - [ ] Remove splice point locks
+    - [ ] Wavefolding
+    - [ ] Glitch effects
+    - [ ] Granular effects
+    - [ ] Add/remove gain
 
 ## Bugs
 
