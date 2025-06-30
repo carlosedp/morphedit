@@ -1,6 +1,3 @@
-// filepath: /home/carlosedp/repos/morphedit/src/Waveform.tsx
-// Refactored Waveform component with separated utilities
-
 import {
   useEffect,
   forwardRef,
@@ -49,7 +46,7 @@ import {
 } from './utils/spliceMarkerHandlers';
 import { useWaveformState, useWaveformRefs } from './hooks/useWaveformState';
 import { useWaveformHandlers } from './hooks/useWaveformHandlers';
-import { WaveformControls } from './components/WaveformControls';
+import { WaveformControls } from './components/WaveformInfoBar';
 import { WaveformActionControls } from './components/WaveformActionControls';
 import { SpliceMarkerControls } from './components/SpliceMarkerControls';
 import { setupWaveformDebugUtils } from './utils/waveformDebugUtils';
@@ -738,6 +735,18 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         console.log('🎙️ WaveSurfer click event - seeking to:', newTime);
         actions.setCurrentTime(newTime);
 
+        // Use a longer timeout to allow region-clicked event to fire first and be processed
+        // If a region was clicked, the region-clicked handler will re-select the marker
+        // If no region was clicked, this will clear the selection
+        setTimeout(() => {
+          console.log('Checking if we should clear selection after click');
+          // Always clear first, region-clicked will re-select if needed
+          actions.setSelectedSpliceMarker(null);
+          if (regionsRef.current) {
+            memoizedUpdateSpliceMarkerColors(null);
+          }
+        }, 10); // Longer delay to ensure region-clicked fires first
+
         // For recorded audio, ensure the seek actually works
         if (isRecordedAudio) {
           console.log('🎙️ Recorded audio click - forcing seek update');
@@ -930,8 +939,12 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         // Only handle splice marker regions, ignore other regions and waveform clicks
         if (region.id.startsWith('splice-marker-')) {
           console.log('Splice marker selected:', region.id);
-          actions.setSelectedSpliceMarker(region);
-          memoizedUpdateSpliceMarkerColors(region);
+
+          // Use a timeout to ensure this runs after the click event's timeout
+          setTimeout(() => {
+            actions.setSelectedSpliceMarker(region);
+            memoizedUpdateSpliceMarkerColors(region);
+          }, 20); // Longer than the click event timeout
 
           // Store current position to restore it after the region click
           const currentPosition = ws.getCurrentTime();
@@ -945,7 +958,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
                 wavesurferRef.current.seekTo(currentPosition / duration);
               }
             }
-          }, 0);
+          }, 25); // After selection is set
         } else if (
           region.id.startsWith('crop-') ||
           region.id.startsWith('fade-')
@@ -956,15 +969,8 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           );
           actions.setSelectedSpliceMarker(null);
           memoizedUpdateSpliceMarkerColors(null);
-        } else {
-          // For any other regions or undefined regions, clear selection but don't interfere with seeking
-          console.log(
-            'Other region or waveform area clicked, clearing splice marker selection'
-          );
-          actions.setSelectedSpliceMarker(null);
-          memoizedUpdateSpliceMarkerColors(null);
-          // Let the normal click-to-seek behavior work
         }
+        // Note: Removed the else clause here since waveform clicks are now handled by the 'click' event
       });
 
       return () => {

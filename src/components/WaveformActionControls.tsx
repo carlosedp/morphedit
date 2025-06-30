@@ -113,7 +113,7 @@ export const WaveformActionControls = ({
       direction="row"
       alignItems="flex-start"
       sx={{
-        mt: 2,
+        mt: 1,
         width: '100%',
         flexDirection: { xs: 'column', lg: 'row' },
         gap: { xs: 2, lg: 2 },
@@ -279,6 +279,78 @@ export const WaveformActionControls = ({
               Crop/Loop Region
             </Button>
           </Tooltip>
+        </Stack>
+
+        {/* Fade controls row */}
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+          sx={{
+            flexWrap: 'wrap',
+            gap: { xs: 0.5, sm: 1 },
+            justifyContent: { xs: 'center', lg: 'flex-end' },
+          }}
+        >
+          {/* Fade In button group */}
+          <ButtonGroup variant="outlined">
+            <Tooltip
+              title="Create a fade-in region"
+              enterDelay={TOOLTIP_DELAYS.ENTER}
+              leaveDelay={TOOLTIP_DELAYS.LEAVE}
+            >
+              <Button
+                variant={fadeInMode ? 'contained' : 'outlined'}
+                color="primary"
+                onClick={onFadeInRegion}
+                startIcon={<TrendingUpIcon />}
+              >
+                Fade In
+              </Button>
+            </Tooltip>
+            <FadeCurveSelector
+              selectedCurve={fadeInCurveType}
+              onCurveChange={onSetFadeInCurveType}
+              fadeType="in"
+              anchorEl={fadeInAnchorEl}
+              onSetAnchorEl={onSetFadeInAnchorEl}
+            />
+          </ButtonGroup>
+          {/* Fade Out button group */}
+          <ButtonGroup variant="outlined">
+            <Tooltip
+              title="Create fade-out region"
+              enterDelay={TOOLTIP_DELAYS.ENTER}
+              leaveDelay={TOOLTIP_DELAYS.LEAVE}
+            >
+              <Button
+                variant={fadeOutMode ? 'contained' : 'outlined'}
+                color="primary"
+                onClick={onFadeOutRegion}
+                startIcon={<TrendingDownIcon />}
+              >
+                Fade Out
+              </Button>
+            </Tooltip>
+            <FadeCurveSelector
+              selectedCurve={fadeOutCurveType}
+              onCurveChange={onSetFadeOutCurveType}
+              fadeType="out"
+              anchorEl={fadeOutAnchorEl}
+              onSetAnchorEl={onSetFadeOutAnchorEl}
+            />
+          </ButtonGroup>
+        </Stack>
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+          sx={{
+            flexWrap: 'wrap',
+            gap: { xs: 0.5, sm: 1 },
+            justifyContent: { xs: 'center', lg: 'flex-end' },
+          }}
+        >
           <Tooltip
             title="Apply crop to current audio"
             enterDelay={TOOLTIP_DELAYS.ENTER}
@@ -295,103 +367,6 @@ export const WaveformActionControls = ({
               </Button>
             </Box>
           </Tooltip>
-        </Stack>
-
-        {/* Fade controls row */}
-        <Stack
-          direction="row"
-          spacing={1}
-          alignItems="center"
-          sx={{
-            flexWrap: 'wrap',
-            gap: { xs: 0.5, sm: 1 },
-            justifyContent: { xs: 'center', lg: 'flex-end' },
-          }}
-        >
-          {/* Fade In button group */}
-          {fadeInMode ? (
-            <ButtonGroup variant="outlined">
-              <Tooltip
-                title="Create a fade-in region"
-                enterDelay={TOOLTIP_DELAYS.ENTER}
-                leaveDelay={TOOLTIP_DELAYS.LEAVE}
-              >
-                <Button
-                  variant={fadeInMode ? 'contained' : 'outlined'}
-                  color="primary"
-                  onClick={onFadeInRegion}
-                  startIcon={<TrendingUpIcon />}
-                >
-                  Fade In
-                </Button>
-              </Tooltip>
-              <FadeCurveSelector
-                selectedCurve={fadeInCurveType}
-                onCurveChange={onSetFadeInCurveType}
-                fadeType="in"
-                anchorEl={fadeInAnchorEl}
-                onSetAnchorEl={onSetFadeInAnchorEl}
-              />
-            </ButtonGroup>
-          ) : (
-            <Tooltip
-              title="Create a fade-in region"
-              enterDelay={TOOLTIP_DELAYS.ENTER}
-              leaveDelay={TOOLTIP_DELAYS.LEAVE}
-            >
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={onFadeInRegion}
-                startIcon={<TrendingUpIcon />}
-              >
-                Fade In
-              </Button>
-            </Tooltip>
-          )}
-
-          {/* Fade Out button group */}
-          {fadeOutMode ? (
-            <ButtonGroup variant="outlined">
-              <Tooltip
-                title="Create fade-out region"
-                enterDelay={TOOLTIP_DELAYS.ENTER}
-                leaveDelay={TOOLTIP_DELAYS.LEAVE}
-              >
-                <Button
-                  variant={fadeOutMode ? 'contained' : 'outlined'}
-                  color="primary"
-                  onClick={onFadeOutRegion}
-                  startIcon={<TrendingDownIcon />}
-                >
-                  Fade Out
-                </Button>
-              </Tooltip>
-              <FadeCurveSelector
-                selectedCurve={fadeOutCurveType}
-                onCurveChange={onSetFadeOutCurveType}
-                fadeType="out"
-                anchorEl={fadeOutAnchorEl}
-                onSetAnchorEl={onSetFadeOutAnchorEl}
-              />
-            </ButtonGroup>
-          ) : (
-            <Tooltip
-              title="Create fade-out region"
-              enterDelay={TOOLTIP_DELAYS.ENTER}
-              leaveDelay={TOOLTIP_DELAYS.LEAVE}
-            >
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={onFadeOutRegion}
-                startIcon={<TrendingDownIcon />}
-              >
-                Fade Out
-              </Button>
-            </Tooltip>
-          )}
-
           <Tooltip
             title="Apply fade regions to current audio"
             enterDelay={TOOLTIP_DELAYS.ENTER}
@@ -408,17 +383,6 @@ export const WaveformActionControls = ({
               </Button>
             </Box>
           </Tooltip>
-        </Stack>
-
-        {/* Undo button row */}
-        <Stack
-          direction="row"
-          spacing={1}
-          alignItems="center"
-          sx={{
-            justifyContent: { xs: 'center', lg: 'flex-end' },
-          }}
-        >
           <Tooltip
             title="Undo last edit"
             enterDelay={TOOLTIP_DELAYS.ENTER}
