@@ -10,7 +10,7 @@ import {
   Stack,
   Tooltip,
 } from '@mui/material';
-import { Mic } from '@mui/icons-material';
+import { Mic, Settings, MenuBook } from '@mui/icons-material';
 import Waveform, { type WaveformRef } from './Waveform';
 import { useAudioStore } from './audioStore';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
@@ -22,6 +22,7 @@ import { FileReplaceDialog } from './components/FileReplaceDialog';
 import { TempoAndPitchDialog } from './components/TempoAndPitchDialog';
 import { AutoUpdater } from './components/AutoUpdater';
 import { RecordingDialog } from './components/RecordingDialog';
+import { SettingsDialog } from './components/SettingsDialog';
 import {
   getAudioFileDuration,
   isFileTooLong,
@@ -89,6 +90,9 @@ function App() {
 
   // Recording dialog state
   const [recordingDialogOpen, setRecordingDialogOpen] = useState(false);
+
+  // Settings dialog state
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
 
   const reset = useAudioStore((state) => state.reset);
   const waveformRef = useRef<WaveformRef | null>(null);
@@ -904,16 +908,32 @@ function App() {
             <Button
               variant="outlined"
               color="primary"
+              startIcon={<Settings />}
+              onClick={() => setSettingsDialogOpen(true)}
+              sx={{
+                fontSize: { xs: '0.85rem', sm: '0.875rem' },
+                padding: { xs: '0.5em 1em', sm: '6px 16px' },
+                minHeight: { xs: '40px', sm: '36px' },
+                width: 'auto',
+                minWidth: { xs: '100px', sm: '120px' },
+              }}
+            >
+              Settings
+            </Button>
+            <Button
+              variant="outlined"
+              color="primary"
+              startIcon={<MenuBook />}
               onClick={handleOpenManual}
               sx={{
                 fontSize: { xs: '0.85rem', sm: '0.875rem' },
                 padding: { xs: '0.5em 1em', sm: '6px 16px' },
-                minHeight: { xs: '40px', sm: '36px' }, // Slightly smaller on mobile
-                width: 'auto', // Don't stretch to full width
-                minWidth: { xs: '100px', sm: '120px' }, // Smaller minimum width
+                minHeight: { xs: '40px', sm: '36px' },
+                width: 'auto',
+                minWidth: { xs: '100px', sm: '120px' },
               }}
             >
-              User Manual
+              Manual
             </Button>
             <KeyboardShortcutsHelp />
           </Stack>
@@ -1179,6 +1199,11 @@ function App() {
         open={recordingDialogOpen}
         onClose={handleCloseRecordingDialog}
         onRecordingComplete={handleRecordingComplete}
+      />
+
+      <SettingsDialog
+        open={settingsDialogOpen}
+        onClose={() => setSettingsDialogOpen(false)}
       />
 
       {/* Auto-updater component (only active in Electron) */}

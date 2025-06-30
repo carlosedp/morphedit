@@ -3,9 +3,8 @@ import { useState, useRef, useMemo } from 'react';
 import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
 import type RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
 import type WaveSurfer from 'wavesurfer.js';
-import { FADE_CURVE_TYPES } from '../constants';
 import type { ExportFormat } from '../utils/exportUtils';
-import { EXPORT_FORMATS } from '../constants';
+import { useAppSettings } from '../settingsStore';
 
 interface WaveformState {
   // Playback state
@@ -85,6 +84,9 @@ interface WaveformActions {
 export const useWaveformState = (
   initialAudioUrl: string
 ): [WaveformState, WaveformActions] => {
+  // Get settings
+  const { settings } = useAppSettings();
+
   // Playback state
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLooping, setIsLooping] = useState(false);
@@ -97,28 +99,36 @@ export const useWaveformState = (
   const [fadeInMode, setFadeInMode] = useState(false);
   const [fadeOutMode, setFadeOutMode] = useState(false);
   const [fadeInCurveType, setFadeInCurveType] = useState<string>(
-    FADE_CURVE_TYPES.LINEAR
+    settings.fadeInCurveType
   );
   const [fadeOutCurveType, setFadeOutCurveType] = useState<string>(
-    FADE_CURVE_TYPES.LINEAR
+    settings.fadeOutCurveType
   );
 
   // Crossfade state
   const [crossfadeMode, setCrossfadeMode] = useState(false);
   const [crossfadeRegion, setCrossfadeRegion] = useState<Region | null>(null);
   const [crossfadeCurveType, setCrossfadeCurveType] = useState<string>(
-    FADE_CURVE_TYPES.LINEAR
+    settings.crossfadeCurveType
   );
 
   // Splice marker state
   const [selectedSpliceMarker, setSelectedSpliceMarker] =
     useState<Region | null>(null);
-  const [numberOfSlices, setNumberOfSlices] = useState(8);
+  const [numberOfSlices, setNumberOfSlices] = useState(
+    settings.defaultAutoSliceAmount
+  );
 
   // Transient detection state
-  const [transientSensitivity, setTransientSensitivity] = useState(50);
-  const [transientFrameSize, setTransientFrameSize] = useState(20); // 20ms default
-  const [transientOverlap, setTransientOverlap] = useState(75); // 75% overlap default
+  const [transientSensitivity, setTransientSensitivity] = useState(
+    settings.transientThreshold
+  );
+  const [transientFrameSize, setTransientFrameSize] = useState(
+    settings.transientFrameSizeMs
+  );
+  const [transientOverlap, setTransientOverlap] = useState(
+    settings.transientOverlapPercent
+  );
 
   // Navigation state
   const [zoom, setZoom] = useState(0);
@@ -143,9 +153,7 @@ export const useWaveformState = (
   const [crossfadeAnchorEl, setCrossfadeAnchorEl] =
     useState<HTMLElement | null>(null);
   const [selectedExportFormat, setSelectedExportFormat] =
-    useState<ExportFormat>(
-      EXPORT_FORMATS[0] // Default to first format (48kHz 32-bit Float Stereo)
-    );
+    useState<ExportFormat>(settings.defaultExportFormat);
 
   const state: WaveformState = {
     isPlaying,
