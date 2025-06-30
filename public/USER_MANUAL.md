@@ -24,9 +24,7 @@
 
 ## Introduction
 
-**MorphEdit** is a browser-based audio editor specifically designed for preparing audio files for the **MakeNoise Morphagene** granular synthesis module. It provides powerful tools for adding splice markers, cropping audio, applying fades, and exporting in the optimal format for the Morphagene.
-
-Although primarily focused on Morphagene users, MorphEdit can also be used for general audio editing tasks such as cropping, fading, and concatenating audio files.
+MorphEdit is a powerful, browser-based audio editor designed for preparing audio files for samplers and hardware instruments. While offering some features for the **MakeNoise Morphagene** granular synthesis module, it serves as a versatile tool for general audio editing tasks including splicing, cropping, fading, and concatenation making it perfect for audio sample manipulation across various sampling devices.
 
 ![app overview](img/overview.png)
 
