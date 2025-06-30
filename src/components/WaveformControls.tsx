@@ -59,6 +59,7 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
         flexDirection: { xs: 'column', md: 'row' },
         gap: { xs: 2, md: 0 },
         alignItems: { xs: 'stretch', md: 'flex-start' },
+        minHeight: '120px',
       }}
     >
       {/* Left column - Controls */}
@@ -214,10 +215,26 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
               whiteSpace: 'nowrap', // Prevent text wrapping
             }}
           >
-            | ✂️ Splice: {spliceMarkersCount}
+            | ✂️ Splices: {spliceMarkersCount}
           </Typography>
         </Stack>
-
+        {/* Arrow Skip info - Always shown at bottom */}
+        <Tooltip
+          title="Use arrow keys to skip forward/backward and up/down to adjust skip increment"
+          enterDelay={TOOLTIP_DELAYS.ENTER}
+          leaveDelay={TOOLTIP_DELAYS.LEAVE}
+        >
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{
+              fontSize: { xs: '0.7rem', sm: '0.75rem' },
+              fontStyle: 'italic',
+            }}
+          >
+            ⌨️ Arrow Skip: {formatSeconds(skipIncrement)}s
+          </Typography>
+        </Tooltip>
         {/* Selected splice marker time - Second line */}
         {selectedSpliceMarkerTime !== null && (
           <Typography
@@ -278,18 +295,6 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
             )
           </Typography>
         )}
-
-        {/* Arrow Skip info - Always shown at bottom */}
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          sx={{
-            fontSize: { xs: '0.7rem', sm: '0.75rem' },
-            fontStyle: 'italic',
-          }}
-        >
-          ⌨️ Arrow Skip: {formatSeconds(skipIncrement)}s
-        </Typography>
       </Stack>
     </Stack>
   );
