@@ -149,6 +149,7 @@ export const REGION_POSITIONING = {
   DEFAULT_END_RATIO: 0.75, // End at 75% of duration
   FADE_RATIO: 0.1, // Fade length as 10% of region/duration
   MARKER_PROXIMITY_THRESHOLD: 0.1, // Seconds threshold for marker proximity
+  SNAP_TO_ZERO_THRESHOLD: 0.05, // Seconds threshold for snapping regions to zero (50ms)
 } as const;
 
 // Crossfade constants

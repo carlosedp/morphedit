@@ -28,6 +28,7 @@ import {
   POSITION_UPDATE_INTERVAL,
   PLAYBACK_TIMING,
   WAVEFORM_RENDERING,
+  REGION_POSITIONING,
   MAX_KEYBOARD_SHORTCUT_MARKERS,
 } from './constants';
 import { waveformLogger } from './utils/logger';
@@ -799,6 +800,35 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         // Also try getting regions from the regions plugin directly
         const pluginRegions = regions?.getRegions() || [];
         console.log('Regions from plugin:', pluginRegions);
+
+        // Snap regions to zero if they're close enough
+        const SNAP_TO_ZERO_THRESHOLD =
+          REGION_POSITIONING.SNAP_TO_ZERO_THRESHOLD; // 50ms threshold for snapping to zero
+
+        [...regionList, ...pluginRegions].forEach((region: Region) => {
+          // Only snap crop and fade regions, not splice markers
+          if (
+            region.id === 'crop-loop' ||
+            region.id === 'fade-in' ||
+            region.id === 'fade-out'
+          ) {
+            const shouldSnapStart =
+              region.start > 0 && region.start <= SNAP_TO_ZERO_THRESHOLD;
+
+            if (shouldSnapStart) {
+              console.log(
+                `Snapping ${region.id} start from ${region.start} to 0`
+              );
+              // Update the region to snap to zero
+              region.setOptions({ start: 0 });
+
+              // If it's a crop region, update the state
+              if (region.id === 'crop-loop') {
+                actions.setCropRegion(region);
+              }
+            }
+          }
+        });
 
         setRegions(
           regionList
