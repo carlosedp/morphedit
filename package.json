@@ -19,7 +19,7 @@
     "url": "https://github.com/carlosedp/morphedit/issues"
   },
   "private": true,
-  "version": "5.4.0",
+  "version": "5.5.0",
   "type": "module",
   "scripts": {
     "start": "vite",
@@ -49,7 +49,7 @@
     "rubberband-wasm": "^3.3.0",
     "wavesurfer.js": "^7.9.8",
     "web-audio-beat-detector": "^8.2.29",
-    "zustand": "^5.0.5"
+    "zustand": "^5.0.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

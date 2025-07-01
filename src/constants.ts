@@ -26,7 +26,7 @@ export const REGION_COLORS = {
   CROP_REGION: 'rgba(255, 167, 38, 0.2)',
   FADE_IN: 'rgba(0, 255, 0, 0.2)',
   FADE_OUT: 'rgba(255, 0, 0, 0.2)',
-  CROSSFADE: 'rgba(255, 0, 255, 0.2)', // Magenta for crossfade
+  CROSSFADE: 'rgba(255, 0, 255, 0.2)',
   LOCKED_MARKER: 'rgba(255, 165, 0, 0.8)',
 } as const;
 
@@ -116,11 +116,7 @@ export const TOOLTIP_DELAYS = {
 
 // Auto-slice/transient detection
 export const TRANSIENT_DETECTION = {
-  MIN_THRESHOLD: 0.01,
-  MAX_THRESHOLD: 0.5,
-  DEFAULT_THRESHOLD: 0.1,
-  WINDOW_SIZE: 1024,
-  HOP_SIZE: 512,
+  DEFAULT_THRESHOLD: 50,
   MIN_INTERVAL: 0.05, // Minimum 50ms between transients
   DEFAULT_FRAME_SIZE_MS: 20,
   DEFAULT_OVERLAP_PERCENT: 75,
@@ -153,6 +149,7 @@ export const REGION_POSITIONING = {
   DEFAULT_END_RATIO: 0.75, // End at 75% of duration
   FADE_RATIO: 0.1, // Fade length as 10% of region/duration
   MARKER_PROXIMITY_THRESHOLD: 0.1, // Seconds threshold for marker proximity
+  SNAP_TO_ZERO_THRESHOLD: 0.05, // Seconds threshold for snapping regions to zero (50ms)
 } as const;
 
 // Crossfade constants
@@ -175,4 +172,20 @@ export const SKIP_INCREMENTS = {
   LARGE_INCREMENT: 1.0, // Large increment size in seconds
   SMALL_THRESHOLD: 1.0, // Threshold for small increments in seconds
   LARGE_THRESHOLD: 5.0, // Threshold for large increments in seconds
+} as const;
+
+// Default settings for the application
+export const DEFAULT_SETTINGS = {
+  FADE_IN_CURVE_TYPE: FADE_CURVE_TYPES.LINEAR,
+  FADE_OUT_CURVE_TYPE: FADE_CURVE_TYPES.LINEAR,
+  CROSSFADE_DURATION: CROSSFADE.DEFAULT_DURATION,
+  CROSSFADE_CURVE_TYPE: FADE_CURVE_TYPES.LINEAR,
+  TRUNCATE_LENGTH: AUDIO_MAX_DURATION,
+  MAX_RECORDING_DURATION: AUDIO_RECORD_MAX_DURATION,
+  DEFAULT_AUTO_SLICE_AMOUNT: 8, // Default number of auto slices
+  DEFAULT_EXPORT_FORMAT_INDEX: 0, // Index of the first format in EXPORT_FORMATS
+  // Transient detection defaults
+  TRANSIENT_THRESHOLD: TRANSIENT_DETECTION.DEFAULT_THRESHOLD,
+  TRANSIENT_FRAME_SIZE_MS: TRANSIENT_DETECTION.DEFAULT_FRAME_SIZE_MS,
+  TRANSIENT_OVERLAP_PERCENT: TRANSIENT_DETECTION.DEFAULT_OVERLAP_PERCENT,
 } as const;

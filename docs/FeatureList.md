@@ -20,11 +20,13 @@
 - [x] Add mobile layout
 - [x] Redo layout so controls are more intuitive
 - [x] Have different fade curves for fade in and fade out (linear, exponential, etc.)
-- [ ] Settings menu for:
-  - [ ]  Fade in/out curve type (linear, exponential, etc.)
-  - [ ]  Crossfade lengh and curve type
-  - [ ]  Truncate lenght (174 seconds by default)
-  - [ ]  Default export format
+- [x] Settings menu for:
+  - [x]  Fade in/out curve type (linear, exponential, etc.)
+  - [x]  Crossfade lengh and curve type
+  - [x]  Truncate lenght (174 seconds by default)
+  - [x]  Default export format
+  - [x]  Max recording duration
+  - [x]  Transient detection parameters
 - [ ] Add detection preset slots to save sensitivity, frame size, and overlap settings
 - [x] Use mouse scroll to zoom in/out on the waveform
 - [x] Add tooltip to append audio button
@@ -35,6 +37,44 @@
 - [x] Audio effects (normalization, add/remove gain)
 - [x] Crossfade between splice points with defined length and curve type
 - [x] Record audio directly into the app via Wavesurfer record plugin
+- [x] Reverse audio (applies to whole audio or crop/loop region)
+- [ ] Move regions around (crop region) Evaluate better UX, if drag/drop or cut region and paste at the playhead location
+- [ ] Audio manipulation via scripting
+  - [ ] This would be an "expert" mode where users can write scripts to manipulate audio
+  - [ ] Open a dialog to write scripts and allow importing/exporting scripts (pop from botton)
+  - [ ] Manipulation applies to whole audio or crop/loop region(rename it?)
+  - [ ] Maybe add different regions for manipulation
+  - [ ] Provide modulators like LFO, ADSR to control parameters (in sync or not)
+  - [ ] Move audio from the regions around
+  - [ ] API allows fetching and changing audio data (sample based), existing splice points, crop region, and fade in/out regions
+  - [ ] Multiple tools available with simple API
+    - [ ] Distortion
+    - [ ] Add noise
+    - [ ] Filtering (low-pass, high-pass, band-pass)
+    - [ ] Reverse
+    - [ ] Delay
+    - [ ] Reverb
+    - [ ] Chorus
+    - [ ] Flanger
+    - [ ] Phaser
+    - [ ] Tremolo
+    - [ ] Bitcrusher
+    - [ ] Compressor
+    - [ ] Equalizer
+    - [ ] Normalize
+    - [ ] Time stretch
+    - [ ] Pitch shift
+    - [ ] Add fade in/out
+    - [ ] Add crossfade
+    - [ ] Add silence
+    - [ ] Add splice points
+    - [ ] Remove splice points
+    - [ ] Lock splice points
+    - [ ] Remove splice point locks
+    - [ ] Wavefolding
+    - [ ] Glitch effects
+    - [ ] Granular effects
+    - [ ] Add/remove gain
 
 ## Bugs
 

@@ -128,6 +128,7 @@ const htmlTemplate = `<!DOCTYPE html>
         p {
             margin-bottom: 16px;
             text-align: left;
+            color: ${themeColors.textSecondary};
         }
 
         /* Links */
@@ -142,7 +143,7 @@ const htmlTemplate = `<!DOCTYPE html>
 
         /* Strong text */
         strong {
-            color: ${themeColors.primary};
+            color: ${themeColors.textSecondary};
             font-weight: bold;
             font-size: 1.1em;
         }
@@ -203,11 +204,13 @@ const htmlTemplate = `<!DOCTYPE html>
             padding-left: 24px;
             text-align: left;
             margin-bottom: 16px;
+            color: ${themeColors.textSecondary};
         }
 
         li {
             margin-bottom: 4px;
             text-align: left;
+            color: ${themeColors.textSecondary};
         }
 
         /* Tables */
@@ -215,6 +218,7 @@ const htmlTemplate = `<!DOCTYPE html>
             width: 100%;
             border-collapse: collapse;
             margin: 16px 0;
+            color: ${themeColors.textSecondary};
         }
 
         th, td {

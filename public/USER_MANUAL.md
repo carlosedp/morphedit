@@ -15,18 +15,17 @@
 7. [Regions and Processing](#regions-and-processing)
 8. [Tempo and Pitch Processing](#tempo-and-pitch-processing)
 9. [Exporting Audio](#exporting-audio)
-10. [Keyboard Shortcuts](#keyboard-shortcuts)
-11. [Mobile and Responsive Design](#mobile-and-responsive-design)
-12. [Advanced Features](#advanced-features)
-13. [Troubleshooting](#troubleshooting)
+10. [Settings and Configuration](#settings-and-configuration)
+11. [Keyboard Shortcuts](#keyboard-shortcuts)
+12. [Mobile and Responsive Design](#mobile-and-responsive-design)
+13. [Advanced Features](#advanced-features)
+14. [Troubleshooting](#troubleshooting)
 
 ---
 
 ## Introduction
 
-**MorphEdit** is a browser-based audio editor specifically designed for preparing audio files for the **MakeNoise Morphagene** granular synthesis module. It provides powerful tools for adding splice markers, cropping audio, applying fades, and exporting in the optimal format for the Morphagene.
-
-Although primarily focused on Morphagene users, MorphEdit can also be used for general audio editing tasks such as cropping, fading, and concatenating audio files.
+MorphEdit is a powerful, browser-based audio editor designed for preparing audio files for samplers and hardware instruments. While offering some features for the **MakeNoise Morphagene** granular synthesis module, it serves as a versatile tool for general audio editing tasks including splicing, cropping, fading, and concatenation making it perfect for audio sample manipulation across various sampling devices.
 
 ![app overview](img/overview.png)
 
@@ -38,6 +37,7 @@ Although primarily focused on Morphagene users, MorphEdit can also be used for g
 - **Crossfade Processing**: Create smooth transitions between audio sections at splice markers
 - **Tempo and Pitch Processing**: Professional-grade tempo and pitch shifting with RubberBand
 - **Audio Normalization**: Professional-grade normalization to -1dB peak for optimal levels
+- **Audio Reversal**: Reverse entire audio or crop regions for creative backwards effects
 - **BPM Detection**: Automatic tempo detection and display for musical content
 - **File Appending**: Add new audio files to existing compositions with preserved markers
 - **Transient Detection**: Automatically detect audio transients for splice placement
@@ -98,8 +98,11 @@ The MorphEdit interface consists of several main sections:
 
 ### 3. Export and Region Controls (Middle Section)
 
-- **Export Button**: Quick export in default Morphagene format
+- **Export Button**: Quick export while audio or one file per slice
 - **Export Menu**: Access to multiple export formats
+- **Normalize Button**: Normalize audio to -1dB peak level
+- **Reversal Button**: Reverse audio playback direction
+- **Tempo/Pitch Button**: Open tempo and pitch processing dialog
 - **Crop Region**: Create and apply crop regions
 - **Fade Regions**: Create fade-in and fade-out regions
 - **Crossfade Regions**: Create smooth transitions at splice markers
@@ -412,9 +415,43 @@ Audio normalization adjusts the gain of your audio so that the loudest peak reac
 2. **Access Feature**: Look for the "Normalize" button in the processing controls
 3. **Apply**: Click "Normalize" to process the audio to -1dB peak level
 
+### Audio Reversal
+
+MorphEdit includes an audio reversal feature that allows you to reverse the audio playback direction, creating backwards audio effects commonly used in music production and sound design.
+
+#### What is Audio Reversal?
+
+Audio reversal flips the audio timeline so that it plays backwards - the end becomes the beginning and vice versa. This creates a distinctive backwards effect that can be used for:
+
+- **Creative Effects**: Create unique backwards audio textures
+- **Musical Transitions**: Reverse lead-ins or outros for dramatic effect
+- **Sound Design**: Generate ethereal or otherworldly audio atmospheres
+- **Granular Processing**: Create interesting textures for the Morphagene and other granular synthesizers
+
+#### How to Apply Reversal
+
+1. **Load Audio**: First load your audio file with splice markers if desired
+2. **Optional - Set Crop Region**: If you want to reverse only a portion of the audio, set a crop region first
+3. **Access Feature**: Look for the "Reverse" button (swap arrows icon) next to the "Normalize" button in the processing controls
+4. **Apply**: Click "Reverse" to process the audio
+
+#### Reversal Behavior
+
+- **Full Audio**: If no crop region is set, reverses the entire audio file
+- **Crop Region**: If a crop/loop region is active, reverses only the selected portion
+- **Splice Markers**: All splice marker positions are automatically adjusted to maintain their relative positions in the reversed audio
+- **Quality**: Reversal is a lossless operation that maintains the original audio quality
+
+#### Creative Uses
+
+- **Backwards Vocals**: Create ethereal vocal effects
+- **Reverse Reverb**: Record a reverb tail and reverse it for a "sucking" effect
+- **Build-ups**: Reverse drum fills or crescendos for dramatic build-ups
+- **Atmospheric Textures**: Generate unique ambient soundscapes
+
 ### Undo Functionality
 
-- **Single Level**: Can undo the last processing operation (crop, fade, or tempo/pitch)
+- **Single Level**: Can undo the last processing operation (crop, fade, reverse, normalization, or tempo/pitch)
 - **Keyboard**: Press Ctrl+Z (Windows/Linux) or Cmd+Z (Mac)
 - **Button**: Click the "Undo" button
 - **Limitations**: Only one level of undo is available
@@ -540,6 +577,11 @@ The estimated new audio length is displayed in the dialog.
 
 ![export formats](img/exportformats.png)
 
+### Export one file per splice
+
+1. **Add splice markers to file**: Use mouse and buttons or keyboard shortcuts to add splice markers
+2. **Select "Save Slices"**: Click the button in the export options
+
 ### Export Features
 
 - **Cue Point Embedding**: Splice markers are saved as WAV cue points
@@ -547,6 +589,63 @@ The estimated new audio length is displayed in the dialog.
 - **Bit Depth Conversion**: Automatic conversion between 16-bit and 32-bit
 - **Channel Conversion**: Automatic mono/stereo conversion
 - **Filename Convention**: Includes format details in filename
+
+---
+
+## Settings and Configuration
+
+MorphEdit provides a Settings dialog to customize your workflow and audio processing preferences. Access the settings by clicking the **Settings** button in the top-right corner of the interface, next to the User Manual button.
+
+![alt text](img/settings.png)
+
+### Fade Settings
+
+Configure default fade behavior for your audio processing:
+
+- **Fade In Curve Type**: Choose between Linear, Exponential, or Logarithmic fade curves
+- **Fade Out Curve Type**: Choose between Linear, Exponential, or Logarithmic fade curves
+
+These settings control the default curve types used when applying fade in/out effects to audio regions.
+
+### Crossfade Settings
+
+Control how splice points are blended together:
+
+- **Crossfade Duration**: Set the default length (in seconds) for crossfades between splice points (0.1 to 10.0 seconds)
+- **Crossfade Curve Type**: Choose the curve type for crossfade transitions (Linear, Exponential, or Logarithmic)
+
+### Audio Processing Settings
+
+Customize audio handling parameters:
+
+- **Default Truncate Length**: Set the default length (in seconds) for truncating long audio files (60-600 seconds, default: 174s for Morphagene compatibility)
+- **Max Recording Duration**: Set the maximum length for audio recordings (60-1800 seconds, default: 300s)
+- **Default Auto Slice Amount**: Configure the default number of slices when using the auto-slice feature (2-100 slices, default: 10)
+
+### Transient Detection Settings
+
+Fine-tune automatic splice point detection:
+
+- **Detection Threshold**: Adjust sensitivity for detecting transients (0.01 = very sensitive, 0.5 = less sensitive)
+- **Frame Size (ms)**: Set the analysis window size in milliseconds (10-100ms, default: 20ms)
+- **Overlap (%)**: Configure overlap between analysis windows (0-95%, default: 75%)
+
+### Export Settings
+
+Set your preferred default export format:
+
+- **Default Export Format**: Choose from various sample rates, bit depths, and channel configurations
+- Options include 48kHz/32-bit (Morphagene optimized), 44.1kHz formats, and mono/stereo variants
+
+### Settings Storage
+
+Your settings are automatically saved and persistent across sessions:
+
+- **Browser Version**: Settings are stored in your browser's local storage
+- **Desktop App**: Settings are stored in your system's application data directory
+- **Privacy**: All settings remain on your device and are never uploaded to any server
+- **Updates**: Settings are preserved when updating the application
+- **Reset**: Use the "Reset to Defaults" button to restore factory settings
 
 ---
 

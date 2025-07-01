@@ -4,7 +4,7 @@
 
 ![MorphEdit Logo](./public/MorphEdit-Logo.png)
 
-## Professional audio editing for the MakeNoise Morphagene and beyond
+## Professional audio editing for Samplers and beyond
 
 [![Version](https://img.shields.io/github/v/release/carlosedp/morphedit)](https://github.com/carlosedp/morphedit/releases) [![Security Scan](https://github.com/carlosedp/morphedit/actions/workflows/security.yml/badge.svg)](https://github.com/carlosedp/morphedit/actions/workflows/security.yml) [![CI](https://github.com/carlosedp/morphedit/actions/workflows/ci.yml/badge.svg)](https://github.com/carlosedp/morphedit/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -14,7 +14,7 @@
 
 ## 🎵 About
 
-MorphEdit is a powerful, browser-based audio editor designed for preparing audio files for the **MakeNoise Morphagene** granular synthesis module. While optimized for Morphagene workflows, it serves as a versatile tool for general audio editing tasks including splicing, cropping, fading, and concatenation making it perfect for audio sample manipulation.
+MorphEdit is a powerful, browser-based audio editor designed for preparing audio files for samplers and hardware instruments. While offering some features for the **MakeNoise Morphagene** granular synthesis module, it serves as a versatile tool for general audio editing tasks including splicing, cropping, fading, and concatenation making it perfect for audio sample manipulation across various sampling devices.
 
 **No installation required** - runs entirely in your browser with professional-grade audio processing capabilities.
 
@@ -43,10 +43,11 @@ MorphEdit is a powerful, browser-based audio editor designed for preparing audio
 
 ### 📤 **Flexible Export Options**
 
-- Optimized Morphagene format (48kHz, 16-bit WAV)
-- Multiple sample rates and bit depths
+- Multiple sample rates and bit depths for other samplers
+- Optimized Morphagene format (48kHz, 32-bit WAV)
 - Export individual splice segments
 - Batch processing support
+- **Configurable Defaults**: Customizable export formats and processing settings
 
 ### 🖥️ **Modern Interface**
 
@@ -55,6 +56,7 @@ MorphEdit is a powerful, browser-based audio editor designed for preparing audio
 - Mouse wheel zoom with smooth navigation
 - Material-UI components for professional appearance
 - Comprehensive keyboard shortcuts
+- **Customizable Settings**: Configurable fade curves, crossfade duration, detection sensitivity, and export formats
 
 ### 🔧 **Advanced Workflow**
 
@@ -63,6 +65,7 @@ MorphEdit is a powerful, browser-based audio editor designed for preparing audio
 - Undo/redo functionality
 - Background processing indicators
 - File length warnings and truncation options
+- **Persistent Configuration**: Settings automatically saved and preserved across sessions
 
 ## 🚀 Quick Start
 
@@ -91,11 +94,11 @@ Open [http://localhost:5173](http://localhost:5173) to view the application.
 - **[Feature List](./docs/FeatureList.md)** - Detailed feature tracking and roadmap
 - **[Auto-Update Setup](./docs/AUTO_UPDATE_SETUP.md)** - Desktop app update configuration
 
-## 🎯 Perfect for Morphagene Users
+## 🎯 Perfect for Morphagene Users and Eurorack Sampler users
 
 MorphEdit streamlines the Morphagene workflow by:
 
-- **Optimal File Preparation**: Exports in Morphagene's preferred 48kHz/16-bit format
+- **Optimal File Preparation**: Exports in Morphagene's preferred 48kHz/32-bit format
 - **Splice Point Precision**: Zero-crossing alignment prevents clicks and pops
 - **Length Management**: Automatic 174-second length optimization
 - **Tempo Matching**: Adjust audio tempo to fit your composition timing
@@ -124,7 +127,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Built with [WaveSurfer.js](https://wavesurfer-js.org/) for audio visualization
 - Audio processing powered by [RubberBand](https://breakfastquay.com/rubberband/) for tempo and pitch shifting
-- Designed for the [MakeNoise Morphagene](https://www.makenoisemusic.com/modules/morphagene) community
+- Designed for the [MakeNoise Morphagene](https://www.makenoisemusic.com/modules/morphagene) community and beyond
 - Icons from [Material-UI Icons](https://mui.com/material-ui/material-icons/)
 
 ---

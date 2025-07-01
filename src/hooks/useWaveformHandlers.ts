@@ -32,6 +32,7 @@ import {
   applyCrossfade,
 } from '../utils/regionUtils';
 import { applyNormalization } from '../utils/audioNormalization';
+import { applyReversal } from '../utils/audioReversal';
 import { applyTempoAndPitch } from '../utils/tempoAndPitchProcessing';
 import type { TempoAndPitchOptions } from '../utils/rubberbandProcessor';
 import {
@@ -575,6 +576,48 @@ export const useWaveformHandlers = ({
     onProcessingComplete,
   ]);
 
+  const handleReverse = useCallback(async () => {
+    if (onProcessingStart) {
+      onProcessingStart('Reversing audio...');
+    }
+
+    await applyReversal(
+      wavesurferRef.current!,
+      regionsRef.current!,
+      state.currentAudioUrl,
+      spliceMarkersStore,
+      lockedSpliceMarkersStore,
+      {
+        setPreviousAudioUrl,
+        setCanUndo,
+        setAudioBuffer,
+        setCurrentAudioUrl: actions.setCurrentAudioUrl,
+        setSpliceMarkersStore,
+        setPreviousSpliceMarkers,
+        setPreviousLockedSpliceMarkers,
+      }
+    );
+
+    if (onProcessingComplete) {
+      onProcessingComplete();
+    }
+  }, [
+    state.currentAudioUrl,
+    spliceMarkersStore,
+    lockedSpliceMarkersStore,
+    setPreviousAudioUrl,
+    setPreviousSpliceMarkers,
+    setPreviousLockedSpliceMarkers,
+    setCanUndo,
+    setAudioBuffer,
+    actions.setCurrentAudioUrl,
+    setSpliceMarkersStore,
+    wavesurferRef,
+    regionsRef,
+    onProcessingStart,
+    onProcessingComplete,
+  ]);
+
   const handleUndo = useCallback(async () => {
     await undo(wavesurferRef.current!, canUndo, previousAudioUrl, {
       setCurrentAudioUrl: actions.setCurrentAudioUrl,
@@ -1014,6 +1057,7 @@ export const useWaveformHandlers = ({
     handleApplyFades,
     handleApplyCrossfade,
     handleNormalize,
+    handleReverse,
     handleTempoAndPitch,
     handleUndo,
 

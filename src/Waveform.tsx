@@ -28,6 +28,7 @@ import {
   POSITION_UPDATE_INTERVAL,
   PLAYBACK_TIMING,
   WAVEFORM_RENDERING,
+  REGION_POSITIONING,
   MAX_KEYBOARD_SHORTCUT_MARKERS,
 } from './constants';
 import { waveformLogger } from './utils/logger';
@@ -50,6 +51,7 @@ import { WaveformControls } from './components/WaveformInfoBar';
 import { WaveformActionControls } from './components/WaveformActionControls';
 import { SpliceMarkerControls } from './components/SpliceMarkerControls';
 import { setupWaveformDebugUtils } from './utils/waveformDebugUtils';
+import { findNearestZeroCrossing } from './utils/transientDetection';
 
 interface WaveformProps {
   audioUrl: string;
@@ -77,6 +79,7 @@ export interface WaveformRef extends SpliceMarkerHandlers {
   handleApplyFades: () => void;
   handleApplyCrossfade: () => void;
   handleNormalize: () => void;
+  handleReverse: () => void;
   handleTempoAndPitch: () => void;
   handleUndo: () => void;
   handleExport: () => void;
@@ -798,6 +801,35 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         const pluginRegions = regions?.getRegions() || [];
         console.log('Regions from plugin:', pluginRegions);
 
+        // Snap regions to zero if they're close enough
+        const SNAP_TO_ZERO_THRESHOLD =
+          REGION_POSITIONING.SNAP_TO_ZERO_THRESHOLD; // 50ms threshold for snapping to zero
+
+        [...regionList, ...pluginRegions].forEach((region: Region) => {
+          // Only snap crop and fade regions, not splice markers
+          if (
+            region.id === 'crop-loop' ||
+            region.id === 'fade-in' ||
+            region.id === 'fade-out'
+          ) {
+            const shouldSnapStart =
+              region.start > 0 && region.start <= SNAP_TO_ZERO_THRESHOLD;
+
+            if (shouldSnapStart) {
+              console.log(
+                `Snapping ${region.id} start from ${region.start} to 0`
+              );
+              // Update the region to snap to zero
+              region.setOptions({ start: 0 });
+
+              // If it's a crop region, update the state
+              if (region.id === 'crop-loop') {
+                actions.setCropRegion(region);
+              }
+            }
+          }
+        });
+
         setRegions(
           regionList
             .filter((r) => r.end > r.start)
@@ -866,7 +898,22 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
             );
             console.log('Old positions:', currentStorePositions);
             console.log('New positions:', currentVisualMarkerPositions);
-            setSpliceMarkersStore(currentVisualMarkerPositions);
+
+            // Apply zero-crossing detection to moved markers
+            const audioBuffer = useAudioStore.getState().audioBuffer;
+            let finalMarkerPositions = currentVisualMarkerPositions;
+
+            if (audioBuffer) {
+              finalMarkerPositions = currentVisualMarkerPositions.map(
+                (markerTime) => findNearestZeroCrossing(audioBuffer, markerTime)
+              );
+              console.log('Applied zero-crossing to moved markers:', {
+                original: currentVisualMarkerPositions,
+                snapped: finalMarkerPositions,
+              });
+            }
+
+            setSpliceMarkersStore(finalMarkerPositions);
 
             // Also synchronize locked markers - check which visual markers are locked
             // and update the locked markers store accordingly
@@ -886,7 +933,11 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
               );
 
               if (wasLocked) {
-                newLockedMarkers.push(markerPosition);
+                // Use the snapped position for locked markers too
+                const snappedPosition = audioBuffer
+                  ? findNearestZeroCrossing(audioBuffer, markerPosition)
+                  : markerPosition;
+                newLockedMarkers.push(snappedPosition);
               }
             });
 
@@ -1020,6 +1071,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     const handleApplyFades = handlers.handleApplyFades;
     const handleApplyCrossfade = handlers.handleApplyCrossfade;
     const handleNormalize = handlers.handleNormalize;
+    const handleReverse = handlers.handleReverse;
     const handleTempoAndPitch = handlers.handleTempoAndPitch;
     const handleUndo = handlers.handleUndo;
 
@@ -1081,6 +1133,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleApplyFades,
         handleApplyCrossfade,
         handleNormalize,
+        handleReverse,
         handleTempoAndPitch,
         handleUndo,
         handleExport,
@@ -1113,6 +1166,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleApplyFades,
         handleApplyCrossfade,
         handleNormalize,
+        handleReverse,
         handleTempoAndPitch,
         handleUndo,
         handleExport,
@@ -1213,6 +1267,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           onSetFadeOutAnchorEl={actions.setFadeOutAnchorEl}
           onSetCrossfadeAnchorEl={actions.setCrossfadeAnchorEl}
           onNormalize={handleNormalize}
+          onReverse={handleReverse}
           onTempoAndPitch={handleTempoAndPitch}
           onCropRegion={handleCropRegion}
           onApplyCrop={handleApplyCrop}

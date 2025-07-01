@@ -6,7 +6,6 @@ import {
   Button,
   ButtonGroup,
   Tooltip,
-  Box,
   Menu,
   MenuItem,
   Typography,
@@ -21,6 +20,7 @@ import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import CutIcon from '@mui/icons-material/ContentCut';
 import UndoIcon from '@mui/icons-material/Undo';
 import NormalizeIcon from '@mui/icons-material/TuneOutlined';
+import ReverseIcon from '@mui/icons-material/SwapHoriz';
 import SpeedIcon from '@mui/icons-material/Speed';
 import BlurOnIcon from '@mui/icons-material/BlurOn';
 
@@ -54,6 +54,7 @@ interface WaveformActionControlsProps {
   onSetFadeOutAnchorEl: (element: HTMLElement | null) => void;
   onSetCrossfadeAnchorEl: (element: HTMLElement | null) => void;
   onNormalize: () => void;
+  onReverse: () => void;
   onCropRegion: () => void;
   onApplyCrop: () => void;
   onFadeInRegion: () => void;
@@ -94,6 +95,7 @@ export const WaveformActionControls = ({
   onSetFadeOutAnchorEl,
   onSetCrossfadeAnchorEl,
   onNormalize,
+  onReverse,
   onCropRegion,
   onApplyCrop,
   onFadeInRegion,
@@ -196,9 +198,8 @@ export const WaveformActionControls = ({
           spacing={1}
           alignItems="center"
           sx={{
-            flexWrap: 'wrap',
+            flexWrap: { xs: 'nowrap', md: 'nowrap' },
             gap: { xs: 0.5, sm: 1 },
-            justifyContent: { xs: 'center', lg: 'flex-end' },
           }}
         >
           {/* Normalize button */}
@@ -211,9 +212,25 @@ export const WaveformActionControls = ({
               variant="outlined"
               onClick={onNormalize}
               startIcon={<NormalizeIcon />}
-              sx={{ minWidth: 140 }}
+              sx={{ whiteSpace: 'nowrap' }}
             >
               Normalize
+            </Button>
+          </Tooltip>
+
+          {/* Reverse button */}
+          <Tooltip
+            title="Reverse audio (entire file or crop region if enabled)"
+            enterDelay={TOOLTIP_DELAYS.ENTER}
+            leaveDelay={TOOLTIP_DELAYS.LEAVE}
+          >
+            <Button
+              variant="outlined"
+              onClick={onReverse}
+              startIcon={<ReverseIcon />}
+              sx={{ whiteSpace: 'nowrap' }}
+            >
+              Reverse
             </Button>
           </Tooltip>
 
@@ -227,9 +244,9 @@ export const WaveformActionControls = ({
               variant="outlined"
               onClick={onTempoAndPitch}
               startIcon={<SpeedIcon />}
-              sx={{ minWidth: 140 }}
+              sx={{ whiteSpace: 'nowrap' }}
             >
-              Tempo & Pitch
+              Tempo/Pitch
             </Button>
           </Tooltip>
         </Stack>
@@ -389,10 +406,10 @@ export const WaveformActionControls = ({
           spacing={1}
           alignItems="center"
           sx={{
-            flexWrap: 'nowrap',
+            flexWrap: { xs: 'wrap', lg: 'nowrap' },
             gap: { xs: 0.5, sm: 1 },
             justifyContent: { xs: 'center', lg: 'flex-end' },
-            overflowX: 'auto',
+            width: '100%',
           }}
         >
           <Tooltip
@@ -400,51 +417,60 @@ export const WaveformActionControls = ({
             enterDelay={TOOLTIP_DELAYS.ENTER}
             leaveDelay={TOOLTIP_DELAYS.LEAVE}
           >
-            <Box component="span">
-              <Button
-                variant="contained"
-                color="success"
-                onClick={onApplyCrop}
-                disabled={!cropMode}
-                size="small"
-              >
-                Apply Crop
-              </Button>
-            </Box>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={onApplyCrop}
+              disabled={!cropMode}
+              size="small"
+              sx={{
+                flex: { xs: '1 1 auto', lg: '0 0 auto' },
+                whiteSpace: 'nowrap',
+                minWidth: { xs: 0, lg: 'max-content' },
+              }}
+            >
+              Apply Crop
+            </Button>
           </Tooltip>
           <Tooltip
             title="Apply fade regions to current audio"
             enterDelay={TOOLTIP_DELAYS.ENTER}
             leaveDelay={TOOLTIP_DELAYS.LEAVE}
           >
-            <Box component="span">
-              <Button
-                variant="contained"
-                color="success"
-                onClick={onApplyFades}
-                disabled={!fadeInMode && !fadeOutMode}
-                size="small"
-              >
-                Apply Fades
-              </Button>
-            </Box>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={onApplyFades}
+              disabled={!fadeInMode && !fadeOutMode}
+              size="small"
+              sx={{
+                flex: { xs: '1 1 auto', lg: '0 0 auto' },
+                whiteSpace: 'nowrap',
+                minWidth: { xs: 0, lg: 'max-content' },
+              }}
+            >
+              Apply Fades
+            </Button>
           </Tooltip>
           <Tooltip
             title="Apply crossfade region to current audio"
             enterDelay={TOOLTIP_DELAYS.ENTER}
             leaveDelay={TOOLTIP_DELAYS.LEAVE}
           >
-            <Box component="span">
-              <Button
-                variant="contained"
-                color="success"
-                onClick={onApplyCrossfade}
-                disabled={!crossfadeMode}
-                size="small"
-              >
-                Apply Crossfade
-              </Button>
-            </Box>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={onApplyCrossfade}
+              disabled={!crossfadeMode}
+              size="small"
+              sx={{
+                flex: { xs: '1 1 auto', lg: '0 0 auto' },
+                whiteSpace: 'nowrap',
+                minWidth: { xs: 0, lg: 'max-content' },
+              }}
+            >
+              Apply Crossfade
+            </Button>
           </Tooltip>
           <Tooltip
             title="Undo last edit"
