@@ -9,6 +9,7 @@ export default defineConfig({
   plugins: [react(), wasm(), topLevelAwait()],
   assetsInclude: ['**/*.wasm'],
   build: {
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       // Optimize chunk size and reduce file handles
       output: {
