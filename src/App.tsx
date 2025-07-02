@@ -104,15 +104,38 @@ function App() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
+
     if (files && files.length > 0) {
-      handleReset(); // Reset any existing audio before loading new files
-      const audioFiles = filterAudioFiles(files);
-      if (audioFiles.length > 1) {
-        handleMultipleFiles(audioFiles);
-      } else if (audioFiles.length === 1) {
-        loadAudioFile(audioFiles[0]);
+      // Reset zoom state when loading new audio to prevent Edge browser issues
+      if (waveformRef.current?.resetZoomState) {
+        waveformRef.current.resetZoomState();
+      }
+
+      // Reset any existing audio before loading new files
+      if (audioUrl) {
+        handleReset();
+        // Add a small delay to ensure reset is fully processed before loading new audio
+        setTimeout(() => {
+          const audioFiles = filterAudioFiles(files);
+          if (audioFiles.length > 1) {
+            handleMultipleFiles(audioFiles);
+          } else if (audioFiles.length === 1) {
+            loadAudioFile(audioFiles[0]);
+          }
+        }, 50);
+      } else {
+        // No existing audio, load immediately
+        const audioFiles = filterAudioFiles(files);
+        if (audioFiles.length > 1) {
+          handleMultipleFiles(audioFiles);
+        } else if (audioFiles.length === 1) {
+          loadAudioFile(audioFiles[0]);
+        }
       }
     }
+
+    // Clear the file input value to prevent browser caching issues
+    e.target.value = '';
   };
 
   const handleAppendFileChange = async (
@@ -279,6 +302,11 @@ function App() {
       setIsLoading(true);
       setLoadingMessage('Analyzing audio file...');
 
+      // Reset zoom state when loading new audio to prevent Edge browser issues
+      if (waveformRef.current?.resetZoomState) {
+        waveformRef.current.resetZoomState();
+      }
+
       try {
         // First, check the file duration
         const duration = await getAudioFileDuration(file);
@@ -296,7 +324,7 @@ function App() {
           // Loading dialog will be closed when Waveform is ready
         }
       } catch (error) {
-        console.error('Error getting audio file duration:', error);
+        appLogger.error('Error getting audio file duration:', error);
         // If we can't get duration, just load the file anyway
         setLoadingMessage('Loading audio file...');
         setShouldTruncateAudio(false);
@@ -622,6 +650,11 @@ function App() {
 
     if (audioFiles.length === 0) return;
 
+    // Reset zoom state when loading new audio to prevent Edge browser issues
+    if (waveformRef.current?.resetZoomState) {
+      waveformRef.current.resetZoomState();
+    }
+
     if (!audioUrl) {
       // No audio loaded, proceed with normal loading
       if (audioFiles.length > 1) {
@@ -690,6 +723,18 @@ function App() {
       URL.revokeObjectURL(audioUrl);
     }
     setAudioUrl(null);
+
+    // Reset zoom state to prevent Edge browser issues
+    if (waveformRef.current?.resetZoomState) {
+      waveformRef.current.resetZoomState();
+    }
+
+    // Clear file input values to prevent Edge browser caching issues
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    fileInputs.forEach((input) => {
+      (input as HTMLInputElement).value = '';
+    });
+
     // Clear the audio store
     reset();
   };
