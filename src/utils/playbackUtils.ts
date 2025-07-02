@@ -273,6 +273,8 @@ export const undo = async (
     setFadeOutMode: (mode: boolean) => void;
     setSpliceMarkersStore?: (markers: number[]) => void;
     setLockedSpliceMarkersStore?: (markers: number[]) => void;
+    resetZoom?: () => void;
+    setResetZoom?: (zoom: number) => void;
   }
 ): Promise<void> => {
   if (!ws || !canUndo || !previousAudioUrl) {
@@ -339,6 +341,23 @@ export const undo = async (
     callbacks.setCropRegion(null);
     callbacks.setFadeInMode(false);
     callbacks.setFadeOutMode(false);
+
+    // Reset the stored resetZoom value to force recalculation for restored audio
+    console.log('Resetting zoom after undo for proper display');
+    if (callbacks.setResetZoom) {
+      callbacks.setResetZoom(2); // Reset to default value to force recalculation
+      console.log(
+        'Reset stored resetZoom value to force recalculation after undo'
+      );
+    }
+
+    // Apply zoom reset after a brief delay to ensure everything is loaded
+    if (callbacks.resetZoom) {
+      setTimeout(() => {
+        console.log('Applying zoom reset after undo');
+        callbacks.resetZoom!();
+      }, 150);
+    }
   } catch (error) {
     console.error('Error during undo:', error);
     // Clear undo flag even on error

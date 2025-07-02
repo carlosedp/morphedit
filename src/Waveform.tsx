@@ -95,6 +95,7 @@ export interface WaveformRef extends SpliceMarkerHandlers {
   handleClearAllMarkers: () => void;
   handleTransientDetection: () => void;
   handleSnapToZeroCrossings: () => void;
+  resetZoomState: () => void;
 }
 
 const Waveform = forwardRef<WaveformRef, WaveformProps>(
@@ -252,6 +253,11 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
       const { wavesurfer: ws, regions } = createWaveSurferInstance(theme);
       wavesurferRef.current = ws;
       regionsRef.current = regions;
+
+      // Reset zoom state flag when creating new WaveSurfer instance to prevent Edge browser issues
+      if (handlers.resetZoomState) {
+        handlers.resetZoomState();
+      }
 
       // Check for recorded audio flag early for use in multiple handlers
       const urlToCheck = audioUrl || state.currentAudioUrl || '';
@@ -1090,6 +1096,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     const handleExportSlices = handlers.handleExportSlices;
     const handleExportFormatChange = handlers.handleExportFormatChange;
 
+    // Utility handlers
+    const resetZoomState = handlers.resetZoomState;
+
     // Splice playback handlers - dynamically generate handlers for all 20 splice markers
     const spliceHandlers = useMemo(() => {
       const handlers: Record<string, () => void> = {};
@@ -1147,6 +1156,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleClearAllMarkers,
         handleTransientDetection,
         handleSnapToZeroCrossings,
+        resetZoomState,
         ...spliceHandlers,
       }),
       [
@@ -1180,6 +1190,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleClearAllMarkers,
         handleTransientDetection,
         handleSnapToZeroCrossings,
+        resetZoomState,
         spliceHandlers,
         state.zoom,
       ]

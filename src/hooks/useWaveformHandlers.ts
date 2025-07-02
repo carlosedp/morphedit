@@ -207,101 +207,121 @@ export const useWaveformHandlers = ({
     // Set flag to prevent rapid clicks
     isZoomResetInProgress.current = true;
 
-    // Use the stored resetZoom value consistently - don't recalculate on every call
-    // Only calculate if resetZoom is at default or invalid state OR if duration has changed significantly
-    let zoomToApply = state.resetZoom;
+    // Cleanup function to ensure flag is always reset
+    const cleanup = () => {
+      isZoomResetInProgress.current = false;
+    };
 
-    // Calculate expected zoom for current duration
-    const expectedZoomForDuration = calculateInitialZoom(duration);
+    // Auto-cleanup after maximum expected time (Edge browser safety)
+    const maxTimeoutId = setTimeout(cleanup, 5000);
 
-    // Check if we need to calculate the initial zoom:
-    // 1. First time or invalid state (resetZoom <= MIN or default value)
-    // 2. Duration has changed significantly (suggesting tempo/pitch processing or other major change)
-    const durationMismatch =
-      Math.abs(zoomToApply - expectedZoomForDuration) >
-      expectedZoomForDuration * 0.1; // 10% tolerance
-    const needsRecalculation =
-      state.resetZoom <= ZOOM_LEVELS.MIN ||
-      state.resetZoom === 2 ||
-      durationMismatch;
+    try {
+      // Calculate the optimal zoom first to minimize visual flicker
+      let zoomToApply = state.resetZoom;
 
-    if (needsRecalculation) {
-      zoomToApply = expectedZoomForDuration;
-      actions.setResetZoom(zoomToApply); // Store the calculated value for future use
-      console.log('🔍 Calculated new resetZoom:', {
-        duration,
-        zoomToApply,
-        reason: durationMismatch ? 'duration-changed' : 'first-time',
-      });
-    } else {
-      console.log('🔍 Using stored resetZoom:', zoomToApply);
-    }
+      // Calculate expected zoom for current duration
+      const expectedZoomForDuration = calculateInitialZoom(duration);
 
-    console.log('🔍 Zoom reset:', { duration, zoomToApply });
+      // Check if we need to calculate the initial zoom:
+      // 1. First time or invalid state (resetZoom <= MIN or default value)
+      // 2. Duration has changed significantly (suggesting tempo/pitch processing or other major change)
+      const durationMismatch =
+        Math.abs(zoomToApply - expectedZoomForDuration) >
+        expectedZoomForDuration * 0.1; // 10% tolerance
+      const needsRecalculation =
+        state.resetZoom <= ZOOM_LEVELS.MIN ||
+        state.resetZoom === 2 ||
+        durationMismatch;
 
-    // Update state and apply zoom
-    actions.setZoom(zoomToApply);
-    wavesurferRef.current.zoom(zoomToApply);
-
-    console.log('🔍 Zoom reset applied successfully');
-
-    // Force a complete redraw of regions after zoom to ensure splice markers are visible
-    setTimeout(() => {
-      if (regionsRef.current && wavesurferRef.current) {
-        console.log('Refreshing regions after zoom reset');
-
-        // Get all current regions data before clearing
-        const allRegions = regionsRef.current.getRegions();
-        const spliceMarkers = allRegions.filter((r: Region) =>
-          r.id.startsWith('splice-marker-')
-        );
-
-        if (spliceMarkers.length > 0) {
-          console.log(
-            `Found ${spliceMarkers.length} splice markers to refresh`
-          );
-
-          // Store region data
-          const markerData = spliceMarkers.map((region: Region) => ({
-            id: region.id,
-            start: region.start,
-            end: region.end,
-            content: region.content?.textContent || MARKER_ICONS.UNLOCKED,
-            color: region.color,
-            drag: region.drag,
-            resize: region.resize,
-          }));
-
-          // Remove all splice markers
-          spliceMarkers.forEach((region: Region) => region.remove());
-
-          // Re-add them after a brief delay to force complete re-render
-          setTimeout(() => {
-            markerData.forEach((data: MarkerData) => {
-              regionsRef.current!.addRegion({
-                id: data.id,
-                start: data.start,
-                end: data.end,
-                content: data.content,
-                color: data.color,
-                drag: data.drag,
-                resize: data.resize,
-              });
-            });
-            console.log('Re-added splice markers after zoom reset');
-
-            // Clear the progress flag after everything is complete
-            isZoomResetInProgress.current = false;
-          }, 50);
-        } else {
-          // Clear the progress flag if no markers to process
-          isZoomResetInProgress.current = false;
-        }
+      if (needsRecalculation) {
+        zoomToApply = expectedZoomForDuration;
+        actions.setResetZoom(zoomToApply); // Store the calculated value for future use
+        console.log('🔍 Calculated new resetZoom:', {
+          duration,
+          zoomToApply,
+          reason: durationMismatch ? 'duration-changed' : 'first-time',
+        });
       } else {
-        // Clear the progress flag if no regions ref
-        isZoomResetInProgress.current = false;
+        console.log('🔍 Using stored resetZoom:', zoomToApply);
       }
-    }, 150);
+
+      console.log('🔍 Applying zoom reset:', { duration, zoomToApply });
+
+      // Apply zoom directly - simplified approach for better Edge compatibility
+      actions.setZoom(zoomToApply);
+      wavesurferRef.current.zoom(zoomToApply);
+
+      // Force a single redraw after a short delay
+      setTimeout(() => {
+        try {
+          if (wavesurferRef.current) {
+            // Force a container resize event to trigger redraw
+            const container = wavesurferRef.current.getWrapper();
+            if (container) {
+              const event = new Event('resize');
+              window.dispatchEvent(event);
+            }
+            console.log(
+              '🔍 Zoom reset applied successfully with forced redraw'
+            );
+          }
+
+          // Handle region refresh if needed
+          if (regionsRef.current && wavesurferRef.current) {
+            const allRegions = regionsRef.current.getRegions();
+            const spliceMarkers = allRegions.filter((r: Region) =>
+              r.id.startsWith('splice-marker-')
+            );
+
+            if (spliceMarkers.length > 0) {
+              console.log(
+                `Refreshing ${spliceMarkers.length} splice markers after zoom reset`
+              );
+
+              // Store region data
+              const markerData = spliceMarkers.map((region: Region) => ({
+                id: region.id,
+                start: region.start,
+                end: region.end,
+                content: region.content?.textContent || MARKER_ICONS.UNLOCKED,
+                color: region.color,
+                drag: region.drag,
+                resize: region.resize,
+              }));
+
+              // Remove and re-add markers for proper rendering
+              spliceMarkers.forEach((region: Region) => region.remove());
+
+              markerData.forEach((data: MarkerData) => {
+                regionsRef.current!.addRegion({
+                  id: data.id,
+                  start: data.start,
+                  end: data.end,
+                  content: data.content,
+                  color: data.color,
+                  drag: data.drag,
+                  resize: data.resize,
+                });
+              });
+
+              console.log('Re-added splice markers after zoom reset');
+            }
+          }
+
+          console.log('🔍 Zoom reset completed successfully');
+        } catch (error) {
+          console.error('🔍 Error during zoom reset cleanup:', error);
+        } finally {
+          // Clear timeouts and reset flag
+          clearTimeout(maxTimeoutId);
+          cleanup();
+        }
+      }, 50);
+    } catch (error) {
+      console.error('🔍 Error during zoom reset:', error);
+      clearTimeout(maxTimeoutId);
+      cleanup();
+    }
   }, [actions, wavesurferRef, regionsRef, state.resetZoom]);
 
   const handleSkipForward = useCallback(() => {
@@ -554,6 +574,8 @@ export const useWaveformHandlers = ({
         setSpliceMarkersStore,
         setPreviousSpliceMarkers,
         setPreviousLockedSpliceMarkers,
+        resetZoom: handleZoomReset,
+        setResetZoom: actions.setResetZoom,
       }
     );
 
@@ -570,10 +592,12 @@ export const useWaveformHandlers = ({
     setCanUndo,
     setAudioBuffer,
     actions.setCurrentAudioUrl,
+    actions.setResetZoom,
     setSpliceMarkersStore,
     wavesurferRef,
     onProcessingStart,
     onProcessingComplete,
+    handleZoomReset,
   ]);
 
   const handleReverse = useCallback(async () => {
@@ -595,6 +619,8 @@ export const useWaveformHandlers = ({
         setSpliceMarkersStore,
         setPreviousSpliceMarkers,
         setPreviousLockedSpliceMarkers,
+        resetZoom: handleZoomReset,
+        setResetZoom: actions.setResetZoom,
       }
     );
 
@@ -611,11 +637,13 @@ export const useWaveformHandlers = ({
     setCanUndo,
     setAudioBuffer,
     actions.setCurrentAudioUrl,
+    actions.setResetZoom,
     setSpliceMarkersStore,
     wavesurferRef,
     regionsRef,
     onProcessingStart,
     onProcessingComplete,
+    handleZoomReset,
   ]);
 
   const handleUndo = useCallback(async () => {
@@ -629,6 +657,8 @@ export const useWaveformHandlers = ({
       setFadeOutMode: actions.setFadeOutMode,
       setSpliceMarkersStore,
       setLockedSpliceMarkersStore,
+      resetZoom: handleZoomReset,
+      setResetZoom: actions.setResetZoom,
     });
   }, [
     canUndo,
@@ -639,6 +669,7 @@ export const useWaveformHandlers = ({
     wavesurferRef,
     setSpliceMarkersStore,
     setLockedSpliceMarkersStore,
+    handleZoomReset,
   ]);
 
   const handleTempoAndPitch = useCallback(() => {
@@ -1036,6 +1067,11 @@ export const useWaveformHandlers = ({
     return handlers;
   }, [spliceMarkersStore, wavesurferRef]);
 
+  // Additional utility handler for resetting zoom state (for browser compatibility)
+  const resetZoomState = useCallback(() => {
+    isZoomResetInProgress.current = false;
+  }, []);
+
   return {
     // Playback handlers
     handlePlayPause,
@@ -1078,5 +1114,8 @@ export const useWaveformHandlers = ({
 
     // Splice playback handlers
     spliceHandlers,
+
+    // Utility handlers
+    resetZoomState,
   };
 };
