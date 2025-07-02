@@ -80,6 +80,8 @@ export const applyReversal = async (
     setSpliceMarkersStore: (markers: number[]) => void;
     setPreviousSpliceMarkers: (markers: number[]) => void;
     setPreviousLockedSpliceMarkers: (markers: number[]) => void;
+    resetZoom?: () => void;
+    setResetZoom?: (zoom: number) => void;
   }
 ): Promise<void> => {
   // Get the audio buffer from the audio store
@@ -217,9 +219,26 @@ export const applyReversal = async (
       'seconds'
     );
 
+    // Reset the stored resetZoom value to force recalculation for new duration
+    console.log('Resetting zoom after reversal for proper display');
+    if (callbacks.setResetZoom) {
+      callbacks.setResetZoom(2); // Reset to default value to force recalculation
+      console.log(
+        'Reset stored resetZoom value to force recalculation after reversal'
+      );
+    }
+
     // Clear processing flag
     console.log('Clearing processing flag (success)');
     store.setIsProcessingAudio(false);
+
+    // Apply zoom reset after a brief delay to ensure everything is loaded
+    if (callbacks.resetZoom) {
+      setTimeout(() => {
+        console.log('Applying zoom reset after reversal');
+        callbacks.resetZoom!();
+      }, 150);
+    }
   } catch (error) {
     console.error('Error loading reversed audio:', error);
     // Clear processing flag on error too
