@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "npm": {
+      "args": ["-y", "mcp-node@latest"],
+      "command": "npx"
+    }
+  }
+}
