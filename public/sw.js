@@ -1,12 +1,35 @@
-// Service Worker for MorphEdit PWA
+// Service Worker for MorphEdit PWA (Auto-generated)
 const CACHE_NAME = 'morphedit-v1';
 const urlsToCache = [
   '/',
-  '/index.html',
-  '/manifest.json',
+  '/MorphEdit-Logo-Small.png',
+  '/MorphEdit-Logo.png',
+  '/USER_MANUAL.md',
   '/favicon.ico',
+  '/icon.icns',
+  '/icon.ico',
   '/icon.png',
-  // Add other static assets here
+  '/img/addmarker.png',
+  '/img/autoslice.png',
+  '/img/cropregion.png',
+  '/img/crossfade.png',
+  '/img/exportformats.png',
+  '/img/fadecurves.png',
+  '/img/fades-applied.png',
+  '/img/fades.png',
+  '/img/infobar.png',
+  '/img/length.png',
+  '/img/lockmarker.png',
+  '/img/overview.png',
+  '/img/region.png',
+  '/img/replace-audio.png',
+  '/img/settings.png',
+  '/img/slicedetect.png',
+  '/img/splice.png',
+  '/img/tempopitch.png',
+  '/img/waveform.png',
+  '/manifest.json',
+  '/manual.html',
 ];
 
 // Install event - cache resources
