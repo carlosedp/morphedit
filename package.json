@@ -19,14 +19,15 @@
     "url": "https://github.com/carlosedp/morphedit/issues"
   },
   "private": true,
-  "version": "5.6.0",
+  "version": "5.6.1",
   "type": "module",
   "scripts": {
     "start": "vite",
     "dev": "vite",
-    "build": "tsc -b && vite build && npm run build:manual",
-    "build:pwa": "tsc -b && vite build --mode pwa && npm run build:manual",
+    "build": "npm run generate-sw && tsc -b && vite build && npm run build:manual",
+    "build:pwa": "npm run generate-sw && tsc -b && vite build --mode pwa && npm run build:manual",
     "build:manual": "node scripts/build-manual.js",
+    "generate-sw": "node scripts/generate-sw.js",
     "clean": "rimraf dist && rimraf node_modules",
     "lint": "eslint . --fix",
     "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\"",

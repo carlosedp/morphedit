@@ -8,8 +8,8 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig({
   base: './', // Ensure relative paths for Electron
   plugins: [
-    react(), 
-    wasm(), 
+    react(),
+    wasm(),
     topLevelAwait(),
     VitePWA({
       registerType: 'autoUpdate',
@@ -23,16 +23,17 @@ export default defineConfig({
               cacheName: 'google-fonts-cache',
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
-              }
-            }
-          }
-        ]
+                maxAgeSeconds: 60 * 60 * 24 * 365, // <== 365 days
+              },
+            },
+          },
+        ],
       },
       manifest: {
         name: 'MorphEdit - Audio Reel Editor',
         short_name: 'MorphEdit',
-        description: 'A desktop application for creating audio reels, samples and editing.',
+        description:
+          'A desktop application for creating audio reels, samples and editing.',
         theme_color: '#000000',
         background_color: '#ffffff',
         display: 'standalone',
@@ -44,11 +45,11 @@ export default defineConfig({
             src: '/icon.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ]
-      }
-    })
+            purpose: 'any maskable',
+          },
+        ],
+      },
+    }),
   ],
   assetsInclude: ['**/*.wasm'],
   build: {

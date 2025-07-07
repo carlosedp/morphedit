@@ -83,13 +83,14 @@ For offline use and a native app experience:
 4. Launch anytime as a standalone app with full offline functionality
 
 **Benefits of PWA installation:**
+
 - Works offline after initial load
 - Native app-like experience
 - No browser UI clutter
 - Desktop shortcut/app launcher integration
 - Automatic updates when online
 
-*Note: Firefox may require enabling PWA support in `about:config` (search for `browser.taskbarTabs.enabled`) and restart your browser.
+*Note: Firefox may require enabling PWA support in `about:config` (search for `browser.taskbarTabs.enabled`) and restart your browser. Support for it is still not 100% functional, so Chrome or Edge is recommended for the best experience in this install option.
 
 ### Option 3: Download Desktop App
 

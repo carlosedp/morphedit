@@ -1,4 +1,4 @@
 {
-  "ignore": ["preload.js"],
+  "ignore": ["preload.js", "public/sw.js"],
   "ignoreDependencies": ["@fontsource/roboto-mono"]
 }
