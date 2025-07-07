@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "npm": {
+      "args": ["-y", "mcp-node@latest"],
+      "command": "npx"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    }
+  }
+}

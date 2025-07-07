@@ -2,11 +2,54 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import topLevelAwait from 'vite-plugin-top-level-await';
 import wasm from 'vite-plugin-wasm';
+import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vite.dev/config/
 export default defineConfig({
   base: './', // Ensure relative paths for Electron
-  plugins: [react(), wasm(), topLevelAwait()],
+  plugins: [
+    react(), 
+    wasm(), 
+    topLevelAwait(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
+              }
+            }
+          }
+        ]
+      },
+      manifest: {
+        name: 'MorphEdit - Audio Reel Editor',
+        short_name: 'MorphEdit',
+        description: 'A desktop application for creating audio reels, samples and editing.',
+        theme_color: '#000000',
+        background_color: '#ffffff',
+        display: 'standalone',
+        orientation: 'portrait',
+        scope: '/',
+        start_url: '/',
+        icons: [
+          {
+            src: '/icon.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
+          }
+        ]
+      }
+    })
+  ],
   assetsInclude: ['**/*.wasm'],
   build: {
     chunkSizeWarningLimit: 1000,
