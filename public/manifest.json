@@ -1,0 +1,31 @@
+{
+  "name": "MorphEdit - Audio Reel Editor",
+  "short_name": "MorphEdit",
+  "description": "A desktop application for creating audio reels, samples and editing.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["music", "productivity", "utilities"],
+  "screenshots": [
+    {
+      "src": "/MorphEdit-Logo-Small.png",
+      "sizes": "480x480",
+      "type": "image/png"
+    }
+  ]
+}

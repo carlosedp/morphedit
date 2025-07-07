@@ -25,6 +25,7 @@
     "start": "vite",
     "dev": "vite",
     "build": "tsc -b && vite build && npm run build:manual",
+    "build:pwa": "tsc -b && vite build --mode pwa && npm run build:manual",
     "build:manual": "node scripts/build-manual.js",
     "clean": "rimraf dist && rimraf node_modules",
     "lint": "eslint . --fix",
@@ -71,6 +72,7 @@
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
     "vite": "^6.3.5",
+    "vite-plugin-pwa": "^1.0.1",
     "vite-plugin-top-level-await": "^1.5.0",
     "vite-plugin-wasm": "^3.4.1"
   },

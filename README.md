@@ -73,11 +73,29 @@ MorphEdit is a powerful, browser-based audio editor designed for preparing audio
 
 Visit the [live application](https://carlosedp.github.io/morphedit/) - no installation required!
 
-### Option 2: Download Desktop App
+### Option 2: Install as PWA (Progressive Web App)
+
+For offline use and a native app experience:
+
+1. Visit the [live application](https://audioedit.carlosedp.com) in Chrome, Firefox*, or Edge
+2. Look for the "Install" button in your browser's address bar or menu
+3. Click "Install MorphEdit" to add it to your desktop/home screen
+4. Launch anytime as a standalone app with full offline functionality
+
+**Benefits of PWA installation:**
+- Works offline after initial load
+- Native app-like experience
+- No browser UI clutter
+- Desktop shortcut/app launcher integration
+- Automatic updates when online
+
+*Note: Firefox may require enabling PWA support in `about:config` (search for `browser.taskbarTabs.enabled`) and restart your browser.
+
+### Option 3: Download Desktop App
 
 Download the latest release for your platform from [GitHub Releases](https://github.com/carlosedp/morphedit/releases).
 
-### Option 3: Run from Source
+### Option 4: Run from Source
 
 ```bash
 git clone https://github.com/carlosedp/morphedit.git
@@ -93,6 +111,7 @@ Open [http://localhost:5173](http://localhost:5173) to view the application.
 - **[Complete User Manual](./public/USER_MANUAL.md)** - Comprehensive guide with screenshots
 - **[Feature List](./docs/FeatureList.md)** - Detailed feature tracking and roadmap
 - **[Auto-Update Setup](./docs/AUTO_UPDATE_SETUP.md)** - Desktop app update configuration
+- **[PWA Deployment Guide](./docs/PWA_DEPLOYMENT.md)** - Progressive Web App installation and offline usage
 
 ## 🎯 Perfect for Morphagene Users and Eurorack Sampler users
 
@@ -112,7 +131,8 @@ MorphEdit streamlines the Morphagene workflow by:
 - **Audio Processing**: WaveSurfer.js, Web Audio API, RubberBand WASM
 - **State Management**: Zustand
 - **Build Tool**: Vite
-- **Desktop**: Electron
+- **Desktop**: Electron  
+- **PWA Support**: Service Worker, Web App Manifest, Offline Caching
 - **Deployment**: GitHub Pages
 
 ## 🤝 Contributing
