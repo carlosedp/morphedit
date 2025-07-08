@@ -1,8 +1,15 @@
 {
   "servers": {
-    "npm": {
-      "args": ["-y", "mcp-node@latest"],
-      "command": "npx"
+    // "npm": {
+    //   "args": ["-y", "mcp-node@latest"],
+    //   "command": "npx"
+    // },
+    "bun": {
+      "command": "npx",
+      "args": ["-y", "mcp-bun@latest"],
+      "env": {
+        "DISABLE_NOTIFICATIONS": "true"
+      }
     },
     "playwright": {
       "command": "npx",
