@@ -72,7 +72,7 @@
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
     "knip": "^5.61.2",
-    "marked": "^15.0.12",
+    "marked": "^16.0.0",
     "prettier": "^3.6.0",
     "rimraf": "^6.0.1",
     "rollup-plugin-visualizer": "^5.12.0",
