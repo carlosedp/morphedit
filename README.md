@@ -6,7 +6,7 @@
 
 ## Professional audio editing for Samplers and beyond
 
-[![Version](https://img.shields.io/github/v/release/carlosedp/morphedit)](https://github.com/carlosedp/morphedit/releases) [![Security Scan](https://github.com/carlosedp/morphedit/actions/workflows/security.yml/badge.svg)](https://github.com/carlosedp/morphedit/actions/workflows/security.yml) [![CI](https://github.com/carlosedp/morphedit/actions/workflows/ci.yml/badge.svg)](https://github.com/carlosedp/morphedit/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/github/v/release/carlosedp/morphedit)](https://github.com/carlosedp/morphedit/releases) [![Security Scan](https://github.com/carlosedp/morphedit/actions/workflows/security.yml/badge.svg)](https://github.com/carlosedp/morphedit/actions/workflows/security.yml) [![CI](https://github.com/carlosedp/morphedit/actions/workflows/ci.yml/badge.svg)](https://github.com/carlosedp/morphedit/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)[![codecov](https://codecov.io/gh/carlosedp/morphedit/graph/badge.svg?token=9HMv0QueiB)](https://codecov.io/gh/carlosedp/morphedit)
 
 [Download](https://github.com/carlosedp/morphedit/releases) • [Documentation](./public/USER_MANUAL.md) • [Report Bug](https://github.com/carlosedp/morphedit/issues) • [Request Feature](https://github.com/carlosedp/morphedit/issues)
 
