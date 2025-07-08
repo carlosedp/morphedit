@@ -25,3 +25,5 @@ dist-ssr
 public/manual.html
 electron-dist
 /coverage
+/playwright-report
+/test-results

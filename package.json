@@ -37,6 +37,12 @@
     "lint": "bun run eslint && bun run pretty && bun run depcheck",
     "depcheck": "knip",
     "preview": "vite preview",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "electron:dev": "vite build && electron .",
     "electron:pack": "bun run build && electron-builder --dir",
     "electron:dist": "bun run build && electron-builder"
@@ -64,6 +70,11 @@
     "electron": "^37.2.0",
     "electron-builder": "^26.0.12",
     "eslint": "^9.30.1",
+    "@playwright/test": "^1.53.2",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@vitest/coverage-v8": "^2.1.8",
+    "@vitest/ui": "^2.1.8",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",
@@ -74,6 +85,8 @@
     "knip": "^5.61.3",
     "marked": "^16.0.0",
     "prettier": "^3.6.2",
+    "jsdom": "^26.1.0",
+    "playwright": "^1.53.2",
     "rimraf": "^6.0.1",
     "rollup-plugin-visualizer": "^6.0.3",
     "typescript": "~5.8.3",
@@ -81,7 +94,8 @@
     "vite": "^6.3.5",
     "vite-plugin-pwa": "^1.0.1",
     "vite-plugin-top-level-await": "^1.5.0",
-    "vite-plugin-wasm": "^3.4.1"
+    "vite-plugin-wasm": "^3.4.1",
+    "vitest": "^2.1.9"
   },
   "main": "electron-main.cjs",
   "build": {
