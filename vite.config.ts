@@ -3,9 +3,10 @@ import react from '@vitejs/plugin-react';
 import topLevelAwait from 'vite-plugin-top-level-await';
 import wasm from 'vite-plugin-wasm';
 import { VitePWA } from 'vite-plugin-pwa';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   base: './', // Ensure relative paths for Electron
   plugins: [
     react(),
@@ -15,6 +16,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm}'],
+        globIgnores: ['**/stats.html'],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3MB limit
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -50,8 +53,27 @@ export default defineConfig({
         ],
       },
     }),
-  ],
+    // Bundle analyzer - only in analyze mode
+    mode === 'analyze' &&
+      visualizer({
+        filename: 'dist/stats.html',
+        open: true,
+        gzipSize: true,
+        brotliSize: true,
+        template: 'treemap',
+      }),
+  ].filter(Boolean),
   assetsInclude: ['**/*.wasm'],
+  resolve: {
+    alias: {
+      '@': '/src',
+      '@/components': '/src/components',
+      '@/hooks': '/src/hooks',
+      '@/utils': '/src/utils',
+      '@/stores': '/src/stores',
+      '@/types': '/src/types',
+    },
+  },
   build: {
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
@@ -60,6 +82,7 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom'],
           mui: ['@mui/material', '@mui/system', '@mui/icons-material'],
+          audio: ['wavesurfer.js', 'web-audio-beat-detector'],
         },
       },
       // Increase max parallel file reads to handle large dependency trees
@@ -69,4 +92,4 @@ export default defineConfig({
   optimizeDeps: {
     include: ['@mui/material', '@mui/system', '@mui/icons-material'],
   },
-});
+}));

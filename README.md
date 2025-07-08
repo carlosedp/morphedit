@@ -98,11 +98,15 @@ Download the latest release for your platform from [GitHub Releases](https://git
 
 ### Option 4: Run from Source
 
+First install [Bun](https://bun.sh/) (a modern JavaScript runtime) according to the Bun Website. We use Bun for its speed and efficiency in handling JavaScript projects, including TypeScript support and fast package management instead of Node.js, npm or yarn.
+
+Then clone the repository and run the development server:
+
 ```bash
 git clone https://github.com/carlosedp/morphedit.git
 cd morphedit
-npm install
-npm run dev
+bun install
+bun run dev
 ```
 
 Open [http://localhost:5173](http://localhost:5173) to view the application.

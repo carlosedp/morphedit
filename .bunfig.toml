@@ -1,0 +1,23 @@
+[install]
+# Install exact versions from package.json
+exact = true
+# Use faster install algorithm
+auto = "auto"
+# Cache dependencies
+cache = true
+# Peer dependencies handling
+peer = true
+
+[test]
+# Use JSX transform
+jsx = "react-jsx"
+# Test timeout
+timeout = 30000
+
+[build]
+# Bundle splitting
+splitting = true
+# Minify output
+minify = true
+# Source maps
+sourcemap = true
