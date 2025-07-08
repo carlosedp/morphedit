@@ -31,7 +31,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Run bun audit
-        run: bunx audit
+        run: bun audit
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
