@@ -1,13 +1,14 @@
 // Tempo and pitch processing utility for the Waveform component
 
 import WaveSurfer from 'wavesurfer.js';
+
+import { audioBufferToWavBlob } from './audioConcatenation';
+import { detectBPMWithTimeout } from './bpmDetection';
 import { createLogger } from './logger';
 import {
   processAudioWithRubberBand,
   type TempoAndPitchOptions,
 } from './rubberbandProcessor';
-import { audioBufferToWavBlob } from './audioConcatenation';
-import { detectBPMWithTimeout } from './bpmDetection';
 
 const logger = createLogger('TempoAndPitchProcessing');
 

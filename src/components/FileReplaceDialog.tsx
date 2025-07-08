@@ -1,15 +1,15 @@
-import React from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Typography,
-  Button,
-  Box,
-  Alert,
-} from '@mui/material';
 import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
+import {
+  Alert,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Typography,
+} from '@mui/material';
+import React from 'react';
 
 interface FileReplaceDialogProps {
   open: boolean;
@@ -22,13 +22,13 @@ interface FileReplaceDialogProps {
 }
 
 export const FileReplaceDialog: React.FC<FileReplaceDialogProps> = ({
-  open,
+  fileCount = 1,
   fileName,
   isMultipleFiles,
-  fileCount = 1,
-  onReplace,
   onAppend,
   onCancel,
+  onReplace,
+  open,
 }) => {
   return (
     <Dialog

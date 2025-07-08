@@ -1,29 +1,30 @@
 // Splice marker utilities and handlers
+import type WaveSurfer from 'wavesurfer.js';
 import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
 import type RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
-import type WaveSurfer from 'wavesurfer.js';
+
 import { useAudioStore } from '../audioStore';
-import { findNearestZeroCrossing } from './transientDetection';
-import { getAudioBuffer, getLockedSpliceMarkers } from './storeHelpers';
+import {
+  MARKER_ICONS,
+  MARKER_TOLERANCE,
+  MAX_TOTAL_SPLICE_POINTS,
+  REGION_COLORS,
+  REGION_POSITIONING,
+  UI_COLORS,
+} from '../constants';
 import { spliceLogger } from './logger';
 import {
-  MARKER_TOLERANCE,
-  REGION_COLORS,
-  MARKER_ICONS,
-  UI_COLORS,
-  REGION_POSITIONING,
-  MAX_TOTAL_SPLICE_POINTS,
-} from '../constants';
-import {
+  clearSelectionAndUpdateColors,
+  combineAndSortMarkers,
   getSpliceMarkerRegions,
   getUnlockedSpliceMarkers,
-  removeRegions,
-  clearSelectionAndUpdateColors,
-  removeUnlockedMarkersAndClearSelection,
   isMarkerTooCloseToExisting,
-  combineAndSortMarkers,
   limitSpliceMarkers,
+  removeRegions,
+  removeUnlockedMarkersAndClearSelection,
 } from './regionHelpers';
+import { getAudioBuffer, getLockedSpliceMarkers } from './storeHelpers';
+import { findNearestZeroCrossing } from './transientDetection';
 
 // Helper functions for locked markers
 export const isMarkerLocked = (

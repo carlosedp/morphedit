@@ -1,36 +1,37 @@
 // Tempo and Pitch Dialog for adjusting audio speed and pitch using RubberBand
 
-import React, { useState, useEffect, useRef } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Box,
-  Typography,
-  Slider,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormControlLabel,
-  Switch,
-  TextField,
-  Alert,
-  CircularProgress,
-} from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
 import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  FormControlLabel,
+  InputLabel,
+  MenuItem,
+  Select,
+  Slider,
+  Switch,
+  TextField,
+  Typography,
+} from '@mui/material';
+import React, { useEffect, useRef, useState } from 'react';
+
+import { useAudioStore } from '../audioStore';
+import { TEMPO_PITCH_PREVIEW_DURATION } from '../constants';
+import {
   DEFAULT_TEMPO_PITCH_OPTIONS,
-  type TempoAndPitchOptions,
-  semitoneToRatio,
   percentToRatio,
   processAudioWithRubberBand,
+  semitoneToRatio,
+  type TempoAndPitchOptions,
 } from '../utils/rubberbandProcessor';
-import { TEMPO_PITCH_PREVIEW_DURATION } from '../constants';
-import { useAudioStore } from '../audioStore';
 
 interface TempoAndPitchDialogProps {
   open: boolean;
@@ -41,11 +42,11 @@ interface TempoAndPitchDialogProps {
 }
 
 export const TempoAndPitchDialog: React.FC<TempoAndPitchDialogProps> = ({
-  open,
-  onClose,
-  onApply,
-  originalDuration,
   estimatedBpm,
+  onApply,
+  onClose,
+  open,
+  originalDuration,
 }) => {
   const [options, setOptions] = useState<TempoAndPitchOptions>(
     DEFAULT_TEMPO_PITCH_OPTIONS

@@ -1,5 +1,6 @@
 // Debug utilities for WaveSurfer regions and splice markers
 import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
+
 import { useAudioStore } from '../audioStore';
 import { MARKER_ICONS } from '../constants';
 

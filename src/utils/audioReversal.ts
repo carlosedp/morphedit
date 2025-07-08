@@ -3,6 +3,7 @@
 import type WaveSurfer from 'wavesurfer.js';
 import type RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
 import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
+
 import { useAudioStore } from '../audioStore';
 import { audioBufferToWavWithCues } from './audioProcessing';
 

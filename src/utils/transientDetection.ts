@@ -2,20 +2,21 @@
 import type WaveSurfer from 'wavesurfer.js';
 import type RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
 import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
+
 import { useAudioStore } from '../audioStore';
-import { isMarkerLocked } from './spliceMarkerUtils';
 import {
-  REGION_COLORS,
-  TRANSIENT_DETECTION,
   MARKER_ICONS,
   MARKER_TOLERANCE,
+  REGION_COLORS,
+  TRANSIENT_DETECTION,
 } from '../constants';
 import {
-  removeUnlockedMarkersAndClearSelection,
-  removeAllSpliceMarkersAndClearSelection,
   clearSelectionAndUpdateColors,
   limitSpliceMarkers,
+  removeAllSpliceMarkersAndClearSelection,
+  removeUnlockedMarkersAndClearSelection,
 } from './regionHelpers';
+import { isMarkerLocked } from './spliceMarkerUtils';
 
 /**
  * Detects transients (sudden changes in energy) in audio buffer

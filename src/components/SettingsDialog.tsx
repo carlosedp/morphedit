@@ -1,29 +1,30 @@
-import React, { useState } from 'react';
+import { RestartAlt, Settings as SettingsIcon } from '@mui/icons-material';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Typography,
   Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
   FormControl,
   InputLabel,
-  Select,
   MenuItem,
-  TextField,
-  Divider,
+  Select,
   Stack,
+  TextField,
   Tooltip,
-  Chip,
+  Typography,
 } from '@mui/material';
-import { Settings as SettingsIcon, RestartAlt } from '@mui/icons-material';
-import { useAppSettings, type FadeCurveType } from '../settingsStore';
+import React, { useState } from 'react';
+
 import {
-  FADE_CURVE_TYPES,
-  EXPORT_FORMATS,
   DEFAULT_SETTINGS,
+  EXPORT_FORMATS,
+  FADE_CURVE_TYPES,
 } from '../constants';
+import { type FadeCurveType, useAppSettings } from '../settingsStore';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -31,10 +32,10 @@ interface SettingsDialogProps {
 }
 
 export const SettingsDialog: React.FC<SettingsDialogProps> = ({
-  open,
   onClose,
+  open,
 }) => {
-  const { settings, actions } = useAppSettings();
+  const { actions, settings } = useAppSettings();
 
   // Local state for form values
   const [formValues, setFormValues] = useState(settings);

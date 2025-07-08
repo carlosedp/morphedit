@@ -1,57 +1,54 @@
-import {
-  useEffect,
-  forwardRef,
-  useImperativeHandle,
-  useCallback,
-  useState,
-  useMemo,
-} from 'react';
+import { Container } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useState,
+} from 'react';
 import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
 
-import {
-  createWaveSurferInstance,
-  calculateInitialZoom,
-} from './utils/waveformInitialization';
-import { loadAudioIntoWaveform } from './utils/waveformAudioLoader';
-
-import { useAudioStore } from './audioStore';
 import type { AudioState } from './audioStore';
-import { Container } from '@mui/material';
-
+import { useAudioStore } from './audioStore';
+import { SpliceMarkerControls } from './components/SpliceMarkerControls';
+import { WaveformActionControls } from './components/WaveformActionControls';
+import { WaveformControls } from './components/WaveformInfoBar';
+import {
+  MARKER_ICONS,
+  MAX_KEYBOARD_SHORTCUT_MARKERS,
+  PLAYBACK_TIMING,
+  POSITION_UPDATE_INTERVAL,
+  REGION_COLORS,
+  REGION_POSITIONING,
+  WAVEFORM_RENDERING,
+} from './constants';
+import { useWaveformHandlers } from './hooks/useWaveformHandlers';
+import { useWaveformRefs, useWaveformState } from './hooks/useWaveformState';
 // Import separated utilities and components
 import { parseWavCuePoints } from './utils/audioProcessing';
-import {
-  REGION_COLORS,
-  MARKER_ICONS,
-  POSITION_UPDATE_INTERVAL,
-  PLAYBACK_TIMING,
-  WAVEFORM_RENDERING,
-  REGION_POSITIONING,
-  MAX_KEYBOARD_SHORTCUT_MARKERS,
-} from './constants';
-import { waveformLogger } from './utils/logger';
-import { type ExportFormat } from './utils/exportUtils';
 import { detectBPMWithTimeout } from './utils/bpmDetection';
-import {
-  updateSpliceMarkerColors,
-  loadExistingCuePoints,
-  isMarkerLocked,
-} from './utils/spliceMarkerUtils';
+import { type ExportFormat } from './utils/exportUtils';
+import { waveformLogger } from './utils/logger';
 import { removeAllSpliceMarkersAndClearSelection } from './utils/regionHelpers';
 import { getRegionInfo } from './utils/regionUtils';
 import {
   createGenericSpliceHandler,
   type SpliceMarkerHandlers,
 } from './utils/spliceMarkerHandlers';
-import { useWaveformState, useWaveformRefs } from './hooks/useWaveformState';
-import { useWaveformHandlers } from './hooks/useWaveformHandlers';
-import { WaveformControls } from './components/WaveformInfoBar';
-import { WaveformActionControls } from './components/WaveformActionControls';
-import { SpliceMarkerControls } from './components/SpliceMarkerControls';
-import { setupWaveformDebugUtils } from './utils/waveformDebugUtils';
+import {
+  isMarkerLocked,
+  loadExistingCuePoints,
+  updateSpliceMarkerColors,
+} from './utils/spliceMarkerUtils';
 import { findNearestZeroCrossing } from './utils/transientDetection';
+import { loadAudioIntoWaveform } from './utils/waveformAudioLoader';
+import { setupWaveformDebugUtils } from './utils/waveformDebugUtils';
+import {
+  calculateInitialZoom,
+  createWaveSurferInstance,
+} from './utils/waveformInitialization';
 
 interface WaveformProps {
   audioUrl: string;
@@ -102,10 +99,10 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
   (
     {
       audioUrl,
-      shouldTruncate = false,
       onLoadingComplete,
-      onProcessingStart,
       onProcessingComplete,
+      onProcessingStart,
+      shouldTruncate = false,
     },
     ref
   ) => {
@@ -113,7 +110,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
     // Use custom hooks for state and refs management
     const [state, actions] = useWaveformState(audioUrl);
-    const { wavesurferRef, regionsRef, isLoopingRef, cropRegionRef } =
+    const { cropRegionRef, isLoopingRef, regionsRef, wavesurferRef } =
       useWaveformRefs();
 
     // State to trigger region info updates when regions change
@@ -250,7 +247,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         return;
       }
 
-      const { wavesurfer: ws, regions } = createWaveSurferInstance(theme);
+      const { regions, wavesurfer: ws } = createWaveSurferInstance(theme);
       wavesurferRef.current = ws;
       regionsRef.current = regions;
 

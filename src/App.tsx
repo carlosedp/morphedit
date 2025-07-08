@@ -1,59 +1,60 @@
 import './ElectronApp.ts';
-import { useState, useRef, useEffect, useMemo } from 'react';
+
+import { MenuBook, Mic, Settings } from '@mui/icons-material';
 import {
-  Container,
-  Typography,
-  Button,
   Box,
+  Button,
+  Container,
   CssBaseline,
-  ThemeProvider,
   Stack,
+  ThemeProvider,
   Tooltip,
+  Typography,
 } from '@mui/material';
-import { Mic, Settings, MenuBook } from '@mui/icons-material';
-import Waveform, { type WaveformRef } from './Waveform';
+import { useEffect, useMemo, useRef, useState } from 'react';
+
 import { useAudioStore } from './audioStore';
-import { useKeyboardShortcuts } from './useKeyboardShortcuts';
-import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
+import { AutoUpdater } from './components/AutoUpdater';
 import { FileLengthWarningDialog } from './components/FileLengthWarningDialog';
+import { FileReplaceDialog } from './components/FileReplaceDialog';
+import { Footer } from './components/Footer.tsx';
 import { LoadingDialog } from './components/LoadingDialog';
 import { MultipleFilesDialog } from './components/MultipleFilesDialog';
-import { FileReplaceDialog } from './components/FileReplaceDialog';
-import { TempoAndPitchDialog } from './components/TempoAndPitchDialog';
-import { AutoUpdater } from './components/AutoUpdater';
 import { RecordingDialog } from './components/RecordingDialog';
 import { SettingsDialog } from './components/SettingsDialog';
+import { TempoAndPitchDialog } from './components/TempoAndPitchDialog';
+import {
+  AUDIO_MAX_DURATION as CONST_MORPHAGENE_MAX_DURATION,
+  FILE_HANDLING,
+  PLAYBACK_TIMING,
+  UI_COLORS,
+} from './constants';
+import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
+import { WaveformContainer } from './styles/StyledComponents.tsx';
+import { theme } from './styles/theme.tsx';
+import { useKeyboardShortcuts } from './useKeyboardShortcuts';
+import { createActionDispatcher } from './utils/actionHandlers';
+import {
+  appendAudioToExisting,
+  audioBufferToWavBlob,
+  concatenateAudioFiles,
+  type ConcatenationResult,
+  filterAudioFiles,
+  getMultipleAudioFilesDuration,
+  sortAudioFilesByName,
+  truncateConcatenationResult,
+} from './utils/audioConcatenation';
 import {
   getAudioFileDuration,
   isFileTooLong,
   MORPHAGENE_MAX_DURATION,
 } from './utils/fileLengthUtils';
-import {
-  concatenateAudioFiles,
-  getMultipleAudioFilesDuration,
-  filterAudioFiles,
-  sortAudioFilesByName,
-  audioBufferToWavBlob,
-  appendAudioToExisting,
-  truncateConcatenationResult,
-  type ConcatenationResult,
-} from './utils/audioConcatenation';
-import { createActionDispatcher } from './utils/actionHandlers';
 import { audioLogger, concatenationLogger, createLogger } from './utils/logger';
 import {
   processAudioWithRubberBand,
   type TempoAndPitchOptions,
 } from './utils/rubberbandProcessor';
-import {
-  AUDIO_MAX_DURATION as CONST_MORPHAGENE_MAX_DURATION,
-  FILE_HANDLING,
-  UI_COLORS,
-  PLAYBACK_TIMING,
-} from './constants';
-
-import { theme } from './styles/theme.tsx';
-import { WaveformContainer } from './styles/StyledComponents.tsx';
-import { Footer } from './components/Footer.tsx';
+import Waveform, { type WaveformRef } from './Waveform';
 
 function App() {
   const appLogger = createLogger('App');
@@ -265,7 +266,7 @@ function App() {
         setAudioUrl(url);
 
         // Store splice marker positions in the audio store
-        const { setSpliceMarkers, setLockedSpliceMarkers } =
+        const { setLockedSpliceMarkers, setSpliceMarkers } =
           useAudioStore.getState();
         setSpliceMarkers(result.spliceMarkerPositions);
 
@@ -542,7 +543,7 @@ function App() {
     const url = URL.createObjectURL(wavBlob) + '#morphedit-appended';
 
     // Save current state for undo
-    const { setPreviousAudioUrl, setCanUndo } = useAudioStore.getState();
+    const { setCanUndo, setPreviousAudioUrl } = useAudioStore.getState();
     if (audioUrl) {
       setPreviousAudioUrl(audioUrl);
       setCanUndo(true);
@@ -550,7 +551,7 @@ function App() {
 
     // Update audio URL and splice markers
     setAudioUrl(url);
-    const { setSpliceMarkers, setLockedSpliceMarkers, setAudioBuffer } =
+    const { setAudioBuffer, setLockedSpliceMarkers, setSpliceMarkers } =
       useAudioStore.getState();
     setSpliceMarkers(result.spliceMarkerPositions);
 
@@ -814,7 +815,7 @@ function App() {
       );
 
       // Save current state for undo
-      const { setPreviousAudioUrl, setCanUndo, setAudioBuffer } =
+      const { setAudioBuffer, setCanUndo, setPreviousAudioUrl } =
         useAudioStore.getState();
       if (audioUrl) {
         setPreviousAudioUrl(audioUrl);

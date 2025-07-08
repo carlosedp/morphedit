@@ -1,7 +1,7 @@
 // Generic handler factory to reduce repetitive switch case patterns
 
-import type { WaveformRef } from '../Waveform';
 import { MAX_KEYBOARD_SHORTCUT_MARKERS } from '../constants';
+import type { WaveformRef } from '../Waveform';
 
 // Type for action handlers
 type ActionHandler = () => void;

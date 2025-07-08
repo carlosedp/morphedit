@@ -1,4 +1,5 @@
-import { useEffect, useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
+
 import { keyboardShortcuts, type ShortcutAction } from './keyboardShortcuts';
 
 interface UseKeyboardShortcutsProps {
@@ -7,8 +8,8 @@ interface UseKeyboardShortcutsProps {
 }
 
 export const useKeyboardShortcuts = ({
-  onAction,
   enabled = true,
+  onAction,
 }: UseKeyboardShortcutsProps) => {
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {

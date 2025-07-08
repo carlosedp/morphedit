@@ -1,60 +1,59 @@
 // Event handlers for the Waveform component
+import { useCallback, useMemo, useRef } from 'react';
 import WaveSurfer from 'wavesurfer.js';
+import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
 
-import { useCallback, useMemo, useRef } from 'react';
-import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
-
-import { useAudioStore } from '../audioStore';
 import type { AudioState } from '../audioStore';
+import { useAudioStore } from '../audioStore';
 import {
-  ZOOM_LEVELS,
-  MAX_KEYBOARD_SHORTCUT_MARKERS,
   MARKER_ICONS,
+  MAX_KEYBOARD_SHORTCUT_MARKERS,
+  ZOOM_LEVELS,
 } from '../constants';
-import {
-  playPause,
-  rewind,
-  zoom,
-  skipForward,
-  skipBackward,
-  increaseSkipIncrement,
-  decreaseSkipIncrement,
-  undo,
-} from '../utils/playbackUtils';
-import {
-  createCropRegion,
-  createFadeInRegion,
-  createFadeOutRegion,
-  createCrossfadeRegion,
-  applyCrop,
-  applyFades,
-  applyCrossfade,
-} from '../utils/regionUtils';
 import { applyNormalization } from '../utils/audioNormalization';
 import { applyReversal } from '../utils/audioReversal';
-import { applyTempoAndPitch } from '../utils/tempoAndPitchProcessing';
-import type { TempoAndPitchOptions } from '../utils/rubberbandProcessor';
-import {
-  addSpliceMarker,
-  removeSpliceMarker,
-  autoSlice,
-  halfMarkers,
-  clearAllMarkers,
-  toggleMarkerLock,
-} from '../utils/spliceMarkerUtils';
-import {
-  applyTransientDetection,
-  snapToZeroCrossings,
-} from '../utils/transientDetection';
 import {
   audioBufferToWavFormat,
   downloadWav,
   type ExportFormat,
 } from '../utils/exportUtils';
-import { createGenericSpliceHandler } from '../utils/spliceMarkerHandlers';
-import { calculateInitialZoom } from '../utils/waveformInitialization';
+import {
+  decreaseSkipIncrement,
+  increaseSkipIncrement,
+  playPause,
+  rewind,
+  skipBackward,
+  skipForward,
+  undo,
+  zoom,
+} from '../utils/playbackUtils';
+import {
+  applyCrop,
+  applyCrossfade,
+  applyFades,
+  createCropRegion,
+  createCrossfadeRegion,
+  createFadeInRegion,
+  createFadeOutRegion,
+} from '../utils/regionUtils';
+import type { TempoAndPitchOptions } from '../utils/rubberbandProcessor';
 import { exportSlicesWithProgress } from '../utils/sliceExportUtils';
+import { createGenericSpliceHandler } from '../utils/spliceMarkerHandlers';
+import {
+  addSpliceMarker,
+  autoSlice,
+  clearAllMarkers,
+  halfMarkers,
+  removeSpliceMarker,
+  toggleMarkerLock,
+} from '../utils/spliceMarkerUtils';
+import { applyTempoAndPitch } from '../utils/tempoAndPitchProcessing';
+import {
+  applyTransientDetection,
+  snapToZeroCrossings,
+} from '../utils/transientDetection';
+import { calculateInitialZoom } from '../utils/waveformInitialization';
 
 interface MarkerData {
   id: string;
@@ -115,14 +114,14 @@ interface WaveformHandlersProps {
 }
 
 export const useWaveformHandlers = ({
-  state,
   actions,
-  wavesurferRef,
-  regionsRef,
   cropRegionRef,
   memoizedUpdateSpliceMarkerColors,
-  onProcessingStart,
   onProcessingComplete,
+  onProcessingStart,
+  regionsRef,
+  state,
+  wavesurferRef,
 }: WaveformHandlersProps) => {
   // Ref to prevent rapid zoom reset clicks
   const isZoomResetInProgress = useRef(false);

@@ -1,9 +1,10 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+
 import {
-  FADE_CURVE_TYPES,
-  EXPORT_FORMATS,
   DEFAULT_SETTINGS,
+  EXPORT_FORMATS,
+  FADE_CURVE_TYPES,
 } from './constants';
 import type { ExportFormat } from './utils/exportUtils';
 import { createLogger } from './utils/logger';

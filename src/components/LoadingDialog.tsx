@@ -1,11 +1,11 @@
-import React from 'react';
 import {
+  Box,
+  CircularProgress,
   Dialog,
   DialogContent,
-  CircularProgress,
   Typography,
-  Box,
 } from '@mui/material';
+import React from 'react';
 
 interface LoadingDialogProps {
   open: boolean;
@@ -13,8 +13,8 @@ interface LoadingDialogProps {
 }
 
 export const LoadingDialog: React.FC<LoadingDialogProps> = ({
-  open,
   message,
+  open,
 }) => {
   return (
     <Dialog

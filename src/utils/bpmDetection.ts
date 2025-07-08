@@ -1,5 +1,6 @@
 // BPM detection utility using web-audio-beat-detector
 import { analyze } from 'web-audio-beat-detector';
+
 import { createLogger } from './logger';
 
 const bpmLogger = createLogger('BPMDetection');

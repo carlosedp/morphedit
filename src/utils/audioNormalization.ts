@@ -1,6 +1,7 @@
 // Audio normalization utilities for peak normalization
 
 import type WaveSurfer from 'wavesurfer.js';
+
 import { useAudioStore } from '../audioStore';
 import { audioBufferToWavWithCues } from './audioProcessing';
 

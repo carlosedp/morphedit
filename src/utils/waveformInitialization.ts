@@ -1,12 +1,12 @@
 // WaveformInitialization.ts - Handles WaveSurfer initialization logic
 import type { Theme } from '@mui/material/styles';
 import WaveSurfer from 'wavesurfer.js';
+import Hover from 'wavesurfer.js/dist/plugins/hover.esm.js';
+import Minimap from 'wavesurfer.js/dist/plugins/minimap.esm.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
 import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline.esm.js';
-import Minimap from 'wavesurfer.js/dist/plugins/minimap.esm.js';
-import Hover from 'wavesurfer.js/dist/plugins/hover.esm.js';
 
-import { UI_COLORS, WAVEFORM_RENDERING, MINIMAP_ENABLED } from '../constants';
+import { MINIMAP_ENABLED, UI_COLORS, WAVEFORM_RENDERING } from '../constants';
 
 interface DebugWindow extends Window {
   morpheditRegions?: RegionsPlugin;
