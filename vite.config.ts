@@ -67,6 +67,8 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       '@': '/src',
+      '@package': '/package.json',
+      '@constants': '/src/constants.ts',
       '@/components': '/src/components',
       '@/hooks': '/src/hooks',
       '@/utils': '/src/utils',
