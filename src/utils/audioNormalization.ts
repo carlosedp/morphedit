@@ -8,7 +8,7 @@ import { audioBufferToWavWithCues } from './audioProcessing';
 /**
  * Find the peak amplitude in an AudioBuffer
  */
-const findPeakAmplitude = (audioBuffer: AudioBuffer): number => {
+export const findPeakAmplitude = (audioBuffer: AudioBuffer): number => {
   let peak = 0;
 
   for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
@@ -31,7 +31,7 @@ const findPeakAmplitude = (audioBuffer: AudioBuffer): number => {
  * @param targetPeakDb - Target peak level in dB (e.g., -1 for -1dB)
  * @returns Normalized audio buffer
  */
-const normalizeAudioBuffer = (
+export const normalizeAudioBuffer = (
   audioBuffer: AudioBuffer,
   targetPeakDb: number = -1
 ): AudioBuffer => {
