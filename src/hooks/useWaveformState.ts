@@ -133,7 +133,7 @@ export const useWaveformState = (
 
   // Navigation state
   const [zoom, setZoom] = useState(0);
-  const [resetZoom, setResetZoom] = useState(2); // Default to ZOOM_LEVELS.MIN
+  const [resetZoom, setResetZoom] = useState(10); // Start with a more reasonable default for longer audio
   const [skipIncrement, setSkipIncrement] = useState(1.0);
 
   // Audio URL state
