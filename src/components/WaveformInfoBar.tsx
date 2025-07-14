@@ -1,4 +1,5 @@
-// Waveform controls component - playback, zoom, and navigation
+// Waveform controls component - provides playback controls, zoom, and navigation
+
 import FirstPageIcon from '@mui/icons-material/FirstPage';
 import PauseIcon from '@mui/icons-material/Pause';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -31,7 +32,6 @@ interface WaveformControlsProps {
   duration: number;
   bpm: number | null;
   zoom: number;
-  resetZoom: number;
   skipIncrement: number;
   spliceMarkersCount: number;
   regionInfo: RegionInfo;
@@ -55,7 +55,6 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
   onZoom,
   onZoomReset,
   regionInfo,
-  resetZoom,
   selectedSpliceMarkerTime,
   skipIncrement,
   spliceMarkersCount,
@@ -149,7 +148,7 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
             <Slider
               value={zoom}
               onChange={(_, value) => onZoom(value as number)}
-              min={Math.max(ZOOM_LEVELS.MIN, resetZoom)}
+              min={ZOOM_LEVELS.MIN}
               max={ZOOM_LEVELS.MAX}
               step={ZOOM_LEVELS.STEP}
               sx={{ width: { xs: 140, sm: 100 } }}

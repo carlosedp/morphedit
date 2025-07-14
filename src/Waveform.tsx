@@ -46,7 +46,7 @@ import { findNearestZeroCrossing } from './utils/transientDetection';
 import { loadAudioIntoWaveform } from './utils/waveformAudioLoader';
 import { setupWaveformDebugUtils } from './utils/waveformDebugUtils';
 import {
-  calculateInitialZoom,
+  calculatePerfectFitZoom,
   createWaveSurferInstance,
 } from './utils/waveformInitialization';
 
@@ -267,23 +267,30 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
           actions.setDuration(ws.getDuration());
 
-          // Apply zoom - either current zoom or calculate initial zoom to fill container
-          let zoomToApply = state.zoom;
+          // Apply zoom - calculate initial zoom to fit container perfectly
           if (state.zoom === 0) {
-            // Calculate initial zoom based on audio duration and container size
-            zoomToApply = calculateInitialZoom(ws.getDuration());
-            actions.setZoom(zoomToApply);
-            actions.setResetZoom(zoomToApply); // Store the resetZoom level for the slider
+            const duration = ws.getDuration();
 
-            console.log('Initial zoom calculated:', {
-              duration: ws.getDuration(),
-              zoomToApply,
-            });
+            // Simple, clean zoom calculation after a short delay to ensure container is ready
+            setTimeout(() => {
+              if (ws && wavesurferRef.current === ws) {
+                const perfectZoom = calculatePerfectFitZoom(duration);
+
+                console.log('Applying perfect fit zoom:', {
+                  duration,
+                  perfectZoom,
+                });
+
+                // Set state and apply zoom
+                actions.setZoom(perfectZoom);
+                actions.setResetZoom(perfectZoom);
+                ws.zoom(perfectZoom);
+              }
+            }, 100); // Short delay for container to be ready
           } else {
-            console.log('Applying existing zoom:', zoomToApply);
+            console.log('Applying existing zoom:', state.zoom);
+            ws.zoom(state.zoom);
           }
-          // Always apply the zoom to ensure waveform displays correctly
-          ws.zoom(zoomToApply);
 
           // Parse WAV file for existing cue points and load them as splice markers
           // Skip this for cropped/faded URLs (processed audio) since markers are handled manually
@@ -1239,7 +1246,6 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           duration={state.duration}
           bpm={bpm}
           zoom={state.zoom}
-          resetZoom={state.resetZoom}
           skipIncrement={state.skipIncrement}
           spliceMarkersCount={spliceMarkersStore.length}
           regionInfo={regionInfo}
