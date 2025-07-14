@@ -93,12 +93,12 @@ export function calculatePerfectFitZoom(duration: number): number {
 
   // Calculate appropriate zoom to fill the container (pixels per second)
   // Account for WaveSurfer's internal padding/margins (subtract fixed amount)
-  const usableWidth = Math.max(400, containerWidth - 60); // Subtract ~60px for WaveSurfer margins
+  const usableWidth = containerWidth; // Subtract ~60px for WaveSurfer margins
   const pxPerSec = usableWidth / duration;
 
   // Always use the calculated zoom that fits the entire waveform
   // This ensures zoom reset shows the complete audio file
-  const finalZoom = Math.min(1000, Math.max(1, Math.round(pxPerSec)));
+  const finalZoom = Math.min(1000, pxPerSec);
 
   console.log('🔍 calculatePerfectFitZoom:', {
     duration,
