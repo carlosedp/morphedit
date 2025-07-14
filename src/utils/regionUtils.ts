@@ -1,15 +1,16 @@
 // Region utilities for crop, fade, and other region operations
+import type WaveSurfer from 'wavesurfer.js';
 import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
 import type RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
-import type WaveSurfer from 'wavesurfer.js';
-import { audioBufferToWavWithCues } from './audioProcessing';
+
+import { useAudioStore } from '../audioStore';
+import { CROSSFADE, REGION_COLORS, REGION_POSITIONING } from '../constants';
 import { copyAudioData } from './audioBufferUtils';
+import { audioBufferToWavWithCues } from './audioProcessing';
+import { calculateFadeGain } from './fadeCurves';
 import { regionLogger } from './logger';
 import { getSpliceMarkerRegions } from './regionHelpers';
-import { REGION_COLORS, REGION_POSITIONING, CROSSFADE } from '../constants';
-import { useAudioStore } from '../audioStore';
 import { findNearestZeroCrossing } from './transientDetection';
-import { calculateFadeGain } from './fadeCurves';
 
 // Type for region info display
 export interface RegionInfo {

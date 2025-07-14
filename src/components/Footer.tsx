@@ -1,4 +1,5 @@
-import { Typography, Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
+
 import packageJson from '../../package.json';
 
 export function Footer() {

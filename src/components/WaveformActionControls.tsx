@@ -1,30 +1,30 @@
 // Separated action controls for the Waveform component
 
-import { useState } from 'react';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import BlurOnIcon from '@mui/icons-material/BlurOn';
+import ContentCutIcon from '@mui/icons-material/ContentCut';
+import DownloadIcon from '@mui/icons-material/Download';
+import SpeedIcon from '@mui/icons-material/Speed';
+import ReverseIcon from '@mui/icons-material/SwapHoriz';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import NormalizeIcon from '@mui/icons-material/TuneOutlined';
+import UndoIcon from '@mui/icons-material/Undo';
 import {
-  Stack,
+  Alert,
+  Box,
   Button,
   ButtonGroup,
-  Tooltip,
   Menu,
   MenuItem,
-  Typography,
   Snackbar,
-  Alert,
+  Stack,
+  Tooltip,
+  Typography,
 } from '@mui/material';
-import DownloadIcon from '@mui/icons-material/Download';
-import ContentCutIcon from '@mui/icons-material/ContentCut';
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import CutIcon from '@mui/icons-material/ContentCut';
-import UndoIcon from '@mui/icons-material/Undo';
-import NormalizeIcon from '@mui/icons-material/TuneOutlined';
-import ReverseIcon from '@mui/icons-material/SwapHoriz';
-import SpeedIcon from '@mui/icons-material/Speed';
-import BlurOnIcon from '@mui/icons-material/BlurOn';
+import { useState } from 'react';
 
-import { TOOLTIP_DELAYS, EXPORT_FORMATS } from '../constants';
+import { EXPORT_FORMATS, TOOLTIP_DELAYS } from '../constants';
 import type { ExportFormat } from '../utils/exportUtils';
 import { FadeCurveSelector } from './FadeCurveSelector';
 
@@ -71,43 +71,43 @@ interface WaveformActionControlsProps {
 
 export const WaveformActionControls = ({
   // State props
-  selectedExportFormat,
+  canUndo,
+  cropMode,
+  crossfadeAnchorEl,
+  crossfadeCurveType,
+  crossfadeMode,
   exportAnchorEl,
   fadeInAnchorEl,
-  fadeOutAnchorEl,
-  crossfadeAnchorEl,
-  cropMode,
-  fadeInMode,
-  fadeOutMode,
   fadeInCurveType,
+  fadeInMode,
+  fadeOutAnchorEl,
   fadeOutCurveType,
-  crossfadeMode,
-  crossfadeCurveType,
-  selectedSpliceMarker,
-  canUndo,
+  fadeOutMode,
+  onApplyCrop,
+  onApplyCrossfade,
 
   // Action props
-  onExport,
-  onExportSlices,
-  onExportFormatChange,
-  onSetExportAnchorEl,
-  onSetFadeInAnchorEl,
-  onSetFadeOutAnchorEl,
-  onSetCrossfadeAnchorEl,
-  onNormalize,
-  onReverse,
+  onApplyFades,
   onCropRegion,
-  onApplyCrop,
+  onCrossfadeRegion,
+  onExport,
+  onExportFormatChange,
+  onExportSlices,
   onFadeInRegion,
   onFadeOutRegion,
-  onApplyFades,
-  onCrossfadeRegion,
-  onApplyCrossfade,
+  onNormalize,
+  onReverse,
+  onSetCrossfadeAnchorEl,
   onSetCrossfadeCurveType,
-  onUndo,
+  onSetExportAnchorEl,
+  onSetFadeInAnchorEl,
   onSetFadeInCurveType,
+  onSetFadeOutAnchorEl,
   onSetFadeOutCurveType,
   onTempoAndPitch,
+  onUndo,
+  selectedExportFormat,
+  selectedSpliceMarker,
 }: WaveformActionControlsProps) => {
   const [noSlicesSnackbarOpen, setNoSlicesSnackbarOpen] = useState(false);
 
@@ -308,7 +308,7 @@ export const WaveformActionControls = ({
               variant={cropMode ? 'contained' : 'outlined'}
               color="primary"
               onClick={onCropRegion}
-              startIcon={<CutIcon />}
+              startIcon={<ContentCutIcon />}
             >
               Crop/Loop Region
             </Button>
@@ -321,14 +321,16 @@ export const WaveformActionControls = ({
               enterDelay={TOOLTIP_DELAYS.ENTER}
               leaveDelay={TOOLTIP_DELAYS.LEAVE}
             >
-              <Button
-                variant={crossfadeMode ? 'contained' : 'outlined'}
-                color="primary"
-                onClick={onCrossfadeRegion}
-                startIcon={<BlurOnIcon />}
-              >
-                Crossfade
-              </Button>
+              <Box component="span">
+                <Button
+                  variant={crossfadeMode ? 'contained' : 'outlined'}
+                  color="primary"
+                  onClick={onCrossfadeRegion}
+                  startIcon={<BlurOnIcon />}
+                >
+                  Crossfade
+                </Button>
+              </Box>
             </Tooltip>
             <FadeCurveSelector
               selectedCurve={crossfadeCurveType}
@@ -417,76 +419,84 @@ export const WaveformActionControls = ({
             enterDelay={TOOLTIP_DELAYS.ENTER}
             leaveDelay={TOOLTIP_DELAYS.LEAVE}
           >
-            <Button
-              variant="contained"
-              color="success"
-              onClick={onApplyCrop}
-              disabled={!cropMode}
-              size="small"
-              sx={{
-                flex: { xs: '1 1 auto', lg: '0 0 auto' },
-                whiteSpace: 'nowrap',
-                minWidth: { xs: 0, lg: 'max-content' },
-              }}
-            >
-              Apply Crop
-            </Button>
+            <Box component="span">
+              <Button
+                variant="contained"
+                color="success"
+                onClick={onApplyCrop}
+                disabled={!cropMode}
+                size="small"
+                sx={{
+                  flex: { xs: '1 1 auto', lg: '0 0 auto' },
+                  whiteSpace: 'nowrap',
+                  minWidth: { xs: 0, lg: 'max-content' },
+                }}
+              >
+                Apply Crop
+              </Button>
+            </Box>
           </Tooltip>
           <Tooltip
             title="Apply fade regions to current audio"
             enterDelay={TOOLTIP_DELAYS.ENTER}
             leaveDelay={TOOLTIP_DELAYS.LEAVE}
           >
-            <Button
-              variant="contained"
-              color="success"
-              onClick={onApplyFades}
-              disabled={!fadeInMode && !fadeOutMode}
-              size="small"
-              sx={{
-                flex: { xs: '1 1 auto', lg: '0 0 auto' },
-                whiteSpace: 'nowrap',
-                minWidth: { xs: 0, lg: 'max-content' },
-              }}
-            >
-              Apply Fades
-            </Button>
+            <Box component="span">
+              <Button
+                variant="contained"
+                color="success"
+                onClick={onApplyFades}
+                disabled={!fadeInMode && !fadeOutMode}
+                size="small"
+                sx={{
+                  flex: { xs: '1 1 auto', lg: '0 0 auto' },
+                  whiteSpace: 'nowrap',
+                  minWidth: { xs: 0, lg: 'max-content' },
+                }}
+              >
+                Apply Fades
+              </Button>
+            </Box>
           </Tooltip>
           <Tooltip
             title="Apply crossfade region to current audio"
             enterDelay={TOOLTIP_DELAYS.ENTER}
             leaveDelay={TOOLTIP_DELAYS.LEAVE}
           >
-            <Button
-              variant="contained"
-              color="success"
-              onClick={onApplyCrossfade}
-              disabled={!crossfadeMode}
-              size="small"
-              sx={{
-                flex: { xs: '1 1 auto', lg: '0 0 auto' },
-                whiteSpace: 'nowrap',
-                minWidth: { xs: 0, lg: 'max-content' },
-              }}
-            >
-              Apply Crossfade
-            </Button>
+            <Box component="span">
+              <Button
+                variant="contained"
+                color="success"
+                onClick={onApplyCrossfade}
+                disabled={!crossfadeMode}
+                size="small"
+                sx={{
+                  flex: { xs: '1 1 auto', lg: '0 0 auto' },
+                  whiteSpace: 'nowrap',
+                  minWidth: { xs: 0, lg: 'max-content' },
+                }}
+              >
+                Apply Crossfade
+              </Button>
+            </Box>
           </Tooltip>
           <Tooltip
             title="Undo last edit"
             enterDelay={TOOLTIP_DELAYS.ENTER}
             leaveDelay={TOOLTIP_DELAYS.LEAVE}
           >
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={onUndo}
-              disabled={!canUndo}
-              startIcon={<UndoIcon />}
-              size="small"
-            >
-              Undo
-            </Button>
+            <Box component="span">
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={onUndo}
+                disabled={!canUndo}
+                startIcon={<UndoIcon />}
+                size="small"
+              >
+                Undo
+              </Button>
+            </Box>
           </Tooltip>
         </Stack>
       </Stack>

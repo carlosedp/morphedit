@@ -1,10 +1,11 @@
 // Custom hook for managing waveform state
-import { useState, useRef, useMemo } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import type WaveSurfer from 'wavesurfer.js';
 import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
 import type RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
-import type WaveSurfer from 'wavesurfer.js';
-import type { ExportFormat } from '../utils/exportUtils';
+
 import { useAppSettings } from '../settingsStore';
+import type { ExportFormat } from '../utils/exportUtils';
 
 interface WaveformState {
   // Playback state
@@ -132,7 +133,7 @@ export const useWaveformState = (
 
   // Navigation state
   const [zoom, setZoom] = useState(0);
-  const [resetZoom, setResetZoom] = useState(2); // Default to ZOOM_LEVELS.MIN
+  const [resetZoom, setResetZoom] = useState(10); // Start with a more reasonable default for longer audio
   const [skipIncrement, setSkipIncrement] = useState(1.0);
 
   // Audio URL state

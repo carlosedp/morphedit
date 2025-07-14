@@ -1,30 +1,31 @@
-import React, { useState, useEffect, useRef } from 'react';
 import {
-  Box,
-  Button,
-  Typography,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Paper,
-  Stack,
-  Chip,
-  Alert,
-  CircularProgress,
-} from '@mui/material';
-import {
+  Check,
+  FiberManualRecord,
   Mic,
-  Stop,
   Pause,
   PlayArrow,
-  FiberManualRecord,
   Refresh,
-  Check,
+  Stop,
 } from '@mui/icons-material';
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  Stack,
+  Typography,
+} from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import React, { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import RecordPlugin from 'wavesurfer.js/dist/plugins/record.esm.js';
-import { useTheme } from '@mui/material/styles';
+
 import { AUDIO_RECORD_MAX_DURATION } from '../constants';
 
 interface AudioRecorderProps {
@@ -50,8 +51,8 @@ interface AudioDevice {
  */
 
 export const AudioRecorder: React.FC<AudioRecorderProps> = ({
-  onRecordingComplete,
   onError,
+  onRecordingComplete,
 }) => {
   const theme = useTheme();
   const waveformRef = useRef<HTMLDivElement>(null);

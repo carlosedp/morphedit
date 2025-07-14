@@ -1,8 +1,9 @@
 // Region filtering and manipulation utilities
 import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
 import type RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
+
+import { MAX_TOTAL_SPLICE_POINTS, REGION_POSITIONING } from '../constants';
 import { isMarkerLocked } from './spliceMarkerUtils';
-import { REGION_POSITIONING, MAX_TOTAL_SPLICE_POINTS } from '../constants';
 
 /**
  * Get all splice marker regions from regions plugin

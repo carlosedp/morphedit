@@ -107,7 +107,7 @@ export const concatenateAudioFiles = async (
   }
 
   // Decode all audio files and extract their cue points
-  const { buffers, allCuePoints } = await decodeAudioFilesWithCuePoints(files);
+  const { allCuePoints, buffers } = await decodeAudioFilesWithCuePoints(files);
 
   // Ensure all buffers have the same sample rate
   const targetSampleRate = buffers[0].sampleRate;
@@ -289,7 +289,7 @@ export const appendAudioToExisting = async (
   }
 
   // Decode the new audio files and extract their cue points
-  const { buffers: newBuffers, allCuePoints } =
+  const { allCuePoints, buffers: newBuffers } =
     await decodeAudioFilesWithCuePoints(newFiles);
 
   const targetSampleRate = existingBuffer.sampleRate;
@@ -447,7 +447,7 @@ export const truncateConcatenationResult = async (
   result: ConcatenationResult,
   maxDuration: number
 ): Promise<ConcatenationResult> => {
-  const { concatenatedBuffer, spliceMarkerPositions, boundaryMarkerPositions } =
+  const { boundaryMarkerPositions, concatenatedBuffer, spliceMarkerPositions } =
     result;
 
   const originalDuration =

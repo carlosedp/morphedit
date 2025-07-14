@@ -1,24 +1,25 @@
 // Splice marker controls component
-import * as React from 'react';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';
+import ClearIcon from '@mui/icons-material/Clear';
+import ContentCutIcon from '@mui/icons-material/ContentCut';
+import AddIcon from '@mui/icons-material/Create';
+import DeleteIcon from '@mui/icons-material/Delete';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
 import {
+  Box,
   Button,
+  Slider,
   Stack,
   TextField,
   Tooltip,
-  Slider,
   Typography,
-  Box,
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Create';
-import DeleteIcon from '@mui/icons-material/Delete';
-import ContentCutIcon from '@mui/icons-material/ContentCut';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import ClearIcon from '@mui/icons-material/Clear';
-import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
-import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';
-import LockIcon from '@mui/icons-material/Lock';
-import LockOpenIcon from '@mui/icons-material/LockOpen';
-import { TOOLTIP_DELAYS, MAX_TOTAL_SPLICE_POINTS } from '../constants';
+import * as React from 'react';
+
+import { MAX_TOTAL_SPLICE_POINTS, TOOLTIP_DELAYS } from '../constants';
 
 interface SpliceMarkerControlsProps {
   selectedSpliceMarker: boolean;
@@ -44,26 +45,26 @@ interface SpliceMarkerControlsProps {
 }
 
 export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
-  selectedSpliceMarker,
-  selectedSpliceMarkerLocked,
-  numberOfSlices,
-  spliceMarkersCount,
   duration,
-  transientSensitivity,
-  transientFrameSize,
-  transientOverlap,
+  numberOfSlices,
   onAddSpliceMarker,
-  onRemoveSpliceMarker,
-  onToggleMarkerLock,
   onAutoSlice,
-  onHalfMarkers,
   onClearAllMarkers,
+  onHalfMarkers,
+  onRemoveSpliceMarker,
   onSetNumberOfSlices,
-  onSetTransientSensitivity,
   onSetTransientFrameSize,
   onSetTransientOverlap,
-  onTransientDetection,
+  onSetTransientSensitivity,
   onSnapToZeroCrossings,
+  onToggleMarkerLock,
+  onTransientDetection,
+  selectedSpliceMarker,
+  selectedSpliceMarkerLocked,
+  spliceMarkersCount,
+  transientFrameSize,
+  transientOverlap,
+  transientSensitivity,
 }) => {
   return (
     <Stack spacing={2} sx={{ mt: 2 }}>

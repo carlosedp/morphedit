@@ -1,26 +1,28 @@
-// Waveform controls component - playback, zoom, and navigation
-import * as React from 'react';
+// Waveform controls component - provides playback controls, zoom, and navigation
+
+import FirstPageIcon from '@mui/icons-material/FirstPage';
+import PauseIcon from '@mui/icons-material/Pause';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import RepeatIcon from '@mui/icons-material/Repeat';
+import ZoomInIcon from '@mui/icons-material/ZoomIn';
+import ZoomOutIcon from '@mui/icons-material/ZoomOut';
+import ZoomResetIcon from '@mui/icons-material/ZoomOutMap';
 import {
   IconButton,
   Slider,
   Stack,
-  Typography,
-  Tooltip,
   Table,
   TableBody,
-  TableRow,
   TableCell,
+  TableRow,
+  Tooltip,
+  Typography,
 } from '@mui/material';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import PauseIcon from '@mui/icons-material/Pause';
-import ZoomInIcon from '@mui/icons-material/ZoomIn';
-import ZoomOutIcon from '@mui/icons-material/ZoomOut';
-import ZoomResetIcon from '@mui/icons-material/ZoomOutMap';
-import RepeatIcon from '@mui/icons-material/Repeat';
-import FirstPageIcon from '@mui/icons-material/FirstPage';
-import { formatTime, formatSeconds } from '../utils/audioProcessing';
-import { formatBPM } from '../utils/bpmDetection';
+import * as React from 'react';
+
 import { TOOLTIP_DELAYS, ZOOM_LEVELS } from '../constants';
+import { formatSeconds, formatTime } from '../utils/audioProcessing';
+import { formatBPM } from '../utils/bpmDetection';
 import type { RegionInfo } from '../utils/regionUtils';
 
 interface WaveformControlsProps {
@@ -30,7 +32,6 @@ interface WaveformControlsProps {
   duration: number;
   bpm: number | null;
   zoom: number;
-  resetZoom: number;
   skipIncrement: number;
   spliceMarkersCount: number;
   regionInfo: RegionInfo;
@@ -43,22 +44,21 @@ interface WaveformControlsProps {
 }
 
 export const WaveformControls: React.FC<WaveformControlsProps> = ({
-  isPlaying,
-  isLooping,
+  bpm,
   currentTime,
   duration,
-  bpm,
-  zoom,
-  resetZoom,
-  skipIncrement,
-  spliceMarkersCount,
-  regionInfo,
-  selectedSpliceMarkerTime,
-  onPlayPause,
+  isLooping,
+  isPlaying,
   onLoop,
+  onPlayPause,
   onRewind,
   onZoom,
   onZoomReset,
+  regionInfo,
+  selectedSpliceMarkerTime,
+  skipIncrement,
+  spliceMarkersCount,
+  zoom,
 }) => {
   return (
     <Stack>
@@ -148,7 +148,7 @@ export const WaveformControls: React.FC<WaveformControlsProps> = ({
             <Slider
               value={zoom}
               onChange={(_, value) => onZoom(value as number)}
-              min={Math.max(ZOOM_LEVELS.MIN, resetZoom)}
+              min={ZOOM_LEVELS.MIN}
               max={ZOOM_LEVELS.MAX}
               step={ZOOM_LEVELS.STEP}
               sx={{ width: { xs: 140, sm: 100 } }}

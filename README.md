@@ -6,7 +6,7 @@
 
 ## Professional audio editing for Samplers and beyond
 
-[![Version](https://img.shields.io/github/v/release/carlosedp/morphedit)](https://github.com/carlosedp/morphedit/releases) [![Security Scan](https://github.com/carlosedp/morphedit/actions/workflows/security.yml/badge.svg)](https://github.com/carlosedp/morphedit/actions/workflows/security.yml) [![CI](https://github.com/carlosedp/morphedit/actions/workflows/ci.yml/badge.svg)](https://github.com/carlosedp/morphedit/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/github/v/release/carlosedp/morphedit)](https://github.com/carlosedp/morphedit/releases) [![Security Scan](https://github.com/carlosedp/morphedit/actions/workflows/security.yml/badge.svg)](https://github.com/carlosedp/morphedit/actions/workflows/security.yml) [![CI](https://github.com/carlosedp/morphedit/actions/workflows/ci.yml/badge.svg)](https://github.com/carlosedp/morphedit/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)[![codecov](https://codecov.io/gh/carlosedp/morphedit/graph/badge.svg?token=9HMv0QueiB)](https://codecov.io/gh/carlosedp/morphedit)
 
 [Download](https://github.com/carlosedp/morphedit/releases) • [Documentation](./public/USER_MANUAL.md) • [Report Bug](https://github.com/carlosedp/morphedit/issues) • [Request Feature](https://github.com/carlosedp/morphedit/issues)
 
@@ -98,11 +98,15 @@ Download the latest release for your platform from [GitHub Releases](https://git
 
 ### Option 4: Run from Source
 
+First install [Bun](https://bun.sh/) (a modern JavaScript runtime) according to the Bun Website. We use Bun for its speed and efficiency in handling JavaScript projects, including TypeScript support and fast package management instead of Node.js, npm or yarn.
+
+Then clone the repository and run the development server:
+
 ```bash
 git clone https://github.com/carlosedp/morphedit.git
 cd morphedit
-npm install
-npm run dev
+bun install
+bun run dev
 ```
 
 Open [http://localhost:5173](http://localhost:5173) to view the application.

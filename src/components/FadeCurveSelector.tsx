@@ -1,9 +1,10 @@
 // Fade curve selector dropdown button component
-import React from 'react';
-import { Button, Menu, MenuItem, Tooltip, Typography } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import { getFadeCurveOptions } from '../utils/fadeCurves';
+import { Button, Menu, MenuItem, Tooltip, Typography } from '@mui/material';
+import React from 'react';
+
 import { TOOLTIP_DELAYS } from '../constants';
+import { getFadeCurveOptions } from '../utils/fadeCurves';
 
 interface FadeCurveSelectorProps {
   selectedCurve: string;
@@ -15,12 +16,12 @@ interface FadeCurveSelectorProps {
 }
 
 export const FadeCurveSelector: React.FC<FadeCurveSelectorProps> = ({
-  selectedCurve,
-  onCurveChange,
-  fadeType,
-  disabled = false,
   anchorEl,
+  disabled = false,
+  fadeType,
+  onCurveChange,
   onSetAnchorEl,
+  selectedCurve,
 }) => {
   const curveOptions = getFadeCurveOptions();
   const selectedOption = curveOptions.find(

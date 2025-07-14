@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Stack,
-  Alert,
-} from '@mui/material';
 import { Close } from '@mui/icons-material';
+import {
+  Alert,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Stack,
+} from '@mui/material';
+import React, { useState } from 'react';
+
 import { AudioRecorder } from './AudioRecorder';
 
 interface RecordingDialogProps {
@@ -18,9 +19,9 @@ interface RecordingDialogProps {
 }
 
 export const RecordingDialog: React.FC<RecordingDialogProps> = ({
-  open,
   onClose,
   onRecordingComplete,
+  open,
 }) => {
   const [recordingError, setRecordingError] = useState<string>('');
 

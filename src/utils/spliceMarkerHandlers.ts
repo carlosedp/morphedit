@@ -1,5 +1,6 @@
 // Utility for generating splice marker handlers
 import type WaveSurfer from 'wavesurfer.js';
+
 import { playSpliceMarker } from './playbackUtils';
 
 // Type for individual splice marker handler

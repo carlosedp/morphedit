@@ -1,60 +1,59 @@
 // Event handlers for the Waveform component
+import { useCallback, useMemo, useRef } from 'react';
 import WaveSurfer from 'wavesurfer.js';
+import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
 
-import { useCallback, useMemo, useRef } from 'react';
-import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
-
-import { useAudioStore } from '../audioStore';
 import type { AudioState } from '../audioStore';
+import { useAudioStore } from '../audioStore';
 import {
-  ZOOM_LEVELS,
-  MAX_KEYBOARD_SHORTCUT_MARKERS,
   MARKER_ICONS,
+  MAX_KEYBOARD_SHORTCUT_MARKERS,
+  ZOOM_LEVELS,
 } from '../constants';
-import {
-  playPause,
-  rewind,
-  zoom,
-  skipForward,
-  skipBackward,
-  increaseSkipIncrement,
-  decreaseSkipIncrement,
-  undo,
-} from '../utils/playbackUtils';
-import {
-  createCropRegion,
-  createFadeInRegion,
-  createFadeOutRegion,
-  createCrossfadeRegion,
-  applyCrop,
-  applyFades,
-  applyCrossfade,
-} from '../utils/regionUtils';
 import { applyNormalization } from '../utils/audioNormalization';
 import { applyReversal } from '../utils/audioReversal';
-import { applyTempoAndPitch } from '../utils/tempoAndPitchProcessing';
-import type { TempoAndPitchOptions } from '../utils/rubberbandProcessor';
-import {
-  addSpliceMarker,
-  removeSpliceMarker,
-  autoSlice,
-  halfMarkers,
-  clearAllMarkers,
-  toggleMarkerLock,
-} from '../utils/spliceMarkerUtils';
-import {
-  applyTransientDetection,
-  snapToZeroCrossings,
-} from '../utils/transientDetection';
 import {
   audioBufferToWavFormat,
   downloadWav,
   type ExportFormat,
 } from '../utils/exportUtils';
-import { createGenericSpliceHandler } from '../utils/spliceMarkerHandlers';
-import { calculateInitialZoom } from '../utils/waveformInitialization';
+import {
+  decreaseSkipIncrement,
+  increaseSkipIncrement,
+  playPause,
+  rewind,
+  skipBackward,
+  skipForward,
+  undo,
+  zoom,
+} from '../utils/playbackUtils';
+import {
+  applyCrop,
+  applyCrossfade,
+  applyFades,
+  createCropRegion,
+  createCrossfadeRegion,
+  createFadeInRegion,
+  createFadeOutRegion,
+} from '../utils/regionUtils';
+import type { TempoAndPitchOptions } from '../utils/rubberbandProcessor';
 import { exportSlicesWithProgress } from '../utils/sliceExportUtils';
+import { createGenericSpliceHandler } from '../utils/spliceMarkerHandlers';
+import {
+  addSpliceMarker,
+  autoSlice,
+  clearAllMarkers,
+  halfMarkers,
+  removeSpliceMarker,
+  toggleMarkerLock,
+} from '../utils/spliceMarkerUtils';
+import { applyTempoAndPitch } from '../utils/tempoAndPitchProcessing';
+import {
+  applyTransientDetection,
+  snapToZeroCrossings,
+} from '../utils/transientDetection';
+import { calculatePerfectFitZoom } from '../utils/waveformInitialization';
 
 interface MarkerData {
   id: string;
@@ -115,14 +114,14 @@ interface WaveformHandlersProps {
 }
 
 export const useWaveformHandlers = ({
-  state,
   actions,
-  wavesurferRef,
-  regionsRef,
   cropRegionRef,
   memoizedUpdateSpliceMarkerColors,
-  onProcessingStart,
   onProcessingComplete,
+  onProcessingStart,
+  regionsRef,
+  state,
+  wavesurferRef,
 }: WaveformHandlersProps) => {
   // Ref to prevent rapid zoom reset clicks
   const isZoomResetInProgress = useRef(false);
@@ -174,9 +173,30 @@ export const useWaveformHandlers = ({
   const handleZoom = useCallback(
     (value: number) => {
       // Apply zoom constraints - use the resetZoom as minimum and ZOOM_LEVELS.MAX as maximum
-      const minZoom = Math.max(ZOOM_LEVELS.MIN, state.resetZoom);
+      // But for longer audio files, ensure we don't constrain to too small a value
+      const duration = wavesurferRef.current?.getDuration() || 0;
+      const baseMinZoom = Math.max(ZOOM_LEVELS.MIN, state.resetZoom);
+
+      // For longer audio, ensure minimum zoom isn't too restrictive
+      const adjustedMinZoom =
+        duration > 60
+          ? Math.max(baseMinZoom, Math.min(5, 1000 / duration))
+          : baseMinZoom;
+
       const maxZoom = ZOOM_LEVELS.MAX;
-      const constrainedValue = Math.min(maxZoom, Math.max(minZoom, value));
+      const constrainedValue = Math.min(
+        maxZoom,
+        Math.max(adjustedMinZoom, value)
+      );
+
+      console.log('handleZoom called:', {
+        requestedValue: value,
+        duration,
+        baseMinZoom,
+        adjustedMinZoom,
+        constrainedValue,
+        resetZoom: state.resetZoom,
+      });
 
       actions.setZoom(constrainedValue);
       zoom(wavesurferRef.current!, constrainedValue);
@@ -220,18 +240,23 @@ export const useWaveformHandlers = ({
       let zoomToApply = state.resetZoom;
 
       // Calculate expected zoom for current duration
-      const expectedZoomForDuration = calculateInitialZoom(duration);
+      const expectedZoomForDuration = calculatePerfectFitZoom(duration);
 
       // Check if we need to calculate the initial zoom:
       // 1. First time or invalid state (resetZoom <= MIN or default value)
       // 2. Duration has changed significantly (suggesting tempo/pitch processing or other major change)
+      // 3. For longer audio files, if the zoom appears too small (line-like appearance)
       const durationMismatch =
         Math.abs(zoomToApply - expectedZoomForDuration) >
         expectedZoomForDuration * 0.1; // 10% tolerance
+      const isZoomTooSmall =
+        duration > 60 &&
+        zoomToApply < Math.max(1, expectedZoomForDuration * 0.5); // For long audio, ensure zoom isn't too small
       const needsRecalculation =
         state.resetZoom <= ZOOM_LEVELS.MIN ||
         state.resetZoom === 2 ||
-        durationMismatch;
+        durationMismatch ||
+        isZoomTooSmall;
 
       if (needsRecalculation) {
         zoomToApply = expectedZoomForDuration;
@@ -239,7 +264,11 @@ export const useWaveformHandlers = ({
         console.log('🔍 Calculated new resetZoom:', {
           duration,
           zoomToApply,
-          reason: durationMismatch ? 'duration-changed' : 'first-time',
+          reason: isZoomTooSmall
+            ? 'zoom-too-small'
+            : durationMismatch
+              ? 'duration-changed'
+              : 'first-time',
         });
       } else {
         console.log('🔍 Using stored resetZoom:', zoomToApply);

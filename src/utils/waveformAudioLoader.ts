@@ -1,9 +1,8 @@
 import WaveSurfer from 'wavesurfer.js';
 
+import { AUDIO_MAX_DURATION } from '../constants';
 import { parseWavCuePoints } from '../utils/audioProcessing';
 import { truncateAudioBuffer } from '../utils/fileLengthUtils.ts';
-
-import { AUDIO_MAX_DURATION } from '../constants';
 
 // Helper function to handle audio loading and preprocessing
 export async function loadAudioIntoWaveform(

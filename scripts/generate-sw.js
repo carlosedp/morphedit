@@ -1,3 +1,5 @@
+#!/usr/bin/env bun
+/* eslint-disable import/no-nodejs-modules */
 import fs from 'fs';
 import path from 'path';
 

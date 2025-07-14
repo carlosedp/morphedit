@@ -1,17 +1,18 @@
-import { useEffect, useState } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Typography,
-  LinearProgress,
-  Box,
-  Alert,
-} from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 import UpdateIcon from '@mui/icons-material/Update';
+import {
+  Alert,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  LinearProgress,
+  Typography,
+} from '@mui/material';
+import { useEffect, useState } from 'react';
+
 import packageJson from '../../package.json';
 
 interface UpdateInfo {

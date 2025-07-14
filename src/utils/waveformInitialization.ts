@@ -1,12 +1,12 @@
 // WaveformInitialization.ts - Handles WaveSurfer initialization logic
 import type { Theme } from '@mui/material/styles';
 import WaveSurfer from 'wavesurfer.js';
+import Hover from 'wavesurfer.js/dist/plugins/hover.esm.js';
+import Minimap from 'wavesurfer.js/dist/plugins/minimap.esm.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
 import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline.esm.js';
-import Minimap from 'wavesurfer.js/dist/plugins/minimap.esm.js';
-import Hover from 'wavesurfer.js/dist/plugins/hover.esm.js';
 
-import { UI_COLORS, WAVEFORM_RENDERING, MINIMAP_ENABLED } from '../constants';
+import { MINIMAP_ENABLED, UI_COLORS, WAVEFORM_RENDERING } from '../constants';
 
 interface DebugWindow extends Window {
   morpheditRegions?: RegionsPlugin;
@@ -37,7 +37,7 @@ export function createWaveSurferInstance(theme: Theme) {
     cursorColor: theme.palette.primary.main,
     normalize: true,
     cursorWidth: WAVEFORM_RENDERING.CURSOR_WIDTH,
-    minPxPerSec: 20, // Ensure waveform fills container initially
+    minPxPerSec: 1, // Allow very low zoom levels to show entire long audio files
     plugins: [
       regions,
       TimelinePlugin.create({}),
@@ -65,20 +65,48 @@ export function createWaveSurferInstance(theme: Theme) {
   return { wavesurfer: ws, regions };
 }
 
-// Helper function to calculate initial zoom
-export function calculateInitialZoom(duration: number): number {
-  // Get container width with multiple fallbacks
+// Helper function to calculate perfect fit zoom (replaces calculateInitialZoom)
+export function calculatePerfectFitZoom(duration: number): number {
+  // Get container width with multiple fallbacks for stability
   const container = document.getElementById('waveform-container');
   let containerWidth = 800; // Default fallback
 
   if (container) {
     const rect = container.getBoundingClientRect();
-    containerWidth = rect.width > 0 ? rect.width : container.clientWidth || 800;
+    const clientWidth = container.clientWidth;
+    const offsetWidth = container.offsetWidth;
+
+    // Use the most reliable width measurement available
+    if (rect.width > 0) {
+      containerWidth = rect.width;
+    } else if (clientWidth > 0) {
+      containerWidth = clientWidth;
+    } else if (offsetWidth > 0) {
+      containerWidth = offsetWidth;
+    }
+
+    // For very small containers, use a reasonable minimum
+    if (containerWidth < 200) {
+      containerWidth = 800;
+    }
   }
 
-  // Calculate appropriate zoom to fill the container
-  const minPxPerSec = containerWidth / duration;
-  // Remove the 0.99 multiplier to avoid cumulative rounding errors
-  // Use a more stable calculation that provides consistent results
-  return Math.min(1000, Math.max(1, Math.round(minPxPerSec)));
+  // Calculate appropriate zoom to fill the container (pixels per second)
+  // Account for WaveSurfer's internal padding/margins (subtract fixed amount)
+  const usableWidth = containerWidth; // Subtract ~60px for WaveSurfer margins
+  const pxPerSec = usableWidth / duration;
+
+  // Always use the calculated zoom that fits the entire waveform
+  // This ensures zoom reset shows the complete audio file
+  const finalZoom = Math.min(1000, pxPerSec);
+
+  console.log('🔍 calculatePerfectFitZoom:', {
+    duration,
+    containerWidth,
+    usableWidth,
+    pxPerSec,
+    finalZoom,
+  });
+
+  return finalZoom;
 }

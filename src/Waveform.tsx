@@ -1,57 +1,54 @@
-import {
-  useEffect,
-  forwardRef,
-  useImperativeHandle,
-  useCallback,
-  useState,
-  useMemo,
-} from 'react';
+import { Container } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useState,
+} from 'react';
 import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
 
-import {
-  createWaveSurferInstance,
-  calculateInitialZoom,
-} from './utils/waveformInitialization';
-import { loadAudioIntoWaveform } from './utils/waveformAudioLoader';
-
-import { useAudioStore } from './audioStore';
 import type { AudioState } from './audioStore';
-import { Container } from '@mui/material';
-
+import { useAudioStore } from './audioStore';
+import { SpliceMarkerControls } from './components/SpliceMarkerControls';
+import { WaveformActionControls } from './components/WaveformActionControls';
+import { WaveformControls } from './components/WaveformInfoBar';
+import {
+  MARKER_ICONS,
+  MAX_KEYBOARD_SHORTCUT_MARKERS,
+  PLAYBACK_TIMING,
+  POSITION_UPDATE_INTERVAL,
+  REGION_COLORS,
+  REGION_POSITIONING,
+  WAVEFORM_RENDERING,
+} from './constants';
+import { useWaveformHandlers } from './hooks/useWaveformHandlers';
+import { useWaveformRefs, useWaveformState } from './hooks/useWaveformState';
 // Import separated utilities and components
 import { parseWavCuePoints } from './utils/audioProcessing';
-import {
-  REGION_COLORS,
-  MARKER_ICONS,
-  POSITION_UPDATE_INTERVAL,
-  PLAYBACK_TIMING,
-  WAVEFORM_RENDERING,
-  REGION_POSITIONING,
-  MAX_KEYBOARD_SHORTCUT_MARKERS,
-} from './constants';
-import { waveformLogger } from './utils/logger';
-import { type ExportFormat } from './utils/exportUtils';
 import { detectBPMWithTimeout } from './utils/bpmDetection';
-import {
-  updateSpliceMarkerColors,
-  loadExistingCuePoints,
-  isMarkerLocked,
-} from './utils/spliceMarkerUtils';
+import { type ExportFormat } from './utils/exportUtils';
+import { waveformLogger } from './utils/logger';
 import { removeAllSpliceMarkersAndClearSelection } from './utils/regionHelpers';
 import { getRegionInfo } from './utils/regionUtils';
 import {
   createGenericSpliceHandler,
   type SpliceMarkerHandlers,
 } from './utils/spliceMarkerHandlers';
-import { useWaveformState, useWaveformRefs } from './hooks/useWaveformState';
-import { useWaveformHandlers } from './hooks/useWaveformHandlers';
-import { WaveformControls } from './components/WaveformInfoBar';
-import { WaveformActionControls } from './components/WaveformActionControls';
-import { SpliceMarkerControls } from './components/SpliceMarkerControls';
-import { setupWaveformDebugUtils } from './utils/waveformDebugUtils';
+import {
+  isMarkerLocked,
+  loadExistingCuePoints,
+  updateSpliceMarkerColors,
+} from './utils/spliceMarkerUtils';
 import { findNearestZeroCrossing } from './utils/transientDetection';
+import { loadAudioIntoWaveform } from './utils/waveformAudioLoader';
+import { setupWaveformDebugUtils } from './utils/waveformDebugUtils';
+import {
+  calculatePerfectFitZoom,
+  createWaveSurferInstance,
+} from './utils/waveformInitialization';
 
 interface WaveformProps {
   audioUrl: string;
@@ -102,10 +99,10 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
   (
     {
       audioUrl,
-      shouldTruncate = false,
       onLoadingComplete,
-      onProcessingStart,
       onProcessingComplete,
+      onProcessingStart,
+      shouldTruncate = false,
     },
     ref
   ) => {
@@ -113,7 +110,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
     // Use custom hooks for state and refs management
     const [state, actions] = useWaveformState(audioUrl);
-    const { wavesurferRef, regionsRef, isLoopingRef, cropRegionRef } =
+    const { cropRegionRef, isLoopingRef, regionsRef, wavesurferRef } =
       useWaveformRefs();
 
     // State to trigger region info updates when regions change
@@ -250,7 +247,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         return;
       }
 
-      const { wavesurfer: ws, regions } = createWaveSurferInstance(theme);
+      const { regions, wavesurfer: ws } = createWaveSurferInstance(theme);
       wavesurferRef.current = ws;
       regionsRef.current = regions;
 
@@ -270,23 +267,30 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
           actions.setDuration(ws.getDuration());
 
-          // Apply zoom - either current zoom or calculate initial zoom to fill container
-          let zoomToApply = state.zoom;
+          // Apply zoom - calculate initial zoom to fit container perfectly
           if (state.zoom === 0) {
-            // Calculate initial zoom based on audio duration and container size
-            zoomToApply = calculateInitialZoom(ws.getDuration());
-            actions.setZoom(zoomToApply);
-            actions.setResetZoom(zoomToApply); // Store the resetZoom level for the slider
+            const duration = ws.getDuration();
 
-            console.log('Initial zoom calculated:', {
-              duration: ws.getDuration(),
-              zoomToApply,
-            });
+            // Simple, clean zoom calculation after a short delay to ensure container is ready
+            setTimeout(() => {
+              if (ws && wavesurferRef.current === ws) {
+                const perfectZoom = calculatePerfectFitZoom(duration);
+
+                console.log('Applying perfect fit zoom:', {
+                  duration,
+                  perfectZoom,
+                });
+
+                // Set state and apply zoom
+                actions.setZoom(perfectZoom);
+                actions.setResetZoom(perfectZoom);
+                ws.zoom(perfectZoom);
+              }
+            }, 100); // Short delay for container to be ready
           } else {
-            console.log('Applying existing zoom:', zoomToApply);
+            console.log('Applying existing zoom:', state.zoom);
+            ws.zoom(state.zoom);
           }
-          // Always apply the zoom to ensure waveform displays correctly
-          ws.zoom(zoomToApply);
 
           // Parse WAV file for existing cue points and load them as splice markers
           // Skip this for cropped/faded URLs (processed audio) since markers are handled manually
@@ -1242,7 +1246,6 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           duration={state.duration}
           bpm={bpm}
           zoom={state.zoom}
-          resetZoom={state.resetZoom}
           skipIncrement={state.skipIncrement}
           spliceMarkersCount={spliceMarkersStore.length}
           regionInfo={regionInfo}

@@ -2,6 +2,7 @@
 
 import { RubberBandInterface, RubberBandOption } from 'rubberband-wasm';
 import wasmUrl from 'rubberband-wasm/dist/rubberband.wasm?url';
+
 import { createLogger } from './logger';
 
 const logger = createLogger('RubberbandProcessor');

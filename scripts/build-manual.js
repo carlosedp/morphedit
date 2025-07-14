@@ -1,8 +1,9 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
+/* eslint-disable import/no-nodejs-modules */
 
 import fs from 'fs';
-import path from 'path';
 import { marked } from 'marked';
+import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

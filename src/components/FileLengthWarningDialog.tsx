@@ -1,15 +1,16 @@
-import React from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Typography,
-  Button,
-  Box,
-  Alert,
-} from '@mui/material';
 import WarningIcon from '@mui/icons-material/Warning';
+import {
+  Alert,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Typography,
+} from '@mui/material';
+import React from 'react';
+
 import {
   formatDuration,
   MORPHAGENE_MAX_DURATION,
@@ -25,7 +26,7 @@ interface FileLengthWarningDialogProps {
 
 export const FileLengthWarningDialog: React.FC<
   FileLengthWarningDialogProps
-> = ({ open, duration, onTruncate, onImportFull, onCancel }) => {
+> = ({ duration, onCancel, onImportFull, onTruncate, open }) => {
   return (
     <Dialog open={open} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

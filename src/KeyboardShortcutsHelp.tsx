@@ -1,15 +1,16 @@
-import { useState } from 'react';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import {
   Box,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  Typography,
   Chip,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   Stack,
+  Typography,
 } from '@mui/material';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import { useState } from 'react';
+
 import { keyboardShortcuts } from './keyboardShortcuts';
 
 export const KeyboardShortcutsHelp = () => {

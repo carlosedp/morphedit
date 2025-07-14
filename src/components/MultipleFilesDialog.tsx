@@ -1,18 +1,19 @@
-import React from 'react';
+import InfoIcon from '@mui/icons-material/Info';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Typography,
-  Button,
-  Box,
   Alert,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   List,
   ListItem,
   ListItemText,
+  Typography,
 } from '@mui/material';
-import InfoIcon from '@mui/icons-material/Info';
+import React from 'react';
+
 import {
   formatDuration,
   MORPHAGENE_MAX_DURATION,
@@ -29,13 +30,13 @@ interface MultipleFilesDialogProps {
 }
 
 export const MultipleFilesDialog: React.FC<MultipleFilesDialogProps> = ({
-  open,
   files,
-  totalDuration,
   isAppendMode = false,
+  onCancel,
   onConcatenate,
   onTruncateAndConcatenate,
-  onCancel,
+  open,
+  totalDuration,
 }) => {
   const exceedsMaxLength = totalDuration > MORPHAGENE_MAX_DURATION;
 
