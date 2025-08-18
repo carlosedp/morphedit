@@ -76,14 +76,15 @@ export const KeyboardShortcutsHelp = () => {
         onClick={() => setOpen(true)}
         sx={{
           textTransform: 'none',
-          fontSize: { xs: '0.9rem', sm: '0.875rem' },
+          fontSize: { xs: '0.7rem', sm: '0.8rem' },
+          lineHeight: 1.1,
           padding: { xs: '0.6em 1.2em', sm: '6px 16px' },
           minHeight: { xs: '44px', sm: '36px' }, // Match User Manual button height
           width: { xs: '100%', sm: 'auto' },
           minWidth: { sm: '120px' }, // Consistent minimum width
         }}
       >
-        Shortcuts
+        Keyboard Shortcuts
       </Button>
 
       <Dialog
