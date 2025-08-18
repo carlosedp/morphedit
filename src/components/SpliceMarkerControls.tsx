@@ -8,6 +8,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
+import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import {
   Box,
   Button,
@@ -27,6 +28,7 @@ interface SpliceMarkerControlsProps {
   numberOfSlices: number;
   spliceMarkersCount: number;
   duration: number;
+  bpm: number | null;
   transientSensitivity: number;
   transientFrameSize: number;
   transientOverlap: number;
@@ -34,6 +36,7 @@ interface SpliceMarkerControlsProps {
   onRemoveSpliceMarker: () => void;
   onToggleMarkerLock: () => void;
   onAutoSlice: () => void;
+  onBPMBasedSlice: () => void;
   onHalfMarkers: () => void;
   onClearAllMarkers: () => void;
   onSetNumberOfSlices: (slices: number) => void;
@@ -45,10 +48,12 @@ interface SpliceMarkerControlsProps {
 }
 
 export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
+  bpm,
   duration,
   numberOfSlices,
   onAddSpliceMarker,
   onAutoSlice,
+  onBPMBasedSlice,
   onClearAllMarkers,
   onHalfMarkers,
   onRemoveSpliceMarker,
@@ -258,6 +263,32 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
                 }}
               >
                 Auto Slice
+              </Button>
+            </Box>
+          </Tooltip>
+
+          <Tooltip
+            title={`Create splice markers based on musical timing${bpm ? ` (detected: ${bpm} BPM)` : ' (BPM required)'}`}
+            enterDelay={TOOLTIP_DELAYS.ENTER}
+            leaveDelay={TOOLTIP_DELAYS.LEAVE}
+          >
+            <Box component="span">
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={onBPMBasedSlice}
+                startIcon={<MusicNoteIcon />}
+                disabled={!duration || duration <= 0}
+                sx={{
+                  fontSize: { xs: '0.9rem', sm: '0.875rem' },
+                  padding: {
+                    xs: '0.6em 1em',
+                    sm: '6px 16px',
+                  },
+                  minHeight: { xs: '48px', sm: '36px' },
+                }}
+              >
+                BPM Slice
               </Button>
             </Box>
           </Tooltip>

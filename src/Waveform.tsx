@@ -12,6 +12,7 @@ import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
 
 import type { AudioState } from './audioStore';
 import { useAudioStore } from './audioStore';
+import { BPMBasedSliceDialog } from './components/BPMBasedSliceDialog';
 import { SpliceMarkerControls } from './components/SpliceMarkerControls';
 import { WaveformActionControls } from './components/WaveformActionControls';
 import { WaveformControls } from './components/WaveformInfoBar';
@@ -28,6 +29,7 @@ import { useWaveformHandlers } from './hooks/useWaveformHandlers';
 import { useWaveformRefs, useWaveformState } from './hooks/useWaveformState';
 // Import separated utilities and components
 import { parseWavCuePoints } from './utils/audioProcessing';
+import type { BPMSliceOptions } from './utils/bpmBasedSlicing';
 import { detectBPMWithTimeout } from './utils/bpmDetection';
 import { type ExportFormat } from './utils/exportUtils';
 import { waveformLogger } from './utils/logger';
@@ -88,6 +90,7 @@ export interface WaveformRef extends SpliceMarkerHandlers {
   handleRemoveSpliceMarker: () => void;
   handleToggleMarkerLock: () => void;
   handleAutoSlice: () => void;
+  handleBPMBasedSlice: (options: BPMSliceOptions) => void;
   handleHalfMarkers: () => void;
   handleClearAllMarkers: () => void;
   handleTransientDetection: () => void;
@@ -115,6 +118,9 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
 
     // State to trigger region info updates when regions change
     const [regionUpdateTrigger, setRegionUpdateTrigger] = useState(0);
+
+    // State for BPM-based slice dialog
+    const [bpmDialogOpen, setBpmDialogOpen] = useState(false);
 
     // Extract stable action functions
     const { setCurrentTime } = actions;
@@ -1090,6 +1096,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     const handleRemoveSpliceMarker = handlers.handleRemoveSpliceMarker;
     const handleToggleMarkerLock = handlers.handleToggleMarkerLock;
     const handleAutoSlice = handlers.handleAutoSlice;
+    const handleBPMBasedSlice = handlers.handleBPMBasedSlice;
     const handleHalfMarkers = handlers.handleHalfMarkers;
     const handleClearAllMarkers = handlers.handleClearAllMarkers;
     const handleTransientDetection = handlers.handleTransientDetection;
@@ -1103,7 +1110,21 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     // Utility handlers
     const resetZoomState = handlers.resetZoomState;
 
-    // Splice playback handlers - dynamically generate handlers for all 20 splice markers
+    // BMP slice dialog handler
+    const handleOpenBPMDialog = useCallback(() => {
+      setBpmDialogOpen(true);
+    }, []);
+
+    const handleApplyBPMSlice = useCallback(
+      (options: BPMSliceOptions) => {
+        handleBPMBasedSlice(options);
+      },
+      [handleBPMBasedSlice]
+    );
+
+    const handleCloseBPMDialog = useCallback(() => {
+      setBpmDialogOpen(false);
+    }, []); // Splice playback handlers - dynamically generate handlers for all 20 splice markers
     const spliceHandlers = useMemo(() => {
       const handlers: Record<string, () => void> = {};
 
@@ -1156,6 +1177,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleRemoveSpliceMarker,
         handleToggleMarkerLock,
         handleAutoSlice,
+        handleBPMBasedSlice,
         handleHalfMarkers,
         handleClearAllMarkers,
         handleTransientDetection,
@@ -1190,6 +1212,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
         handleRemoveSpliceMarker,
         handleToggleMarkerLock,
         handleAutoSlice,
+        handleBPMBasedSlice,
         handleHalfMarkers,
         handleClearAllMarkers,
         handleTransientDetection,
@@ -1310,6 +1333,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           numberOfSlices={state.numberOfSlices}
           spliceMarkersCount={spliceMarkersStore.length}
           duration={state.duration}
+          bpm={bpm}
           transientSensitivity={state.transientSensitivity}
           transientFrameSize={state.transientFrameSize}
           transientOverlap={state.transientOverlap}
@@ -1317,6 +1341,7 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           onRemoveSpliceMarker={handleRemoveSpliceMarker}
           onToggleMarkerLock={handleToggleMarkerLock}
           onAutoSlice={handleAutoSlice}
+          onBPMBasedSlice={handleOpenBPMDialog}
           onHalfMarkers={handleHalfMarkers}
           onClearAllMarkers={handleClearAllMarkers}
           onSetNumberOfSlices={actions.setNumberOfSlices}
@@ -1325,6 +1350,15 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           onSetTransientOverlap={actions.setTransientOverlap}
           onTransientDetection={handleTransientDetection}
           onSnapToZeroCrossings={handleSnapToZeroCrossings}
+        />
+
+        {/* BPM-based slice dialog */}
+        <BPMBasedSliceDialog
+          open={bpmDialogOpen}
+          currentBPM={bpm}
+          duration={state.duration}
+          onClose={handleCloseBPMDialog}
+          onApply={handleApplyBPMSlice}
         />
       </Container>
     );
