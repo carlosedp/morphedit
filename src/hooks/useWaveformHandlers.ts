@@ -14,6 +14,10 @@ import {
 import { applyNormalization } from '../utils/audioNormalization';
 import { applyReversal } from '../utils/audioReversal';
 import {
+  type BPMSliceOptions,
+  generateBPMBasedMarkers,
+} from '../utils/bpmBasedSlicing';
+import {
   audioBufferToWavFormat,
   downloadWav,
   type ExportFormat,
@@ -847,6 +851,24 @@ export const useWaveformHandlers = ({
     regionsRef,
   ]);
 
+  const handleBPMBasedSlice = useCallback(
+    (options: BPMSliceOptions) => {
+      generateBPMBasedMarkers(
+        regionsRef.current!,
+        options,
+        setSpliceMarkersStore,
+        actions.setSelectedSpliceMarker,
+        memoizedUpdateSpliceMarkerColors
+      );
+    },
+    [
+      setSpliceMarkersStore,
+      actions,
+      memoizedUpdateSpliceMarkerColors,
+      regionsRef,
+    ]
+  );
+
   const handleHalfMarkers = useCallback(() => {
     halfMarkers(
       regionsRef.current!,
@@ -1131,6 +1153,7 @@ export const useWaveformHandlers = ({
     handleRemoveSpliceMarker,
     handleToggleMarkerLock,
     handleAutoSlice,
+    handleBPMBasedSlice,
     handleHalfMarkers,
     handleClearAllMarkers,
     handleTransientDetection,
