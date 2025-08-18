@@ -1,3 +1,4 @@
+import CloseIcon from '@mui/icons-material/Close';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import {
   Box,
@@ -9,6 +10,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
+import IconButton from '@mui/material/IconButton';
 import { useState } from 'react';
 
 import { keyboardShortcuts } from './keyboardShortcuts';
@@ -76,14 +78,15 @@ export const KeyboardShortcutsHelp = () => {
         onClick={() => setOpen(true)}
         sx={{
           textTransform: 'none',
-          fontSize: { xs: '0.9rem', sm: '0.875rem' },
+          fontSize: { xs: '0.7rem', sm: '0.8rem' },
+          lineHeight: 1.1,
           padding: { xs: '0.6em 1.2em', sm: '6px 16px' },
           minHeight: { xs: '44px', sm: '36px' }, // Match User Manual button height
           width: { xs: '100%', sm: 'auto' },
           minWidth: { sm: '120px' }, // Consistent minimum width
         }}
       >
-        Shortcuts
+        Keyboard Shortcuts
       </Button>
 
       <Dialog
@@ -99,7 +102,21 @@ export const KeyboardShortcutsHelp = () => {
           },
         }}
       >
-        <DialogTitle>Keyboard Shortcuts</DialogTitle>
+        <DialogTitle sx={{ textDecoration: 'underline' }}>
+          Keyboard Shortcuts
+        </DialogTitle>
+        <IconButton
+          aria-label="close"
+          onClick={() => setOpen(false)}
+          sx={(theme) => ({
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: theme.palette.grey[500],
+          })}
+        >
+          <CloseIcon />
+        </IconButton>
         <DialogContent>
           <Stack spacing={2}>
             {groupedShortcuts().map(({ key, shortcut }) => (
