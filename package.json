@@ -85,7 +85,7 @@
     "knip": "^5.62.0",
     "marked": "^16.2.0",
     "prettier": "^3.6.2",
-    "jsdom": "^26.1.0",
+    "jsdom": "^27.0.0",
     "playwright": "^1.54.2",
     "rimraf": "^6.0.1",
     "rollup-plugin-visualizer": "^6.0.3",
