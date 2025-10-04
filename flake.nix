@@ -23,12 +23,6 @@
           nodejs
           bun
           python3
-          # gcc
-          # gnumake
-          # pkg-config
-
-          # For Electron development
-          # electron
 
           # Development tools
           git
@@ -52,12 +46,12 @@
 
             echo ""
             echo "Available commands:"
-            echo "  bun install     - Install dependencies"
-            echo "  bun dev         - Start development server"
-            echo "  bun build       - Build for production"
-            echo "  bun electron:dev - Run Electron in development"
-            echo "  bun test        - Run tests"
-            echo "  bun test:e2e    - Run E2E tests"
+            echo "  bun install          - Install dependencies"
+            echo "  bun dev              - Start development server"
+            echo "  bun run build        - Build for production"
+            echo "  bun run electron:dev - Run Electron in development"
+            echo "  bun run test         - Run vitest tests"
+            echo "  bun run test:e2e     - Run E2E tests"
             echo ""
           '';
 
