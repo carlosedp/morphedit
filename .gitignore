@@ -21,6 +21,9 @@ dist-ssr
 *.sln
 *.sw?
 
+# Direnv
+.direnv
+
 # Generated files
 public/manual.html
 electron-dist
