@@ -1,4 +1,5 @@
-import { MenuBook, Settings } from '@mui/icons-material';
+import MenuBook from '@mui/icons-material/MenuBook';
+import Settings from '@mui/icons-material/Settings';
 import { Box, Button, Stack, Typography } from '@mui/material';
 
 import { KeyboardShortcutsHelp } from '../KeyboardShortcutsHelp';

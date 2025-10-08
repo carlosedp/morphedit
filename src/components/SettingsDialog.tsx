@@ -1,4 +1,5 @@
-import { RestartAlt, Settings as SettingsIcon } from '@mui/icons-material';
+import RestartAlt from '@mui/icons-material/RestartAlt';
+import SettingsIcon from '@mui/icons-material/Settings';
 import {
   Box,
   Button,
@@ -307,7 +308,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
           {/* Onset Detection Settings */}
           <Box>
             <Typography variant="h6" gutterBottom>
-              Onset Detection
+              Beat Detection
             </Typography>
             <Stack spacing={2}>
               {/* Library Selector */}

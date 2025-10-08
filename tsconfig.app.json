@@ -16,16 +16,15 @@
     "jsx": "react-jsx",
 
     /* Path mapping for cleaner imports */
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@package": ["package.json"],
-      "@constants": ["src/constants.ts"],
-      "@/components/*": ["src/components/*"],
-      "@/hooks/*": ["src/hooks/*"],
-      "@/utils/*": ["src/utils/*"],
-      "@/stores/*": ["src/stores/*"],
-      "@/types/*": ["src/types/*"]
+      "@/*": ["./src/*"],
+      "@package": ["./package.json"],
+      "@constants": ["./src/constants.ts"],
+      "@/components/*": ["./src/components/*"],
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/utils/*": ["./src/utils/*"],
+      "@/stores/*": ["./src/stores/*"],
+      "@/types/*": ["./src/types/*"]
     },
 
     /* Linting */

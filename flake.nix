@@ -23,6 +23,7 @@
           nodejs
           bun
           python3
+          typescript
 
           # Development tools
           git
@@ -62,6 +63,9 @@
 
             # Fix for some native modules
             npm_config_build_from_source = "true";
+
+            # Node.js optimization for Vite (4GB heap)
+            NODE_OPTIONS = "--max-old-space-size=4096";
           };
         };
 

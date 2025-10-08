@@ -23,7 +23,8 @@
   "type": "module",
   "scripts": {
     "start": "vite",
-    "dev": "vite",
+    "dev": "NODE_OPTIONS='--max-old-space-size=4096' vite",
+    "dev:debug": "NODE_OPTIONS='--max-old-space-size=4096' DEBUG=vite:* vite --debug",
     "build": "bun run generate-sw && tsc -b && vite build && bun run build:manual",
     "build:pwa": "bun run generate-sw && tsc -b && vite build --mode pwa && bun run build:manual",
     "build:manual": "bun scripts/build-manual.js",
