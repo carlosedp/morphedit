@@ -728,6 +728,7 @@ When using Essentia.js detection:
 #### Recommended Settings
 
 **For Drums/Percussion:**
+
 - Library: Essentia.js
 - Method: HFC
 - Sensitivity: 60-80
@@ -735,6 +736,7 @@ When using Essentia.js detection:
 - Hop Size: 512
 
 **For Complex Mixes:**
+
 - Library: Essentia.js
 - Method: Complex or Spectral Flux
 - Sensitivity: 50-70
@@ -742,6 +744,7 @@ When using Essentia.js detection:
 - Hop Size: 512
 
 **For Fast Processing:**
+
 - Library: Web Audio
 - Threshold: 65
 - Frame Size: 20ms
@@ -1081,7 +1084,7 @@ This provides detailed information about:
   - **Complex/Complex Phase**: Good for complex mixes with multiple instruments
   - **Spectral Flux**: Excellent for detecting timbral changes
 
-- **Sensitivity Tuning**: 
+- **Sensitivity Tuning**:
   - Start with medium sensitivity (50-65) and adjust based on results
   - Too high = false positives (unwanted markers)
   - Too low = missed transients
