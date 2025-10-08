@@ -162,6 +162,13 @@ MorphEdit streamlines the Morphagene workflow by:
 - **PWA Support**: Service Worker, Web App Manifest, Offline Caching
 - **Deployment**: GitHub Pages
 
+## Release Guide
+
+1. Run `npm version patch|minor|major -m "Release message"` to bump version and create git tag
+2. Push tags to GitHub: `git push origin main --tags`
+3. Automatic GitHub Action builds electron apps and creates a production PR and release
+4. Merge the created PR to deploy to GitHub Pages in production
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
