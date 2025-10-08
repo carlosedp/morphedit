@@ -40,6 +40,7 @@ interface AppSettings {
   transientFrameSizeMs: number;
   transientOverlapPercent: number;
   onsetDetectionLibrary: OnsetDetectionLibrary;
+  onsetRefinementBaseline: number; // Percentage of threshold for onset refinement (0-100)
 
   // Essentia.js onset detection settings
   essentiaOnsetMethod: EssentiaOnsetMethod;
@@ -68,6 +69,7 @@ interface SettingsStore extends AppSettings {
   getTransientFrameSizeMs: () => number;
   getTransientOverlapPercent: () => number;
   getOnsetDetectionLibrary: () => OnsetDetectionLibrary;
+  getOnsetRefinementBaseline: () => number;
   getEssentiaOnsetMethod: () => EssentiaOnsetMethod;
   getEssentiaFrameSize: () => number;
   getEssentiaHopSize: () => number;
@@ -88,6 +90,7 @@ const defaultSettings: AppSettings = {
   transientFrameSizeMs: DEFAULT_SETTINGS.TRANSIENT_FRAME_SIZE_MS,
   transientOverlapPercent: DEFAULT_SETTINGS.TRANSIENT_OVERLAP_PERCENT,
   onsetDetectionLibrary: DEFAULT_SETTINGS.ONSET_DETECTION_LIBRARY,
+  onsetRefinementBaseline: DEFAULT_SETTINGS.ONSET_REFINEMENT_BASELINE,
   essentiaOnsetMethod: DEFAULT_SETTINGS.ESSENTIA_ONSET_METHOD,
   essentiaFrameSize: DEFAULT_SETTINGS.ESSENTIA_FRAME_SIZE,
   essentiaHopSize: DEFAULT_SETTINGS.ESSENTIA_HOP_SIZE,
@@ -129,6 +132,7 @@ export const useSettingsStore = create<SettingsStore>()(
       getTransientFrameSizeMs: () => get().transientFrameSizeMs,
       getTransientOverlapPercent: () => get().transientOverlapPercent,
       getOnsetDetectionLibrary: () => get().onsetDetectionLibrary,
+      getOnsetRefinementBaseline: () => get().onsetRefinementBaseline,
       getEssentiaOnsetMethod: () => get().essentiaOnsetMethod,
       getEssentiaFrameSize: () => get().essentiaFrameSize,
       getEssentiaHopSize: () => get().essentiaHopSize,
@@ -159,6 +163,7 @@ export const useAppSettings = () => {
       transientFrameSizeMs: store.transientFrameSizeMs,
       transientOverlapPercent: store.transientOverlapPercent,
       onsetDetectionLibrary: store.onsetDetectionLibrary,
+      onsetRefinementBaseline: store.onsetRefinementBaseline,
       essentiaOnsetMethod: store.essentiaOnsetMethod,
       essentiaFrameSize: store.essentiaFrameSize,
       essentiaHopSize: store.essentiaHopSize,

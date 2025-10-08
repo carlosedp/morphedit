@@ -80,6 +80,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
       transientFrameSizeMs: DEFAULT_SETTINGS.TRANSIENT_FRAME_SIZE_MS,
       transientOverlapPercent: DEFAULT_SETTINGS.TRANSIENT_OVERLAP_PERCENT,
       onsetDetectionLibrary: DEFAULT_SETTINGS.ONSET_DETECTION_LIBRARY,
+      onsetRefinementBaseline: DEFAULT_SETTINGS.ONSET_REFINEMENT_BASELINE,
       essentiaOnsetMethod: DEFAULT_SETTINGS.ESSENTIA_ONSET_METHOD,
       essentiaFrameSize: DEFAULT_SETTINGS.ESSENTIA_FRAME_SIZE,
       essentiaHopSize: DEFAULT_SETTINGS.ESSENTIA_HOP_SIZE,
@@ -409,6 +410,26 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
                       helperText="Frame overlap"
                     />
                   </Stack>
+
+                  <TextField
+                    label="Onset Refinement Baseline (%)"
+                    type="number"
+                    size="small"
+                    fullWidth
+                    value={formValues.onsetRefinementBaseline}
+                    onChange={(e) =>
+                      handleInputChange(
+                        'onsetRefinementBaseline',
+                        parseFloat(e.target.value) || 30
+                      )
+                    }
+                    inputProps={{
+                      min: 0,
+                      max: 100,
+                      step: 5,
+                    }}
+                    helperText="Baseline threshold for placing markers at transient start (lower = earlier placement)"
+                  />
                 </>
               )}
 
@@ -547,6 +568,26 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
                       helperText="Analysis hop size"
                     />
                   </Stack>
+
+                  <TextField
+                    label="Onset Refinement Baseline (%)"
+                    type="number"
+                    size="small"
+                    fullWidth
+                    value={formValues.onsetRefinementBaseline}
+                    onChange={(e) =>
+                      handleInputChange(
+                        'onsetRefinementBaseline',
+                        parseFloat(e.target.value) || 30
+                      )
+                    }
+                    inputProps={{
+                      min: 0,
+                      max: 100,
+                      step: 5,
+                    }}
+                    helperText="Baseline threshold for placing markers at transient start (lower = earlier placement)"
+                  />
                 </>
               )}
             </Stack>
