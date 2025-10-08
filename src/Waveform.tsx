@@ -182,7 +182,6 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           clearInterval(interval);
         }
       };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state.isPlaying, setCurrentTime]);
 
     // Memoized update splice marker colors function
@@ -1055,7 +1054,6 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           regionsRef.current = null;
         }
       };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
       audioUrl,
       setAudioBuffer,
@@ -1144,7 +1142,6 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     // Memoized region info that updates when regions change
     const regionInfo = useMemo(() => {
       return getRegionInfo(regionsRef.current);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [regionUpdateTrigger]); // Re-calculate when regions are updated
 
     // Expose methods to parent component via ref

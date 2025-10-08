@@ -183,14 +183,3 @@ function findPeaksInDetectionFunction(
 
   return onsets;
 }
-
-/**
- * Clean up Essentia instance
- */
-export function shutdownEssentia(): void {
-  if (essentiaInstance) {
-    essentiaLogger.debug('Shutting down Essentia.js...');
-    essentiaInstance.shutdown();
-    essentiaInstance = null;
-  }
-}
