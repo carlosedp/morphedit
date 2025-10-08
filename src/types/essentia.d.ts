@@ -80,3 +80,47 @@ declare module 'essentia.js' {
   export const EssentiaExtractor: unknown;
   export const EssentiaPlot: unknown;
 }
+
+// Type declarations for ES module imports (direct dist imports)
+// Note: Core module uses DEFAULT EXPORT, WASM module uses NAMED EXPORT
+declare module 'essentia.js/dist/essentia.js-core.es.js' {
+  export default class Essentia {
+    constructor(wasmModule: unknown, isDebug?: boolean);
+    version: string;
+    algorithmNames: string[];
+    audioBufferToMonoSignal(buffer: AudioBuffer): Float32Array;
+    FrameGenerator(
+      inputAudioData: Float32Array,
+      frameSize?: number,
+      hopSize?: number // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ): any;
+    Windowing(
+      frame: Float32Array,
+      normalize?: boolean,
+      size?: number,
+      type?: string
+    ): { frame: Float32Array };
+    FFT(frame: Float32Array): {
+      spectrum: Float32Array;
+      phase: Float32Array;
+    };
+    OnsetDetection(
+      spectrum: Float32Array,
+      phase: Float32Array,
+      method?: string,
+      sampleRate?: number
+    ): { onsetDetection: number };
+    Onsets(
+      detections: number[][],
+      weights: number[],
+      alpha?: number,
+      delay?: number,
+      frameRate?: number,
+      silenceThreshold?: number
+    ): { onsets: number[] };
+  }
+}
+
+declare module 'essentia.js/dist/essentia-wasm.es.js' {
+  export const EssentiaWASM: unknown;
+}

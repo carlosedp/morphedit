@@ -1,6 +1,5 @@
 // Essentia.js onset detection utilities
-import * as EssentiaModule from 'essentia.js';
-
+// NOTE: Imports ES modules directly to avoid CommonJS require() issues
 import type { EssentiaOnsetMethod } from '../settingsStore';
 import { createLogger } from './logger';
 
@@ -12,24 +11,25 @@ let essentiaInstance: any = null;
 
 /**
  * Initialize Essentia.js instance with WASM backend
+ * Uses dynamic import to lazy-load the library only when needed
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getEssentiaInstance(): Promise<any> {
   if (!essentiaInstance) {
     essentiaLogger.debug('Initializing Essentia.js...');
 
-    // The module exports {Essentia, EssentiaWASM} but we need to access them correctly
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const EssentiaClass = (EssentiaModule as any).Essentia;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const wasmModuleWrapper = (EssentiaModule as any).EssentiaWASM;
+    // Dynamically import essentia.js ES modules directly (avoiding CommonJS index.js)
+    // Note: Core is default export, WASM is named export { EssentiaWASM }
+    const [EssentiaModule, WasmModule] = await Promise.all([
+      import('essentia.js/dist/essentia.js-core.es.js'),
+      import('essentia.js/dist/essentia-wasm.es.js'),
+    ]);
 
-    // The EssentiaWASM export is actually an object containing the WASM module
-    // We need to access wasmModuleWrapper.EssentiaWASM to get the actual WASM module
-    const wasmModule = wasmModuleWrapper.EssentiaWASM || wasmModuleWrapper;
+    const Essentia = EssentiaModule.default;
+    const { EssentiaWASM } = WasmModule;
 
     essentiaLogger.debug('Creating Essentia instance with WASM module');
-    essentiaInstance = new EssentiaClass(wasmModule);
+    essentiaInstance = new Essentia(EssentiaWASM);
     essentiaLogger.debug('Essentia.js initialized successfully');
   }
   return essentiaInstance;

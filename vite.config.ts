@@ -8,6 +8,11 @@ import wasm from 'vite-plugin-wasm';
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
   base: './', // Ensure relative paths for Electron
+  define: {
+    // Define Node.js globals for browser compatibility
+    'process.env': {},
+    global: 'globalThis',
+  },
   plugins: [
     react(),
     wasm(),
@@ -78,6 +83,17 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     chunkSizeWarningLimit: 1000,
+    // Enable source maps for production debugging (but not inline)
+    sourcemap: false,
+    // Minification settings
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console.logs in production
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.debug'], // Remove specific console calls
+      },
+    },
     rollupOptions: {
       // Optimize chunk size and reduce file handles
       output: {
@@ -85,8 +101,12 @@ export default defineConfig(({ mode }) => ({
           vendor: ['react', 'react-dom'],
           mui: ['@mui/material', '@mui/system', '@mui/icons-material'],
           audio: ['wavesurfer.js', 'web-audio-beat-detector'],
-          essentia: ['essentia.js'], // Split essentia.js into separate chunk
+          // essentia will be dynamically imported, not in initial bundle
         },
+        // Optimize chunk naming for better caching
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
       },
       // Increase max parallel file reads to handle large dependency trees
       maxParallelFileOps: 5,
@@ -94,5 +114,12 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     include: ['@mui/material', '@mui/system', '@mui/icons-material'],
+    // Pre-bundle these for faster dev server startup
+    exclude: ['essentia.js'], // Exclude essentia from pre-bundling since it's lazy-loaded
+    esbuildOptions: {
+      define: {
+        global: 'globalThis',
+      },
+    },
   },
 }));
