@@ -1,12 +1,10 @@
-import {
-  Check,
-  FiberManualRecord,
-  Mic,
-  Pause,
-  PlayArrow,
-  Refresh,
-  Stop,
-} from '@mui/icons-material';
+import Check from '@mui/icons-material/Check';
+import FiberManualRecord from '@mui/icons-material/FiberManualRecord';
+import Mic from '@mui/icons-material/Mic';
+import Pause from '@mui/icons-material/Pause';
+import PlayArrow from '@mui/icons-material/PlayArrow';
+import Refresh from '@mui/icons-material/Refresh';
+import Stop from '@mui/icons-material/Stop';
 import {
   Alert,
   Box,

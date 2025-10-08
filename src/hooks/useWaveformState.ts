@@ -35,6 +35,8 @@ interface WaveformState {
   transientSensitivity: number;
   transientFrameSize: number; // Frame size in milliseconds (5-50ms)
   transientOverlap: number; // Overlap percentage (50-90%)
+  isDetecting: boolean;
+  detectionMessage: string;
 
   // Navigation state
   zoom: number;
@@ -71,6 +73,8 @@ interface WaveformActions {
   setTransientSensitivity: (sensitivity: number) => void;
   setTransientFrameSize: (frameSize: number) => void;
   setTransientOverlap: (overlap: number) => void;
+  setIsDetecting: (detecting: boolean) => void;
+  setDetectionMessage: (message: string) => void;
   setZoom: (zoom: number) => void;
   setResetZoom: (resetZoom: number) => void;
   setSkipIncrement: (increment: number) => void;
@@ -131,6 +135,10 @@ export const useWaveformState = (
     settings.transientOverlapPercent
   );
 
+  // Detection state
+  const [isDetecting, setIsDetecting] = useState(false);
+  const [detectionMessage, setDetectionMessage] = useState('');
+
   // Navigation state
   const [zoom, setZoom] = useState(0);
   const [resetZoom, setResetZoom] = useState(10); // Start with a more reasonable default for longer audio
@@ -175,6 +183,8 @@ export const useWaveformState = (
     transientSensitivity,
     transientFrameSize,
     transientOverlap,
+    isDetecting,
+    detectionMessage,
     zoom,
     resetZoom,
     skipIncrement,
@@ -206,6 +216,8 @@ export const useWaveformState = (
       setTransientSensitivity,
       setTransientFrameSize,
       setTransientOverlap,
+      setIsDetecting,
+      setDetectionMessage,
       setZoom,
       setResetZoom,
       setSkipIncrement,

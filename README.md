@@ -111,6 +111,28 @@ bun run dev
 
 Open [http://localhost:5173](http://localhost:5173) to view the application.
 
+Or to build for production:
+
+```bash
+bun run build
+```
+
+and serve the `dist` folder with a static file server like nodejs, bun or python.
+
+```sh
+npx http-server dist -p 8080
+# or
+cd dist && python -m http.server 8080
+```
+
+to serve the app as a PWA with offline support, after building and serving the `dist` folder locally, do:
+
+1. Open browser and navigate to `http://localhost:8080`
+
+2. Install the app:
+   - **Chrome**: Click the install icon in the address bar or use the "Install MorphEdit" option in the menu
+   - **Firefox**: Look for the install prompt or use the "Add to Home Screen" option
+
 ## 📖 Documentation
 
 - **[Complete User Manual](./public/USER_MANUAL.md)** - Comprehensive guide with screenshots

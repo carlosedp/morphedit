@@ -40,7 +40,9 @@ MorphEdit is a powerful, browser-based audio editor designed for preparing audio
 - **Audio Reversal**: Reverse entire audio or crop regions for creative backwards effects
 - **BPM Detection**: Automatic tempo detection and display for musical content
 - **File Appending**: Add new audio files to existing compositions with preserved markers
-- **Transient Detection**: Automatically detect audio transients for splice placement
+- **Onset Detection**: Two powerful detection engines for automatic splice placement
+  - **Web Audio**: Fast energy-based transient detection
+  - **Essentia.js**: Professional music analysis with 4 detection methods (HFC, Complex, Spectral Flux, etc.)
 - **Zero-Crossing Snap**: Align markers to zero crossings to prevent audio artifacts
 - **Multiple Export Formats**: Export to various sample rates and bit depths
 - **Concatenation Support**: Combine multiple audio files with preserved splice markers
@@ -114,7 +116,10 @@ The MorphEdit interface consists of several main sections:
 
 - **Manual Controls**: Add, remove, and lock splice markers
 - **Auto-Slice**: Create equally distributed markers
-- **Transient Detection**: Automatically detect splice points
+- **Onset Detection**: Two detection engines for automatic splice point detection
+  - **Web Audio**: Fast energy-based detection
+  - **Essentia.js**: Professional music analysis with multiple methods
+- **Detection Settings**: Configure sensitivity, method, and advanced parameters
 - **Marker Management**: Half markers, clear all, snap to zero crossings
 
 ![alt text](img/splice.png)
@@ -257,15 +262,72 @@ This feature allows you to quickly audition different segments of your audio by 
 
 #### Transient Detection
 
+MorphEdit offers two powerful onset detection libraries for automatically finding transients in your audio:
+
+##### Detection Library Selection
+
+Choose between two detection engines:
+
+1. **Web Audio (Fast)** - Default option
+   - Energy-based transient detection
+   - Fast processing
+   - Good for most audio types
+   - Lower CPU usage
+
+2. **Essentia.js (Accurate)** - Advanced option
+   - Professional music analysis library
+   - Multiple detection methods (see below)
+   - More accurate for complex material
+   - Slightly slower but more precise
+
+##### Web Audio Detection Settings
+
+When using Web Audio detection:
+
 1. **Configure Sensitivity**: Adjust detection sensitivity (0-100)
    - **Low (0-30)**: Detects only strong transients
-   - **Medium (30-70)**: Balanced detection
+   - **Medium (30-70)**: Balanced detection (recommended)
    - **High (70-100)**: Detects subtle changes
 2. **Advanced Settings**:
-   - **Frame Size**: Analysis window duration (5-50ms)
-   - **Overlap**: Window overlap percentage (50-90%)
-3. **Detect**: Click "Detect" to automatically find transients
-4. **Results**: Markers placed at detected transient positions
+   - **Frame Size**: Analysis window duration (10-100ms, default: 20ms)
+   - **Overlap**: Window overlap percentage (0-95%, default: 75%)
+   - **Onset Refinement Baseline**: Controls marker placement precision (0-100%, default: 30%)
+     - Lower values place markers earlier in the transient
+     - Higher values place markers closer to the peak
+
+##### Essentia.js Detection Settings
+
+When using Essentia.js, you have access to multiple detection methods:
+
+1. **Detection Methods**:
+   - **HFC (High Frequency Content)** - Best for drums and percussion with sharp attacks
+   - **Complex** - Good for complex audio with multiple instruments
+   - **Complex Phase** - Uses phase information for better detection
+   - **Spectral Flux** - Tracks magnitude spectrum changes
+
+2. **Advanced Parameters**:
+   - **Sensitivity**: Detection threshold (0-100, default: 65)
+   - **Frame Size**: FFT window size in samples (512-4096, default: 1024)
+   - **Hop Size**: Analysis hop size in samples (128-2048, default: 512)
+   - **Onset Refinement Baseline**: Marker placement precision (0-100%, default: 30%)
+
+##### Using Transient Detection
+
+1. **Select Library**: Choose Web Audio or Essentia.js from the dropdown
+2. **Choose Method**: (Essentia only) Select the detection method that matches your audio
+3. **Adjust Settings**: Configure sensitivity and advanced parameters
+4. **Detect**: Click "Detect" button to automatically find transients
+5. **Results**: Markers are placed at detected transient positions
+6. **Refinement**: Manually adjust markers if needed, or tweak settings and re-detect
+
+##### Tips for Best Results
+
+- **Drums/Percussion**: Use Essentia.js HFC method with medium-high sensitivity (60-80)
+- **Complex Mixes**: Use Essentia.js Complex or Spectral Flux methods
+- **Musical Content**: Try Mel Flux for better musical transient detection
+- **Simple Material**: Web Audio is often sufficient and faster
+- **Marker Placement**: Lower refinement baseline (10-20%) places markers at the very start of transients
+- **Fine-Tuning**: Start with default settings, then adjust sensitivity based on results
 
 ![alt text](img/slicedetect.png)
 
@@ -624,11 +686,66 @@ Customize audio handling parameters:
 
 ### Transient Detection Settings
 
-Fine-tune automatic splice point detection:
+Fine-tune automatic splice point detection with two available detection engines:
 
-- **Detection Threshold**: Adjust sensitivity for detecting transients (0.01 = very sensitive, 0.5 = less sensitive)
+#### Detection Library
+
+- **Onset Detection Library**: Choose between Web Audio (fast) or Essentia.js (accurate)
+  - **Web Audio**: Energy-based detection, fast processing
+  - **Essentia.js**: Professional music analysis library with multiple methods
+
+#### Web Audio Settings
+
+When using Web Audio detection:
+
+- **Detection Threshold**: Adjust sensitivity for detecting transients (0-100, default: 65)
+  - 0 = very sensitive (detects subtle changes)
+  - 100 = less sensitive (only strong transients)
 - **Frame Size (ms)**: Set the analysis window size in milliseconds (10-100ms, default: 20ms)
 - **Overlap (%)**: Configure overlap between analysis windows (0-95%, default: 75%)
+- **Onset Refinement Baseline (%)**: Control marker placement precision (0-100%, default: 30%)
+  - Lower values place markers at the very start of transients
+  - Higher values place markers closer to the transient peak
+
+#### Essentia.js Settings
+
+When using Essentia.js detection:
+
+- **Detection Method**: Select the algorithm that best matches your audio
+  - **HFC (High Frequency Content)**: Best for drums and percussion
+  - **Complex**: Good for complex audio with multiple instruments
+  - **Complex Phase**: Uses phase information for better detection
+  - **Spectral Flux**: Tracks magnitude spectrum changes
+- **Detection Sensitivity**: Threshold for onset detection (0-100, default: 65)
+- **Frame Size (samples)**: FFT window size (512-4096, default: 1024)
+  - Larger values = more frequency resolution, less time precision
+  - Smaller values = better time precision, less frequency resolution
+- **Hop Size (samples)**: Analysis hop size (128-2048, default: 512)
+  - Smaller values = more detailed analysis, slower processing
+  - Larger values = faster processing, less temporal detail
+- **Onset Refinement Baseline (%)**: Marker placement precision (0-100%, default: 30%)
+
+#### Recommended Settings
+
+**For Drums/Percussion:**
+- Library: Essentia.js
+- Method: HFC
+- Sensitivity: 60-80
+- Frame Size: 1024
+- Hop Size: 512
+
+**For Complex Mixes:**
+- Library: Essentia.js
+- Method: Complex or Spectral Flux
+- Sensitivity: 50-70
+- Frame Size: 2048
+- Hop Size: 512
+
+**For Fast Processing:**
+- Library: Web Audio
+- Threshold: 65
+- Frame Size: 20ms
+- Overlap: 75%
 
 ### Export Settings
 
@@ -955,9 +1072,33 @@ This provides detailed information about:
 
 #### Transient Detection Tips
 
-- **Sensitivity Tuning**: Start with medium (50) and adjust based on results
-- **Frame Size**: Smaller frames (5-10ms) for percussive content, larger (20-50ms) for sustained sounds
-- **Manual Refinement**: Use automatic detection as starting point, then manually adjust
+- **Choose the Right Library**:
+  - Use **Web Audio** for fast processing and general-purpose detection
+  - Use **Essentia.js** for more accurate detection on complex audio material
+  
+- **Essentia.js Method Selection**:
+  - **HFC**: Best for drums, percussion, and sharp transients
+  - **Complex/Complex Phase**: Good for complex mixes with multiple instruments
+  - **Spectral Flux**: Excellent for detecting timbral changes
+
+- **Sensitivity Tuning**: 
+  - Start with medium sensitivity (50-65) and adjust based on results
+  - Too high = false positives (unwanted markers)
+  - Too low = missed transients
+  
+- **Frame/Hop Size (Essentia.js)**:
+  - **Larger Frame Size** (2048-4096): Better frequency resolution, good for pitched content
+  - **Smaller Frame Size** (512-1024): Better time precision, good for percussion
+  - **Smaller Hop Size** (256-512): More detailed analysis, finds more transients
+  - **Larger Hop Size** (1024): Faster processing, fewer markers
+
+- **Onset Refinement Baseline**:
+  - **Low (10-20%)**: Places markers at the very beginning of transients (best for tight loops)
+  - **Medium (30-40%)**: Balanced placement (default, works for most cases)
+  - **High (50-70%)**: Places markers closer to the transient peak (for creative effects)
+
+- **Manual Refinement**: Use automatic detection as a starting point, then manually adjust marker positions
+- **Locked Markers**: Lock important markers before re-running detection to preserve them
 
 ### Performance Optimization
 

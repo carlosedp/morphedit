@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignore": ["preload.js", "public/sw.js", "src/types/**/*.d.ts"],
+  "ignoreDependencies": ["@fontsource/roboto-mono"],
+  "entry": ["src/main.tsx"]
+}

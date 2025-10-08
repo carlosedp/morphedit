@@ -36,7 +36,7 @@ export interface BPMSliceOptions {
 /**
  * Calculate the time interval for a musical division based on BPM
  */
-export function calculateMusicalInterval(
+function calculateMusicalInterval(
   bpm: number,
   division: MusicalDivision
 ): number {

@@ -10,6 +10,12 @@ import {
   REGION_COLORS,
   TRANSIENT_DETECTION,
 } from '../constants';
+import type {
+  EssentiaOnsetMethod,
+  OnsetDetectionLibrary,
+} from '../settingsStore';
+import { useSettingsStore } from '../settingsStore';
+import { detectOnsetsEssentia } from './essentiaOnsetDetection';
 import {
   clearSelectionAndUpdateColors,
   limitSpliceMarkers,
@@ -26,7 +32,8 @@ const detectTransients = (
   audioBuffer: AudioBuffer,
   sensitivity: number,
   frameSizeMs: number = TRANSIENT_DETECTION.DEFAULT_FRAME_SIZE_MS,
-  overlapPercent: number = TRANSIENT_DETECTION.DEFAULT_OVERLAP_PERCENT
+  overlapPercent: number = TRANSIENT_DETECTION.DEFAULT_OVERLAP_PERCENT,
+  refinementBaseline: number = TRANSIENT_DETECTION.DEFAULT_ONSET_REFINEMENT_BASELINE
 ): number[] => {
   if (!audioBuffer || audioBuffer.length === 0) {
     return [];
@@ -57,6 +64,16 @@ const detectTransients = (
   const transients: number[] = [];
   const threshold = calculateThreshold(energyDeltas, sensitivity);
 
+  // Check first frame (could be a transient at the very beginning)
+  if (energyDeltas.length > 0 && energyDeltas[0] > threshold) {
+    // If first energy delta is significantly positive, likely a transient at start
+    const isFirstFramePeak =
+      energyDeltas.length === 1 || energyDeltas[0] > energyDeltas[1] * 0.8;
+    if (isFirstFramePeak) {
+      transients.push(0); // Add transient at the very beginning
+    }
+  }
+
   for (let i = 1; i < energyDeltas.length - 1; i++) {
     const current = energyDeltas[i];
     const prev = energyDeltas[i - 1];
@@ -64,7 +81,14 @@ const detectTransients = (
 
     // Peak detection: current value is higher than neighbors and above threshold
     if (current > prev && current > next && current > threshold) {
-      const timeInSeconds = (i * hopSize) / sampleRate;
+      // Refine transient position: look backwards to find where the rise actually starts
+      const refinedIndex = refineTransientPosition(
+        energyDeltas,
+        i,
+        threshold,
+        refinementBaseline
+      );
+      const timeInSeconds = (refinedIndex * hopSize) / sampleRate;
 
       // Avoid transients too close to each other (minimum 50ms apart)
       const minInterval = TRANSIENT_DETECTION.MIN_INTERVAL;
@@ -77,7 +101,79 @@ const detectTransients = (
     }
   }
 
+  // Check last frame (could be a transient at the very end)
+  const lastIdx = energyDeltas.length - 1;
+  if (
+    lastIdx > 0 &&
+    energyDeltas[lastIdx] > threshold &&
+    energyDeltas[lastIdx] > energyDeltas[lastIdx - 1]
+  ) {
+    const refinedIndex = refineTransientPosition(
+      energyDeltas,
+      lastIdx,
+      threshold,
+      refinementBaseline
+    );
+    const timeInSeconds = (refinedIndex * hopSize) / sampleRate;
+    const minInterval = TRANSIENT_DETECTION.MIN_INTERVAL;
+    if (
+      transients.length === 0 ||
+      timeInSeconds - transients[transients.length - 1] > minInterval
+    ) {
+      transients.push(timeInSeconds);
+    }
+  }
+
   return transients;
+};
+
+/**
+ * Refine transient position by looking backwards from peak to find the start of the rise
+ * This places the marker at the beginning of the transient, not at the peak
+ * @param energyDeltas - Array of energy delta values
+ * @param peakIndex - Index of the detected peak
+ * @param threshold - Detection threshold
+ * @param refinementBaselinePercent - Baseline as percentage of threshold (0-100, default: 30)
+ * @returns Refined transient index (start of the rise)
+ */
+const refineTransientPosition = (
+  energyDeltas: number[],
+  peakIndex: number,
+  threshold: number,
+  refinementBaselinePercent: number = 30
+): number => {
+  if (peakIndex === 0) return 0;
+
+  // Convert percentage to multiplier (0-100 -> 0-1)
+  const baselineMultiplier =
+    Math.max(0, Math.min(100, refinementBaselinePercent)) / 100;
+
+  // Define the baseline as a percentage of the threshold
+  // The transient is where the value starts rising significantly above baseline
+  const baseline = threshold * baselineMultiplier;
+
+  // Look backwards from the peak to find where the rise starts
+  let transientIndex = peakIndex;
+
+  for (let i = peakIndex - 1; i >= 0; i--) {
+    const currentValue = energyDeltas[i];
+    const nextValue = energyDeltas[i + 1];
+
+    // Check if we've reached the baseline or if the value stops decreasing
+    if (currentValue <= baseline || currentValue >= nextValue) {
+      // Found the start of the rise
+      transientIndex = i + 1; // Use the next frame (where rise starts)
+      break;
+    }
+
+    // Don't look back more than 10 frames (to avoid false positives)
+    if (peakIndex - i > 10) {
+      transientIndex = i;
+      break;
+    }
+  }
+
+  return transientIndex;
 };
 
 /**
@@ -107,8 +203,9 @@ const calculateThreshold = (
 
 /**
  * Apply transient detection and create splice markers
+ * Supports both Web Audio and Essentia.js detection libraries
  */
-export const applyTransientDetection = (
+export const applyTransientDetection = async (
   _ws: WaveSurfer,
   regions: RegionsPlugin,
   audioBuffer: AudioBuffer,
@@ -117,8 +214,12 @@ export const applyTransientDetection = (
   overlapPercent: number,
   setSpliceMarkersStore: (markers: number[]) => void,
   setSelectedSpliceMarker: (marker: Region | null) => void,
-  updateSpliceMarkerColors: (marker: Region | null) => void
-): number => {
+  updateSpliceMarkerColors: (marker: Region | null) => void,
+  library: OnsetDetectionLibrary = 'webaudio',
+  essentiaMethod?: EssentiaOnsetMethod,
+  essentiaFrameSize?: number,
+  essentiaHopSize?: number
+): Promise<number> => {
   if (!_ws || !regions || !audioBuffer) {
     console.log('Cannot apply transient detection: missing dependencies');
     return 0;
@@ -127,7 +228,7 @@ export const applyTransientDetection = (
   const lockedMarkers = useAudioStore.getState().lockedSpliceMarkers;
 
   console.log(
-    `Applying transient detection with sensitivity: ${sensitivity}, preserving ${lockedMarkers.length} locked markers`
+    `Applying ${library} onset detection with sensitivity: ${sensitivity}, preserving ${lockedMarkers.length} locked markers`
   );
 
   // Clear existing unlocked splice markers only
@@ -142,13 +243,34 @@ export const applyTransientDetection = (
     `Removed ${removedRegions.length} unlocked markers, preserving ${lockedMarkers.length} locked markers`
   );
 
-  // Detect transients
-  const transients = detectTransients(
-    audioBuffer,
-    sensitivity,
-    frameSizeMs,
-    overlapPercent
-  );
+  // Detect transients using selected library
+  let transients: number[];
+
+  // Get refinement baseline from settings
+  const refinementBaseline =
+    useSettingsStore.getState().onsetRefinementBaseline;
+
+  if (library === 'essentia') {
+    console.log('Using Essentia.js for onset detection');
+    transients = await detectOnsetsEssentia(
+      audioBuffer,
+      essentiaMethod || 'hfc',
+      essentiaFrameSize || 1024,
+      essentiaHopSize || 512,
+      sensitivity,
+      refinementBaseline
+    );
+  } else {
+    console.log('Using Web Audio for transient detection');
+    transients = detectTransients(
+      audioBuffer,
+      sensitivity,
+      frameSizeMs,
+      overlapPercent,
+      refinementBaseline
+    );
+  }
+
   console.log(`Detected ${transients.length} transients:`, transients);
 
   // Filter out transients that are too close to locked markers

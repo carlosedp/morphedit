@@ -13,6 +13,7 @@ import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
 import type { AudioState } from './audioStore';
 import { useAudioStore } from './audioStore';
 import { BPMBasedSliceDialog } from './components/BPMBasedSliceDialog';
+import { LoadingDialog } from './components/LoadingDialog';
 import { SpliceMarkerControls } from './components/SpliceMarkerControls';
 import { WaveformActionControls } from './components/WaveformActionControls';
 import { WaveformControls } from './components/WaveformInfoBar';
@@ -181,7 +182,6 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           clearInterval(interval);
         }
       };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state.isPlaying, setCurrentTime]);
 
     // Memoized update splice marker colors function
@@ -1054,7 +1054,6 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           regionsRef.current = null;
         }
       };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
       audioUrl,
       setAudioBuffer,
@@ -1143,7 +1142,6 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
     // Memoized region info that updates when regions change
     const regionInfo = useMemo(() => {
       return getRegionInfo(regionsRef.current);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [regionUpdateTrigger]); // Re-calculate when regions are updated
 
     // Expose methods to parent component via ref
@@ -1359,6 +1357,12 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           duration={state.duration}
           onClose={handleCloseBPMDialog}
           onApply={handleApplyBPMSlice}
+        />
+
+        {/* Detection loading dialog */}
+        <LoadingDialog
+          open={state.isDetecting}
+          message={state.detectionMessage}
         />
       </Container>
     );
