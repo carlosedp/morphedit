@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run linting to ensure code quality before commit
+echo "🔍 Running linters..."
+bun run lint
+
+# If lint passes, allow commit
+echo "✅ Linting passed! Proceeding with commit."

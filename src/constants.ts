@@ -115,11 +115,78 @@ export const TOOLTIP_DELAYS = {
 } as const;
 
 // Auto-slice/transient detection
+export const ONSET_DETECTION_LIBRARIES = {
+  WEBAUDIO: 'webaudio',
+  ESSENTIA: 'essentia',
+} as const;
+
+// UI-friendly library options
+export const ONSET_DETECTION_LIBRARY_OPTIONS = [
+  {
+    value: 'webaudio' as const,
+    label: 'Web Audio API',
+    speed: 'Fast',
+    description: 'Energy-based detection - fast and responsive',
+  },
+  {
+    value: 'essentia' as const,
+    label: 'Essentia.js',
+    speed: 'Accurate',
+    description: 'Advanced spectral analysis - slower but more accurate',
+  },
+] as const;
+
+// Essentia.js onset detection settings with UI labels
+export const ESSENTIA_ONSET_METHODS = {
+  hfc: {
+    label: 'HFC - High Frequency Content',
+    description: 'Best for percussive sounds with bright attacks',
+  },
+  complex: {
+    label: 'Complex - Magnitude & Phase',
+    description: 'Detects pitch and energy changes',
+  },
+  complex_phase: {
+    label: 'Complex Phase',
+    description: 'Good for tonal sounds and phase changes',
+  },
+  flux: {
+    label: 'Spectral Flux',
+    description: 'Tracks magnitude spectrum changes',
+  },
+  // melflux: {
+  //   label: 'Mel Flux',
+  //   description: 'Mel-frequency band energy changes',
+  // },
+  // rms: {
+  //   label: 'RMS - Energy Flux',
+  //   description: 'Overall energy changes in frequency domain',
+  // },
+} as const;
+
 export const TRANSIENT_DETECTION = {
-  DEFAULT_THRESHOLD: 50,
+  DEFAULT_THRESHOLD: 65,
   MIN_INTERVAL: 0.05, // Minimum 50ms between transients
   DEFAULT_FRAME_SIZE_MS: 20,
   DEFAULT_OVERLAP_PERCENT: 75,
+  DEFAULT_LIBRARY: ONSET_DETECTION_LIBRARIES.WEBAUDIO,
+  DEFAULT_ONSET_REFINEMENT_BASELINE: 30, // Percentage of threshold for onset position refinement (0-100)
+} as const;
+
+// Essentia.js onset detection settings
+export const ESSENTIA_ONSET_DETECTION = {
+  DEFAULT_METHOD: 'hfc' as const, // High Frequency Content
+  METHODS: [
+    'hfc',
+    'complex',
+    'complex_phase',
+    'flux',
+    // 'melflux',
+    // 'rms',
+  ] as const,
+  DEFAULT_FRAME_SIZE: 1024,
+  DEFAULT_HOP_SIZE: 512,
+  DEFAULT_SENSITIVITY: 65, // 0-100 scale mapped to algorithm parameters
 } as const;
 
 // File handling
@@ -188,4 +255,11 @@ export const DEFAULT_SETTINGS = {
   TRANSIENT_THRESHOLD: TRANSIENT_DETECTION.DEFAULT_THRESHOLD,
   TRANSIENT_FRAME_SIZE_MS: TRANSIENT_DETECTION.DEFAULT_FRAME_SIZE_MS,
   TRANSIENT_OVERLAP_PERCENT: TRANSIENT_DETECTION.DEFAULT_OVERLAP_PERCENT,
+  ONSET_DETECTION_LIBRARY: TRANSIENT_DETECTION.DEFAULT_LIBRARY,
+  ONSET_REFINEMENT_BASELINE:
+    TRANSIENT_DETECTION.DEFAULT_ONSET_REFINEMENT_BASELINE,
+  ESSENTIA_ONSET_METHOD: ESSENTIA_ONSET_DETECTION.DEFAULT_METHOD,
+  ESSENTIA_FRAME_SIZE: ESSENTIA_ONSET_DETECTION.DEFAULT_FRAME_SIZE,
+  ESSENTIA_HOP_SIZE: ESSENTIA_ONSET_DETECTION.DEFAULT_HOP_SIZE,
+  ESSENTIA_SENSITIVITY: ESSENTIA_ONSET_DETECTION.DEFAULT_SENSITIVITY,
 } as const;

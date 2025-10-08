@@ -80,6 +80,8 @@ interface WaveformState {
   transientSensitivity: number;
   transientFrameSize: number;
   transientOverlap: number;
+  isDetecting: boolean;
+  detectionMessage: string;
   fadeInMode: boolean;
   fadeOutMode: boolean;
   fadeInCurveType: string;
@@ -104,6 +106,8 @@ interface WaveformActions {
   setSelectedSpliceMarker: (marker: Region | null) => void;
   setCurrentAudioUrl: (url: string | null) => void;
   setSelectedExportFormat: (format: ExportFormat) => void;
+  setIsDetecting: (detecting: boolean) => void;
+  setDetectionMessage: (message: string) => void;
 }
 
 interface WaveformHandlersProps {
@@ -897,31 +901,65 @@ export const useWaveformHandlers = ({
     regionsRef,
   ]);
 
-  const handleTransientDetection = useCallback(() => {
+  const handleTransientDetection = useCallback(async () => {
     const audioBuffer = useAudioStore.getState().audioBuffer;
     if (!audioBuffer) {
       console.log('No audio buffer available for transient detection');
       return;
     }
 
-    console.log(
-      'Starting transient detection with sensitivity:',
-      state.transientSensitivity
+    // Get settings directly from the store (not using hook in callback)
+    const { useSettingsStore } = await import('../settingsStore');
+    const settings = useSettingsStore.getState();
+
+    const library = settings.onsetDetectionLibrary;
+    const isEssentia = library === 'essentia';
+
+    // Show loading dialog
+    const libraryName = isEssentia ? 'Essentia.js' : 'Web Audio';
+    const methodInfo = isEssentia
+      ? ` (${settings.essentiaOnsetMethod.toUpperCase()})`
+      : '';
+    actions.setDetectionMessage(
+      `Analyzing audio with ${libraryName}${methodInfo}...`
     );
-    const detectedCount = applyTransientDetection(
-      wavesurferRef.current!,
-      regionsRef.current!,
-      audioBuffer,
-      state.transientSensitivity,
-      state.transientFrameSize,
-      state.transientOverlap,
-      setSpliceMarkersStore,
-      actions.setSelectedSpliceMarker,
-      memoizedUpdateSpliceMarkerColors
+    actions.setIsDetecting(true);
+
+    // Use requestAnimationFrame + setTimeout to ensure React renders the loading dialog
+    // before starting the detection work (which may be synchronous and block the UI)
+    await new Promise((resolve) =>
+      requestAnimationFrame(() => setTimeout(resolve, 50))
     );
-    console.log(
-      `Transient detection completed. Detected ${detectedCount} transients.`
-    );
+
+    try {
+      console.log(
+        `Starting ${library} onset detection with sensitivity:`,
+        isEssentia ? settings.essentiaSensitivity : state.transientSensitivity
+      );
+
+      const detectedCount = await applyTransientDetection(
+        wavesurferRef.current!,
+        regionsRef.current!,
+        audioBuffer,
+        isEssentia ? settings.essentiaSensitivity : state.transientSensitivity,
+        state.transientFrameSize,
+        state.transientOverlap,
+        setSpliceMarkersStore,
+        actions.setSelectedSpliceMarker,
+        memoizedUpdateSpliceMarkerColors,
+        library,
+        settings.essentiaOnsetMethod,
+        settings.essentiaFrameSize,
+        settings.essentiaHopSize
+      );
+      console.log(
+        `Onset detection completed. Detected ${detectedCount} onsets.`
+      );
+    } finally {
+      // Hide loading dialog
+      actions.setIsDetecting(false);
+      actions.setDetectionMessage('');
+    }
   }, [
     state.transientSensitivity,
     state.transientFrameSize,

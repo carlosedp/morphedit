@@ -1,6 +1,6 @@
 import './ElectronApp.ts';
 
-import { Mic } from '@mui/icons-material';
+import Mic from '@mui/icons-material/Mic';
 import {
   Box,
   Button,
