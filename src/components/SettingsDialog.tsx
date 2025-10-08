@@ -506,7 +506,8 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
                           </Typography>
                         </Box>
                       </MenuItem>
-                      <MenuItem value="melflux">
+                      {/* Temporarily disabled */}
+                      {/* <MenuItem value="melflux">
                         <Box>
                           <Typography variant="body2">Mel Flux</Typography>
                           <Typography variant="caption" color="text.secondary">
@@ -523,7 +524,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
                             Overall energy changes
                           </Typography>
                         </Box>
-                      </MenuItem>
+                      </MenuItem> */}
                     </Select>
                   </FormControl>
 

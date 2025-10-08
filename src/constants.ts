@@ -154,14 +154,14 @@ export const ESSENTIA_ONSET_METHODS = {
     label: 'Spectral Flux',
     description: 'Tracks magnitude spectrum changes',
   },
-  melflux: {
-    label: 'Mel Flux',
-    description: 'Mel-frequency band energy changes',
-  },
-  rms: {
-    label: 'RMS - Energy Flux',
-    description: 'Overall energy changes in frequency domain',
-  },
+  // melflux: {
+  //   label: 'Mel Flux',
+  //   description: 'Mel-frequency band energy changes',
+  // },
+  // rms: {
+  //   label: 'RMS - Energy Flux',
+  //   description: 'Overall energy changes in frequency domain',
+  // },
 } as const;
 
 export const TRANSIENT_DETECTION = {
@@ -181,8 +181,8 @@ export const ESSENTIA_ONSET_DETECTION = {
     'complex',
     'complex_phase',
     'flux',
-    'melflux',
-    'rms',
+    // 'melflux',
+    // 'rms',
   ] as const,
   DEFAULT_FRAME_SIZE: 1024,
   DEFAULT_HOP_SIZE: 512,
