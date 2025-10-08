@@ -13,6 +13,7 @@ import type { Region } from 'wavesurfer.js/dist/plugins/regions.esm.js';
 import type { AudioState } from './audioStore';
 import { useAudioStore } from './audioStore';
 import { BPMBasedSliceDialog } from './components/BPMBasedSliceDialog';
+import { LoadingDialog } from './components/LoadingDialog';
 import { SpliceMarkerControls } from './components/SpliceMarkerControls';
 import { WaveformActionControls } from './components/WaveformActionControls';
 import { WaveformControls } from './components/WaveformInfoBar';
@@ -1359,6 +1360,12 @@ const Waveform = forwardRef<WaveformRef, WaveformProps>(
           duration={state.duration}
           onClose={handleCloseBPMDialog}
           onApply={handleApplyBPMSlice}
+        />
+
+        {/* Detection loading dialog */}
+        <LoadingDialog
+          open={state.isDetecting}
+          message={state.detectionMessage}
         />
       </Container>
     );

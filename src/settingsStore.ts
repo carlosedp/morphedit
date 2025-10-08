@@ -3,8 +3,10 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import {
   DEFAULT_SETTINGS,
+  ESSENTIA_ONSET_DETECTION,
   EXPORT_FORMATS,
   FADE_CURVE_TYPES,
+  ONSET_DETECTION_LIBRARIES,
 } from './constants';
 import type { ExportFormat } from './utils/exportUtils';
 import { createLogger } from './utils/logger';
@@ -14,6 +16,10 @@ const settingsLogger = createLogger('Settings');
 // Types for settings
 export type FadeCurveType =
   (typeof FADE_CURVE_TYPES)[keyof typeof FADE_CURVE_TYPES];
+export type OnsetDetectionLibrary =
+  (typeof ONSET_DETECTION_LIBRARIES)[keyof typeof ONSET_DETECTION_LIBRARIES];
+export type EssentiaOnsetMethod =
+  (typeof ESSENTIA_ONSET_DETECTION.METHODS)[number];
 
 interface AppSettings {
   // Fade settings
@@ -33,6 +39,13 @@ interface AppSettings {
   transientThreshold: number;
   transientFrameSizeMs: number;
   transientOverlapPercent: number;
+  onsetDetectionLibrary: OnsetDetectionLibrary;
+
+  // Essentia.js onset detection settings
+  essentiaOnsetMethod: EssentiaOnsetMethod;
+  essentiaFrameSize: number;
+  essentiaHopSize: number;
+  essentiaSensitivity: number;
 
   // Export settings
   defaultExportFormat: ExportFormat;
@@ -54,6 +67,11 @@ interface SettingsStore extends AppSettings {
   getTransientThreshold: () => number;
   getTransientFrameSizeMs: () => number;
   getTransientOverlapPercent: () => number;
+  getOnsetDetectionLibrary: () => OnsetDetectionLibrary;
+  getEssentiaOnsetMethod: () => EssentiaOnsetMethod;
+  getEssentiaFrameSize: () => number;
+  getEssentiaHopSize: () => number;
+  getEssentiaSensitivity: () => number;
   getDefaultExportFormat: () => ExportFormat;
 }
 
@@ -69,6 +87,11 @@ const defaultSettings: AppSettings = {
   transientThreshold: DEFAULT_SETTINGS.TRANSIENT_THRESHOLD,
   transientFrameSizeMs: DEFAULT_SETTINGS.TRANSIENT_FRAME_SIZE_MS,
   transientOverlapPercent: DEFAULT_SETTINGS.TRANSIENT_OVERLAP_PERCENT,
+  onsetDetectionLibrary: DEFAULT_SETTINGS.ONSET_DETECTION_LIBRARY,
+  essentiaOnsetMethod: DEFAULT_SETTINGS.ESSENTIA_ONSET_METHOD,
+  essentiaFrameSize: DEFAULT_SETTINGS.ESSENTIA_FRAME_SIZE,
+  essentiaHopSize: DEFAULT_SETTINGS.ESSENTIA_HOP_SIZE,
+  essentiaSensitivity: DEFAULT_SETTINGS.ESSENTIA_SENSITIVITY,
   defaultExportFormat:
     EXPORT_FORMATS[DEFAULT_SETTINGS.DEFAULT_EXPORT_FORMAT_INDEX],
 };
@@ -79,7 +102,7 @@ const createStorage = () => {
   return createJSONStorage(() => localStorage);
 };
 
-const useSettingsStore = create<SettingsStore>()(
+export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set, get) => ({
       ...defaultSettings,
@@ -105,6 +128,11 @@ const useSettingsStore = create<SettingsStore>()(
       getTransientThreshold: () => get().transientThreshold,
       getTransientFrameSizeMs: () => get().transientFrameSizeMs,
       getTransientOverlapPercent: () => get().transientOverlapPercent,
+      getOnsetDetectionLibrary: () => get().onsetDetectionLibrary,
+      getEssentiaOnsetMethod: () => get().essentiaOnsetMethod,
+      getEssentiaFrameSize: () => get().essentiaFrameSize,
+      getEssentiaHopSize: () => get().essentiaHopSize,
+      getEssentiaSensitivity: () => get().essentiaSensitivity,
       getDefaultExportFormat: () => get().defaultExportFormat,
     }),
     {
@@ -130,6 +158,11 @@ export const useAppSettings = () => {
       transientThreshold: store.transientThreshold,
       transientFrameSizeMs: store.transientFrameSizeMs,
       transientOverlapPercent: store.transientOverlapPercent,
+      onsetDetectionLibrary: store.onsetDetectionLibrary,
+      essentiaOnsetMethod: store.essentiaOnsetMethod,
+      essentiaFrameSize: store.essentiaFrameSize,
+      essentiaHopSize: store.essentiaHopSize,
+      essentiaSensitivity: store.essentiaSensitivity,
       defaultExportFormat: store.defaultExportFormat,
     },
     actions: {

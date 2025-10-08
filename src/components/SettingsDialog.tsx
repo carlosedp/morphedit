@@ -24,7 +24,12 @@ import {
   EXPORT_FORMATS,
   FADE_CURVE_TYPES,
 } from '../constants';
-import { type FadeCurveType, useAppSettings } from '../settingsStore';
+import {
+  type EssentiaOnsetMethod,
+  type FadeCurveType,
+  type OnsetDetectionLibrary,
+  useAppSettings,
+} from '../settingsStore';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -40,13 +45,15 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
   // Local state for form values
   const [formValues, setFormValues] = useState(settings);
 
-  // Reset form values when dialog opens
+  // Reset form values when dialog opens - use a ref to track if we should update
+  const prevOpenRef = React.useRef(open);
   React.useEffect(() => {
-    if (open) {
+    // Only update when dialog transitions from closed to open
+    if (open && !prevOpenRef.current) {
       setFormValues(settings);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]); // Only depend on open state to avoid infinite loop
+    prevOpenRef.current = open;
+  }, [open, settings]);
 
   const handleSave = () => {
     actions.updateSettings(formValues);
@@ -71,6 +78,11 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
       transientThreshold: DEFAULT_SETTINGS.TRANSIENT_THRESHOLD,
       transientFrameSizeMs: DEFAULT_SETTINGS.TRANSIENT_FRAME_SIZE_MS,
       transientOverlapPercent: DEFAULT_SETTINGS.TRANSIENT_OVERLAP_PERCENT,
+      onsetDetectionLibrary: DEFAULT_SETTINGS.ONSET_DETECTION_LIBRARY,
+      essentiaOnsetMethod: DEFAULT_SETTINGS.ESSENTIA_ONSET_METHOD,
+      essentiaFrameSize: DEFAULT_SETTINGS.ESSENTIA_FRAME_SIZE,
+      essentiaHopSize: DEFAULT_SETTINGS.ESSENTIA_HOP_SIZE,
+      essentiaSensitivity: DEFAULT_SETTINGS.ESSENTIA_SENSITIVITY,
       defaultExportFormat:
         EXPORT_FORMATS[DEFAULT_SETTINGS.DEFAULT_EXPORT_FORMAT_INDEX],
     });
@@ -292,73 +304,250 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
 
           <Divider />
 
-          {/* Transient Detection Settings */}
+          {/* Onset Detection Settings */}
           <Box>
             <Typography variant="h6" gutterBottom>
-              Transient Detection
+              Onset Detection
             </Typography>
             <Stack spacing={2}>
-              <TextField
-                label="Detection Threshold"
-                type="number"
-                size="small"
-                fullWidth
-                value={formValues.transientThreshold}
-                onChange={(e) =>
-                  handleInputChange(
-                    'transientThreshold',
-                    parseFloat(e.target.value) || 0.1
-                  )
-                }
-                inputProps={{
-                  min: 0.01,
-                  max: 0.5,
-                  step: 0.01,
-                }}
-                helperText="Sensitivity for detecting transients (0.01 = very sensitive, 0.5 = less sensitive)"
-              />
-
-              <Stack direction="row" spacing={2}>
-                <TextField
-                  label="Frame Size (ms)"
-                  type="number"
-                  size="small"
-                  fullWidth
-                  value={formValues.transientFrameSizeMs}
+              {/* Library Selector */}
+              <FormControl fullWidth size="small">
+                <InputLabel>Detection Library</InputLabel>
+                <Select
+                  value={formValues.onsetDetectionLibrary}
+                  label="Detection Library"
                   onChange={(e) =>
                     handleInputChange(
-                      'transientFrameSizeMs',
-                      parseInt(e.target.value) || 20
+                      'onsetDetectionLibrary',
+                      e.target.value as OnsetDetectionLibrary
                     )
                   }
-                  inputProps={{
-                    min: 10,
-                    max: 100,
-                    step: 1,
-                  }}
-                  helperText="Analysis window size in milliseconds"
-                />
+                >
+                  <MenuItem value="webaudio">
+                    <Box>
+                      <Typography variant="body2">Web Audio (Fast)</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Energy-based onset detection - fast and responsive
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="essentia">
+                    <Box>
+                      <Typography variant="body2">
+                        Essentia.js (Accurate)
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Advanced algorithms - slower but more accurate
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                </Select>
+              </FormControl>
 
-                <TextField
-                  label="Overlap (%)"
-                  type="number"
-                  size="small"
-                  fullWidth
-                  value={formValues.transientOverlapPercent}
-                  onChange={(e) =>
-                    handleInputChange(
-                      'transientOverlapPercent',
-                      parseInt(e.target.value) || 75
-                    )
-                  }
-                  inputProps={{
-                    min: 0,
-                    max: 95,
-                    step: 5,
-                  }}
-                  helperText="Overlap between analysis windows"
-                />
-              </Stack>
+              {/* Web Audio specific controls */}
+              {formValues.onsetDetectionLibrary === 'webaudio' && (
+                <>
+                  <TextField
+                    label="Detection Threshold"
+                    type="number"
+                    size="small"
+                    fullWidth
+                    value={formValues.transientThreshold}
+                    onChange={(e) =>
+                      handleInputChange(
+                        'transientThreshold',
+                        parseFloat(e.target.value) || 50
+                      )
+                    }
+                    inputProps={{
+                      min: 0,
+                      max: 100,
+                      step: 1,
+                    }}
+                    helperText="Sensitivity for detecting transients (0 = low, 100 = high)"
+                  />
+
+                  <Stack direction="row" spacing={2}>
+                    <TextField
+                      label="Frame Size (ms)"
+                      type="number"
+                      size="small"
+                      fullWidth
+                      value={formValues.transientFrameSizeMs}
+                      onChange={(e) =>
+                        handleInputChange(
+                          'transientFrameSizeMs',
+                          parseInt(e.target.value) || 20
+                        )
+                      }
+                      inputProps={{
+                        min: 10,
+                        max: 100,
+                        step: 1,
+                      }}
+                      helperText="Analysis window size"
+                    />
+
+                    <TextField
+                      label="Overlap (%)"
+                      type="number"
+                      size="small"
+                      fullWidth
+                      value={formValues.transientOverlapPercent}
+                      onChange={(e) =>
+                        handleInputChange(
+                          'transientOverlapPercent',
+                          parseInt(e.target.value) || 75
+                        )
+                      }
+                      inputProps={{
+                        min: 0,
+                        max: 95,
+                        step: 5,
+                      }}
+                      helperText="Frame overlap"
+                    />
+                  </Stack>
+                </>
+              )}
+
+              {/* Essentia.js specific controls */}
+              {formValues.onsetDetectionLibrary === 'essentia' && (
+                <>
+                  <TextField
+                    label="Detection Sensitivity"
+                    type="number"
+                    size="small"
+                    fullWidth
+                    value={formValues.essentiaSensitivity}
+                    onChange={(e) =>
+                      handleInputChange(
+                        'essentiaSensitivity',
+                        parseFloat(e.target.value) || 50
+                      )
+                    }
+                    inputProps={{
+                      min: 0,
+                      max: 100,
+                      step: 1,
+                    }}
+                    helperText="Sensitivity for detecting onsets (0 = low, 100 = high)"
+                  />
+
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Detection Method</InputLabel>
+                    <Select
+                      value={formValues.essentiaOnsetMethod}
+                      label="Detection Method"
+                      onChange={(e) =>
+                        handleInputChange(
+                          'essentiaOnsetMethod',
+                          e.target.value as EssentiaOnsetMethod
+                        )
+                      }
+                    >
+                      <MenuItem value="hfc">
+                        <Box>
+                          <Typography variant="body2">
+                            HFC - High Frequency Content
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Best for percussive sounds
+                          </Typography>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="complex">
+                        <Box>
+                          <Typography variant="body2">
+                            Complex - Magnitude & Phase
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Detects pitch and energy changes
+                          </Typography>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="complex_phase">
+                        <Box>
+                          <Typography variant="body2">
+                            Complex Phase - Phase Changes
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Good for tonal sounds
+                          </Typography>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="flux">
+                        <Box>
+                          <Typography variant="body2">Spectral Flux</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Tracks magnitude spectrum changes
+                          </Typography>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="melflux">
+                        <Box>
+                          <Typography variant="body2">Mel Flux</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Mel-frequency band energy changes
+                          </Typography>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="rms">
+                        <Box>
+                          <Typography variant="body2">
+                            RMS - Energy Flux
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Overall energy changes
+                          </Typography>
+                        </Box>
+                      </MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <Stack direction="row" spacing={2}>
+                    <TextField
+                      label="Frame Size (samples)"
+                      type="number"
+                      size="small"
+                      fullWidth
+                      value={formValues.essentiaFrameSize}
+                      onChange={(e) =>
+                        handleInputChange(
+                          'essentiaFrameSize',
+                          parseInt(e.target.value) || 1024
+                        )
+                      }
+                      inputProps={{
+                        min: 512,
+                        max: 4096,
+                        step: 512,
+                      }}
+                      helperText="FFT window size"
+                    />
+
+                    <TextField
+                      label="Hop Size (samples)"
+                      type="number"
+                      size="small"
+                      fullWidth
+                      value={formValues.essentiaHopSize}
+                      onChange={(e) =>
+                        handleInputChange(
+                          'essentiaHopSize',
+                          parseInt(e.target.value) || 512
+                        )
+                      }
+                      inputProps={{
+                        min: 128,
+                        max: 2048,
+                        step: 128,
+                      }}
+                      helperText="Analysis hop size"
+                    />
+                  </Stack>
+                </>
+              )}
             </Stack>
           </Box>
 

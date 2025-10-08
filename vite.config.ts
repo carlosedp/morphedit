@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm}'],
         globIgnores: ['**/stats.html'],
-        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3MB limit
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB limit (increased for essentia.js)
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -85,6 +85,7 @@ export default defineConfig(({ mode }) => ({
           vendor: ['react', 'react-dom'],
           mui: ['@mui/material', '@mui/system', '@mui/icons-material'],
           audio: ['wavesurfer.js', 'web-audio-beat-detector'],
+          essentia: ['essentia.js'], // Split essentia.js into separate chunk
         },
       },
       // Increase max parallel file reads to handle large dependency trees

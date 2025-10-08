@@ -12,6 +12,11 @@ import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import {
   Box,
   Button,
+  Chip,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
   Slider,
   Stack,
   TextField,
@@ -20,7 +25,17 @@ import {
 } from '@mui/material';
 import * as React from 'react';
 
-import { MAX_TOTAL_SPLICE_POINTS, TOOLTIP_DELAYS } from '../constants';
+import {
+  ESSENTIA_ONSET_METHODS,
+  MAX_TOTAL_SPLICE_POINTS,
+  ONSET_DETECTION_LIBRARY_OPTIONS,
+  TOOLTIP_DELAYS,
+} from '../constants';
+import {
+  type EssentiaOnsetMethod,
+  type OnsetDetectionLibrary,
+  useAppSettings,
+} from '../settingsStore';
 
 interface SpliceMarkerControlsProps {
   selectedSpliceMarker: boolean;
@@ -71,6 +86,9 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
   transientOverlap,
   transientSensitivity,
 }) => {
+  // Get settings for detection library
+  const { actions, settings } = useAppSettings();
+
   return (
     <Stack spacing={2} sx={{ mt: 2 }}>
       <Box
@@ -368,153 +386,354 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
             }}
           />
         </Box>
-        {/* Transient detection controls */}
-        <Typography variant="subtitle2" gutterBottom>
-          Splice Detection
+
+        {/* Transient detection controls - Enhanced UI */}
+        <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
+          Beat Detection
         </Typography>
-        <Stack
-          direction="row"
-          spacing={2}
-          alignItems="center"
-          sx={{
-            mb: 2,
-            flexDirection: { xs: 'column', sm: 'row' },
-            alignItems: { xs: 'stretch', sm: 'center' },
-          }}
-        >
-          <Typography
-            variant="body2"
-            sx={{
-              width: { xs: '100%', sm: 120 },
-              textAlign: { xs: 'center', sm: 'left' },
-              fontSize: { xs: '1rem', sm: '0.875rem' },
-            }}
-          >
-            Sensitivity:
-          </Typography>
-          <Box
-            sx={{
-              width: { xs: '100%', sm: 200 },
-              pr: { xs: 2, sm: 1 },
-            }}
-          >
-            <Slider
-              value={transientSensitivity}
-              onChange={(_, value) =>
-                onSetTransientSensitivity(value as number)
+
+        {/* Library and Method Selectors - Side by Side */}
+        <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+          {/* Library Selector - Left 50% */}
+          <FormControl size="small" sx={{ flex: 1 }}>
+            <InputLabel>Detection Library</InputLabel>
+            <Select
+              value={settings.onsetDetectionLibrary}
+              label="Detection Library"
+              onChange={(e) =>
+                actions.updateSettings({
+                  ...settings,
+                  onsetDetectionLibrary: e.target
+                    .value as OnsetDetectionLibrary,
+                })
               }
-              min={0}
-              max={100}
-              step={1}
-              valueLabelDisplay="auto"
-              marks={[
-                { value: 0, label: 'Low' },
-                { value: 50, label: 'Med' },
-                { value: 100, label: 'High' },
-              ]}
-              sx={{
-                '& .MuiSlider-thumb': {
-                  width: { xs: 24, sm: 20 },
-                  height: { xs: 24, sm: 20 },
-                },
-                '& .MuiSlider-markLabel': {
-                  fontSize: { xs: '0.875rem', sm: '0.75rem' },
-                },
-              }}
-            />
-          </Box>
+            >
+              {ONSET_DETECTION_LIBRARY_OPTIONS.map((lib) => (
+                <MenuItem key={lib.value} value={lib.value}>
+                  <Box>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Typography variant="body2">{lib.label}</Typography>
+                      <Chip
+                        label={lib.speed}
+                        size="small"
+                        color={lib.speed === 'Fast' ? 'success' : 'info'}
+                        sx={{ height: 20, fontSize: '0.7rem' }}
+                      />
+                    </Stack>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ display: 'block', mt: 0.5 }}
+                    >
+                      {lib.description}
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {/* Method Selector - Right 50% (only for Essentia.js) */}
+          {settings.onsetDetectionLibrary === 'essentia' ? (
+            <FormControl size="small" sx={{ flex: 1 }}>
+              <InputLabel>Detection Method</InputLabel>
+              <Select
+                value={settings.essentiaOnsetMethod}
+                label="Detection Method"
+                onChange={(e) =>
+                  actions.updateSettings({
+                    ...settings,
+                    essentiaOnsetMethod: e.target.value as EssentiaOnsetMethod,
+                  })
+                }
+              >
+                {Object.entries(ESSENTIA_ONSET_METHODS).map(([key, config]) => (
+                  <MenuItem key={key} value={key}>
+                    <Box>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {config.label}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ display: 'block', mt: 0.3 }}
+                      >
+                        {config.description}
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          ) : (
+            <Box sx={{ flex: 1 }} />
+          )}
         </Stack>
 
-        {/* Advanced controls - Frame Size and Overlap */}
-        <Stack
-          direction="row"
-          spacing={2}
-          alignItems="center"
-          sx={{
-            mb: 2,
-            flexDirection: { xs: 'column', sm: 'row' },
-            alignItems: { xs: 'stretch', sm: 'center' },
-          }}
-        >
-          <Typography
-            variant="body2"
-            sx={{
-              width: { xs: '100%', sm: 120 },
-              textAlign: { xs: 'center', sm: 'left' },
-              fontSize: { xs: '1rem', sm: '0.875rem' },
-            }}
-          >
-            Frame Size:
-          </Typography>
-          <Box
-            sx={{
-              width: { xs: '100%', sm: 200 },
-              pr: { xs: 2, sm: 1 },
-            }}
-          >
-            <Slider
-              value={transientFrameSize}
-              onChange={(_, value) => onSetTransientFrameSize(value as number)}
-              min={5}
-              max={200}
-              step={1}
-              valueLabelDisplay="auto"
-              valueLabelFormat={(value) => `${value}ms`}
-              size="small"
+        {/* Web Audio Controls */}
+        {settings.onsetDetectionLibrary === 'webaudio' && (
+          <>
+            <Stack
+              direction="row"
+              spacing={2}
+              alignItems="center"
               sx={{
-                '& .MuiSlider-thumb': {
-                  width: { xs: 20, sm: 16 },
-                  height: { xs: 20, sm: 16 },
-                },
+                mb: 2,
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: { xs: 'stretch', sm: 'center' },
               }}
-            />
-          </Box>
-        </Stack>
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  width: { xs: '100%', sm: 120 },
+                  textAlign: { xs: 'center', sm: 'left' },
+                  fontSize: { xs: '1rem', sm: '0.875rem' },
+                  fontWeight: 500,
+                }}
+              >
+                Sensitivity:
+              </Typography>
+              <Box
+                sx={{
+                  width: { xs: '100%', sm: 200 },
+                  pr: { xs: 2, sm: 1 },
+                }}
+              >
+                <Slider
+                  value={transientSensitivity}
+                  onChange={(_, value) =>
+                    onSetTransientSensitivity(value as number)
+                  }
+                  min={0}
+                  max={100}
+                  step={1}
+                  valueLabelDisplay="auto"
+                  marks={[
+                    { value: 0, label: 'Low' },
+                    { value: 50, label: 'Med' },
+                    { value: 100, label: 'High' },
+                  ]}
+                  sx={{
+                    '& .MuiSlider-thumb': {
+                      width: { xs: 24, sm: 20 },
+                      height: { xs: 24, sm: 20 },
+                    },
+                    '& .MuiSlider-markLabel': {
+                      fontSize: { xs: '0.875rem', sm: '0.75rem' },
+                    },
+                  }}
+                />
+              </Box>
+              <Typography variant="body2" color="text.secondary">
+                {transientSensitivity}
+              </Typography>
+            </Stack>
 
-        <Stack
-          direction="row"
-          spacing={2}
-          alignItems="center"
-          sx={{
-            mb: 2,
-            flexDirection: { xs: 'column', sm: 'row' },
-            alignItems: { xs: 'stretch', sm: 'center' },
-          }}
-        >
-          <Typography
-            variant="body2"
-            sx={{
-              width: { xs: '100%', sm: 120 },
-              textAlign: { xs: 'center', sm: 'left' },
-              fontSize: { xs: '1rem', sm: '0.875rem' },
-            }}
-          >
-            Overlap:
-          </Typography>
-          <Box
-            sx={{
-              width: { xs: '100%', sm: 200 },
-              pr: { xs: 2, sm: 1 },
-            }}
-          >
-            <Slider
-              value={transientOverlap}
-              onChange={(_, value) => onSetTransientOverlap(value as number)}
-              min={20}
-              max={90}
-              step={5}
-              valueLabelDisplay="auto"
-              valueLabelFormat={(value) => `${value}%`}
-              size="small"
+            {/* Advanced controls - Frame Size and Overlap */}
+            <Stack
+              direction="row"
+              spacing={2}
+              alignItems="center"
               sx={{
-                '& .MuiSlider-thumb': {
-                  width: { xs: 20, sm: 16 },
-                  height: { xs: 20, sm: 16 },
-                },
+                mb: 2,
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: { xs: 'stretch', sm: 'center' },
               }}
-            />
-          </Box>
-        </Stack>
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  width: { xs: '100%', sm: 120 },
+                  textAlign: { xs: 'center', sm: 'left' },
+                  fontSize: { xs: '1rem', sm: '0.875rem' },
+                }}
+              >
+                Frame Size:
+              </Typography>
+              <Box
+                sx={{
+                  width: { xs: '100%', sm: 200 },
+                  pr: { xs: 2, sm: 1 },
+                }}
+              >
+                <Slider
+                  value={transientFrameSize}
+                  onChange={(_, value) =>
+                    onSetTransientFrameSize(value as number)
+                  }
+                  min={5}
+                  max={200}
+                  step={1}
+                  valueLabelDisplay="auto"
+                  valueLabelFormat={(value) => `${value}ms`}
+                  size="small"
+                  sx={{
+                    '& .MuiSlider-thumb': {
+                      width: { xs: 20, sm: 16 },
+                      height: { xs: 20, sm: 16 },
+                    },
+                  }}
+                />
+              </Box>
+              <Typography variant="body2" color="text.secondary">
+                {transientFrameSize}ms
+              </Typography>
+            </Stack>
+
+            <Stack
+              direction="row"
+              spacing={2}
+              alignItems="center"
+              sx={{
+                mb: 2,
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: { xs: 'stretch', sm: 'center' },
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  width: { xs: '100%', sm: 120 },
+                  textAlign: { xs: 'center', sm: 'left' },
+                  fontSize: { xs: '1rem', sm: '0.875rem' },
+                }}
+              >
+                Overlap:
+              </Typography>
+              <Box
+                sx={{
+                  width: { xs: '100%', sm: 200 },
+                  pr: { xs: 2, sm: 1 },
+                }}
+              >
+                <Slider
+                  value={transientOverlap}
+                  onChange={(_, value) =>
+                    onSetTransientOverlap(value as number)
+                  }
+                  min={20}
+                  max={90}
+                  step={5}
+                  valueLabelDisplay="auto"
+                  valueLabelFormat={(value) => `${value}%`}
+                  size="small"
+                  sx={{
+                    '& .MuiSlider-thumb': {
+                      width: { xs: 20, sm: 16 },
+                      height: { xs: 20, sm: 16 },
+                    },
+                  }}
+                />
+              </Box>
+              <Typography variant="body2" color="text.secondary">
+                {transientOverlap}%
+              </Typography>
+            </Stack>
+          </>
+        )}
+
+        {/* Essentia.js Controls */}
+        {settings.onsetDetectionLibrary === 'essentia' && (
+          <>
+            {/* Sensitivity */}
+            <Stack
+              direction="row"
+              spacing={2}
+              alignItems="center"
+              sx={{
+                mb: 2,
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: { xs: 'stretch', sm: 'center' },
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  width: { xs: '100%', sm: 120 },
+                  textAlign: { xs: 'center', sm: 'left' },
+                  fontSize: { xs: '1rem', sm: '0.875rem' },
+                  fontWeight: 500,
+                }}
+              >
+                Sensitivity:
+              </Typography>
+              <Box
+                sx={{
+                  width: { xs: '100%', sm: 200 },
+                  pr: { xs: 2, sm: 1 },
+                }}
+              >
+                <Slider
+                  value={settings.essentiaSensitivity}
+                  onChange={(_, value) =>
+                    actions.updateSettings({
+                      ...settings,
+                      essentiaSensitivity: value as number,
+                    })
+                  }
+                  min={0}
+                  max={100}
+                  step={1}
+                  valueLabelDisplay="auto"
+                  marks={[
+                    { value: 0, label: 'Low' },
+                    { value: 50, label: 'Med' },
+                    { value: 100, label: 'High' },
+                  ]}
+                  sx={{
+                    '& .MuiSlider-thumb': {
+                      width: { xs: 24, sm: 20 },
+                      height: { xs: 24, sm: 20 },
+                    },
+                    '& .MuiSlider-markLabel': {
+                      fontSize: { xs: '0.875rem', sm: '0.75rem' },
+                    },
+                  }}
+                />
+              </Box>
+              <Typography variant="body2" color="text.secondary">
+                {settings.essentiaSensitivity}
+              </Typography>
+            </Stack>
+
+            {/* Frame and Hop Size */}
+            <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+              <TextField
+                label="Frame Size"
+                type="number"
+                size="small"
+                value={settings.essentiaFrameSize}
+                onChange={(e) =>
+                  actions.updateSettings({
+                    ...settings,
+                    essentiaFrameSize: parseInt(e.target.value) || 1024,
+                  })
+                }
+                inputProps={{ min: 512, max: 4096, step: 512 }}
+                helperText="Analysis window"
+                sx={{ flex: 1 }}
+              />
+              <TextField
+                label="Hop Size"
+                type="number"
+                size="small"
+                value={settings.essentiaHopSize}
+                onChange={(e) =>
+                  actions.updateSettings({
+                    ...settings,
+                    essentiaHopSize: parseInt(e.target.value) || 512,
+                  })
+                }
+                inputProps={{ min: 128, max: 2048, step: 128 }}
+                helperText="Step size"
+                sx={{ flex: 1 }}
+              />
+            </Stack>
+          </>
+        )}
+
+        {/* Info text */}
         <Stack
           direction="row"
           spacing={2}
@@ -523,20 +742,15 @@ export const SpliceMarkerControls: React.FC<SpliceMarkerControlsProps> = ({
         >
           <Typography
             variant="caption"
-            color="text.disabled"
+            color="text.secondary"
             sx={{
-              minWidth: 60,
-              textAlign: 'left',
               fontSize: { xs: '0.8rem', sm: '0.75rem' },
               lineHeight: { xs: 1.4, sm: 1.33 },
             }}
           >
-            Sensitivity affects how many transients are detected. Higher values
-            detect more transients but may include noise. Frame size determines
-            the duration of each analysis window (5-200ms). Overlap controls how
-            much each frame overlaps with the next (20-90%). In general, higher
-            sensitivity and overlap values will detect more transients, but may
-            also include more noise.
+            {settings.onsetDetectionLibrary === 'webaudio'
+              ? 'Web Audio uses energy-based detection. Higher sensitivity detects more transients. Frame size determines analysis window duration (5-200ms). Overlap controls window overlap (20-90%).'
+              : 'Essentia.js uses advanced spectral analysis. Choose a method suited to your audio type. Higher sensitivity lowers the detection threshold. Frame size affects frequency resolution, hop size affects time resolution.'}
           </Typography>
         </Stack>
 

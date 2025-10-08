@@ -10,6 +10,11 @@ import {
   REGION_COLORS,
   TRANSIENT_DETECTION,
 } from '../constants';
+import type {
+  EssentiaOnsetMethod,
+  OnsetDetectionLibrary,
+} from '../settingsStore';
+import { detectOnsetsEssentia } from './essentiaOnsetDetection';
 import {
   clearSelectionAndUpdateColors,
   limitSpliceMarkers,
@@ -107,8 +112,9 @@ const calculateThreshold = (
 
 /**
  * Apply transient detection and create splice markers
+ * Supports both Web Audio and Essentia.js detection libraries
  */
-export const applyTransientDetection = (
+export const applyTransientDetection = async (
   _ws: WaveSurfer,
   regions: RegionsPlugin,
   audioBuffer: AudioBuffer,
@@ -117,8 +123,12 @@ export const applyTransientDetection = (
   overlapPercent: number,
   setSpliceMarkersStore: (markers: number[]) => void,
   setSelectedSpliceMarker: (marker: Region | null) => void,
-  updateSpliceMarkerColors: (marker: Region | null) => void
-): number => {
+  updateSpliceMarkerColors: (marker: Region | null) => void,
+  library: OnsetDetectionLibrary = 'webaudio',
+  essentiaMethod?: EssentiaOnsetMethod,
+  essentiaFrameSize?: number,
+  essentiaHopSize?: number
+): Promise<number> => {
   if (!_ws || !regions || !audioBuffer) {
     console.log('Cannot apply transient detection: missing dependencies');
     return 0;
@@ -127,7 +137,7 @@ export const applyTransientDetection = (
   const lockedMarkers = useAudioStore.getState().lockedSpliceMarkers;
 
   console.log(
-    `Applying transient detection with sensitivity: ${sensitivity}, preserving ${lockedMarkers.length} locked markers`
+    `Applying ${library} onset detection with sensitivity: ${sensitivity}, preserving ${lockedMarkers.length} locked markers`
   );
 
   // Clear existing unlocked splice markers only
@@ -142,13 +152,28 @@ export const applyTransientDetection = (
     `Removed ${removedRegions.length} unlocked markers, preserving ${lockedMarkers.length} locked markers`
   );
 
-  // Detect transients
-  const transients = detectTransients(
-    audioBuffer,
-    sensitivity,
-    frameSizeMs,
-    overlapPercent
-  );
+  // Detect transients using selected library
+  let transients: number[];
+
+  if (library === 'essentia') {
+    console.log('Using Essentia.js for onset detection');
+    transients = await detectOnsetsEssentia(
+      audioBuffer,
+      essentiaMethod || 'hfc',
+      essentiaFrameSize || 1024,
+      essentiaHopSize || 512,
+      sensitivity
+    );
+  } else {
+    console.log('Using Web Audio for transient detection');
+    transients = detectTransients(
+      audioBuffer,
+      sensitivity,
+      frameSizeMs,
+      overlapPercent
+    );
+  }
+
   console.log(`Detected ${transients.length} transients:`, transients);
 
   // Filter out transients that are too close to locked markers
