@@ -36,6 +36,7 @@
     "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\"",
     "format": "bun run pretty && bun run eslint",
     "lint": "bun run eslint && bun run pretty && bun run depcheck",
+    "markdownlint": "markdownlint -p .gitignore '**/*.md' --fix",
     "depcheck": "knip",
     "preview": "vite preview",
     "test": "vitest",

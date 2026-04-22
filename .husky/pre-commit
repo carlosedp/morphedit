@@ -1,6 +1,16 @@
+# shellcheck disable=SC2148
 # Run linting to ensure code quality before commit
 echo "🔍 Running linters..."
 bun run lint
+
+echo "🔍 Running markdownlint..."
+bun run markdownlint
+
+# shellcheck disable=SC2181
+if [ $? -ne 0 ]; then
+    echo "❌ Linting failed! Please fix the issues before committing."
+    exit 1
+fi
 
 # If lint passes, allow commit
 echo "✅ Linting passed! Proceeding with commit."

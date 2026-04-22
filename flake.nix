@@ -24,6 +24,8 @@
           bun
           python3
           typescript
+          markdownlint-cli
+          fd
 
           # Development tools
           git
